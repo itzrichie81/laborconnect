@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>FAQ - LaborConnect</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-soft: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            
+            --radius-sm: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== ACTIVE FLOATING BACKGROUND ANIMATION ===== */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mesh-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.15), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.12), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.1), transparent 50%);
+            animation: slowRotate 30s infinite linear;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fast-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fastFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes fastFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: fastPulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes fastPulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        .dance-shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.06));
+            animation: dance 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes dance {
+            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            25% { border-radius: 58% 42% 75% 25% / 43% 37% 63% 57%; transform: rotate(90deg) scale(1.1) translate(20px, -20px); }
+            50% { border-radius: 84% 16% 58% 42% / 55% 73% 27% 45%; transform: rotate(180deg) scale(1.2) translate(-20px, 20px); }
+            75% { border-radius: 40% 60% 33% 67% / 58% 40% 60% 42%; transform: rotate(270deg) scale(1.05) translate(30px, 30px); }
+            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg) scale(1) translate(0, 0); }
+        }
+
+        .floating-card {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: floatCard 15s infinite ease-in-out;
+        }
+
+        @keyframes floatCard {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .light-ray {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: lightSweep 8s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes lightSweep {
+            0% { transform: translateX(-100%); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.3; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .moving-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(37, 99, 235, 0.03) 50px, rgba(37, 99, 235, 0.03) 100px);
+            animation: slideLines 20s infinite linear;
+        }
+
+        @keyframes slideLines {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        /* Dark mode enhancements */
+        body.dark-active .mesh-gradient {
+            background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.25), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.2), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.15), transparent 50%);
+        }
+
+        body.dark-active .fast-particle {
+            background: #60a5fa;
+            box-shadow: 0 0 4px #60a5fa;
+        }
+
+        body.dark-active .glow-orb {
+            filter: blur(100px);
+        }
+
+        body.dark-active .dance-shape {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+        }
+
+        body.dark-active .light-ray {
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+            opacity: 0.5;
+        }
+
+        body.dark-active .star {
+            background: #a78bfa;
+            box-shadow: 0 0 4px #a78bfa;
+        }
+
+        body.dark-active .moving-line {
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(59, 130, 246, 0.08) 50px, rgba(59, 130, 246, 0.08) 100px);
+        }
+
+        /* Main content wrapper */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== FIXED NAVBAR - MATCH HOMEPAGE ===== */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .container {
+            position: relative;
+        }
+
+        /* ========== FIXED LOGO - VISIBLE IN BOTH MODES ========== */
+    .navbar-brand {
+    font-weight: 800 !important;
+    font-size: 1.5rem !important;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    letter-spacing: -0.5px !important;
+    margin-left: 0 !important;
+    display: inline-block !important;
+    width: fit-content !important;
+}
+
+        /* Light mode - solid dark color */
+        .navbar-brand {
+            color: #1f2937 !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+        }
+
+  /* ========== LOGO - MATCH HOMEPAGE ========== */
+.navbar-brand {
+    font-weight: 800 !important;
+    font-size: 1.5rem !important;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    letter-spacing: -0.5px !important;
+    margin-left: 0 !important;
+    display: inline-block !important;
+    width: fit-content !important;
+}
+
+/* Dark mode - lighter gradient for visibility */
+body.dark-active .navbar-brand {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+}
+
+        .nav-link {
+            color: var(--gray-600) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        /* Mobile menu button */
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+            margin-left: auto;
+            background: transparent;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1001;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .navbar-toggler-icon-custom {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .navbar-toggler-icon-custom span {
+            display: block;
+            width: 24px;
+            height: 2.5px;
+            background-color: var(--gray-700);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Mobile Navigation Menu */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 1.5rem;
+                border-radius: 0 0 24px 24px;
+                box-shadow: var(--shadow-lg);
+                z-index: 999;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+            
+            body.dark-active .navbar-collapse {
+                background: #1e293b;
+            }
+            
+            .navbar-nav {
+                margin-bottom: 1rem;
+            }
+            
+            .nav-item {
+                margin: 0.5rem 0;
+            }
+            
+            .navbar-brand {
+                font-size: 1.2rem !important;
+            }
+        }
+
+        /* FAQ Hero Section */
+        .faq-hero {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            padding: 4rem 0;
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            border-radius: 0 0 30px 30px;
+        }
+        
+        .faq-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .faq-hero p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Search Bar */
+        .faq-search-wrapper {
+            max-width: 600px;
+            margin: -30px auto 2rem;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .faq-search-box {
+            background: white;
+            border-radius: 60px;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .faq-search-box i {
+            color: #9ca3af;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+        }
+        
+        .faq-search-box input {
+            flex: 1;
+            border: none;
+            padding: 0.9rem 0;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+        }
+        
+        .faq-search-box input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .faq-search-box button {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border: none;
+            border-radius: 40px;
+            padding: 0.7rem 1.5rem;
+            color: white;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .faq-search-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+        
+        /* Category Tabs */
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        
+        .category-btn {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 100px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .category-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+            transform: translateY(-2px);
+        }
+        
+        .category-btn.active {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.2);
+        }
+        
+        /* FAQ Accordion */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1.5rem 3rem;
+        }
+        
+        .faq-item {
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item:hover {
+            box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .faq-question {
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            transition: background 0.2s ease;
+        }
+        
+        .faq-question:hover {
+            background: #f8fafc;
+        }
+        
+        .faq-question h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            color: #1f2937;
+            flex: 1;
+            padding-right: 1rem;
+        }
+        
+        .faq-icon {
+            width: 28px;
+            height: 28px;
+            background: #eff6ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+        
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #f8fafc;
+            border-top: 1px solid transparent;
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 300px;
+            border-top-color: #e5e7eb;
+        }
+        
+        .faq-answer p {
+            padding: 1.25rem 1.5rem;
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        
+        /* Stats Section */
+        .faq-stats {
+            background: rgba(248, 250, 252, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 3rem 0;
+            margin-top: 2rem;
+        }
+        
+        .stats-grid {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        /* Contact CTA */
+        .contact-cta {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            color: white;
+            margin: 3rem auto;
+            max-width: 700px;
+        }
+        
+        .contact-cta h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .contact-cta p {
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-cta .btn-white {
+            background: white;
+            color: #2563eb;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 100px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .contact-cta .btn-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Dark Mode */
+        body.dark-active .navbar {
+            background: rgba(15, 23, 42, 0.95) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        body.dark-active .nav-link {
+            color: var(--gray-300) !important;
+        }
+        
+        body.dark-active .nav-link:hover {
+            color: #60a5fa !important;
+        }
+        
+        body.dark-active .faq-item {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        
+        body.dark-active .faq-question {
+            background: #1e293b;
+        }
+        
+        body.dark-active .faq-question:hover {
+            background: #334155;
+        }
+        
+        body.dark-active .faq-question h4 {
+            color: #f1f5f9;
+        }
+        
+        body.dark-active .faq-answer {
+            background: #0f172a;
+        }
+        
+        body.dark-active .faq-answer p {
+            color: #94a3b8;
+        }
+        
+        body.dark-active .faq-icon {
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+        }
+        
+        body.dark-active .category-btn {
+            background: #1e293b;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+        
+        body.dark-active .category-btn.active {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+        }
+        
+        body.dark-active .faq-search-box {
+            background: #1e293b;
+            border-color: #334155;
+        }
+        
+        body.dark-active .faq-search-box input {
+            color: white;
+        }
+        
+        body.dark-active .faq-search-box input::placeholder {
+            color: #64748b;
+        }
+        
+        body.dark-active .faq-stats {
+            background: rgba(15, 23, 42, 0.7);
+        }
+        
+        body.dark-active .stat-label {
+            color: #94a3b8;
+        }
+        
+        @media (max-width: 768px) {
+            .faq-hero h1 {
+                font-size: 1.75rem;
+            }
+            .faq-hero {
+                padding: 2rem 0;
+            }
+            .faq-search-box {
+                flex-direction: column;
+                border-radius: 20px;
+                padding: 1rem;
+            }
+            .faq-search-box input {
+                width: 100%;
+                text-align: center;
+                padding: 0.5rem;
+            }
+            .faq-search-box button {
+                width: 100%;
+            }
+            .category-tabs {
+                gap: 0.5rem;
+            }
+            .category-btn {
+                padding: 0.4rem 1rem;
+                font-size: 0.75rem;
+            }
+            .faq-question {
+                padding: 1rem;
+            }
+            .faq-question h4 {
+                font-size: 0.9rem;
+            }
+            .stats-grid {
+                gap: 1.5rem;
+            }
+            .contact-cta {
+                padding: 1.5rem;
+                margin: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ACTIVE ANIMATED BACKGROUND -->
+<div class="animated-bg">
+    <div class="mesh-gradient"></div>
+    <div class="moving-line"></div>
+    
+    <div class="fast-particle" style="left: 5%; animation-duration: 5s; animation-delay: 0s;"></div>
+    <div class="fast-particle" style="left: 15%; animation-duration: 6s; animation-delay: 1s;"></div>
+    <div class="fast-particle" style="left: 25%; animation-duration: 4.5s; animation-delay: 2s;"></div>
+    <div class="fast-particle" style="left: 35%; animation-duration: 7s; animation-delay: 0.5s;"></div>
+    <div class="fast-particle" style="left: 45%; animation-duration: 5.5s; animation-delay: 3s;"></div>
+    <div class="fast-particle" style="left: 55%; animation-duration: 6.5s; animation-delay: 1.5s;"></div>
+    <div class="fast-particle" style="left: 65%; animation-duration: 4.8s; animation-delay: 4s;"></div>
+    <div class="fast-particle" style="left: 75%; animation-duration: 7.2s; animation-delay: 2.5s;"></div>
+    <div class="fast-particle" style="left: 85%; animation-duration: 5.2s; animation-delay: 0.8s;"></div>
+    <div class="fast-particle" style="left: 95%; animation-duration: 6.8s; animation-delay: 3.5s;"></div>
+    
+    <div class="glow-orb" style="width: 400px; height: 400px; background: radial-gradient(circle, #2563eb, transparent); top: -150px; left: -150px; animation-duration: 3s;"></div>
+    <div class="glow-orb" style="width: 500px; height: 500px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -200px; right: -200px; animation-duration: 3.5s;"></div>
+    <div class="glow-orb" style="width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent); top: 40%; left: 30%; animation-duration: 4s;"></div>
+    <div class="glow-orb" style="width: 350px; height: 350px; background: radial-gradient(circle, #10b981, transparent); bottom: 30%; right: 25%; animation-duration: 3.2s;"></div>
+    
+    <div class="dance-shape" style="width: 180px; height: 180px; top: 10%; left: -50px; animation-duration: 10s;"></div>
+    <div class="dance-shape" style="width: 140px; height: 140px; bottom: 15%; right: -30px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="dance-shape" style="width: 200px; height: 200px; top: 50%; right: 15%; animation-duration: 14s; animation-delay: 5s;"></div>
+    
+    <div class="floating-card" style="left: 10%; animation-duration: 14s; animation-delay: 0s;"></div>
+    <div class="floating-card" style="left: 30%; animation-duration: 16s; animation-delay: 3s;"></div>
+    <div class="floating-card" style="left: 50%; animation-duration: 12s; animation-delay: 6s;"></div>
+    <div class="floating-card" style="left: 70%; animation-duration: 18s; animation-delay: 2s;"></div>
+    <div class="floating-card" style="left: 90%; animation-duration: 13s; animation-delay: 8s;"></div>
+    
+    <div class="light-ray" style="top: 20%; animation-duration: 7s;"></div>
+    <div class="light-ray" style="top: 50%; animation-duration: 9s; animation-delay: 3s;"></div>
+    <div class="light-ray" style="top: 80%; animation-duration: 6s; animation-delay: 5s;"></div>
+    
+    <div class="star" style="left: 10%; top: 15%; animation-duration: 2.5s;"></div>
+    <div class="star" style="left: 30%; top: 25%; animation-duration: 3s; animation-delay: 1s;"></div>
+    <div class="star" style="left: 50%; top: 10%; animation-duration: 2s; animation-delay: 0.5s;"></div>
+    <div class="star" style="left: 70%; top: 20%; animation-duration: 3.5s; animation-delay: 2s;"></div>
+    <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
+</div>
+
+<div class="content-wrapper">
+    <!-- Navbar - Matching Homepage (without buttons) -->
+    <nav class="navbar navbar-expand-lg" id="navbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+            
+            <!-- Mobile Menu Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <div class="navbar-toggler-icon-custom">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+                <div id="authButtons"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="faq-hero">
+        <div class="container">
+            <h1 id="faqTitle">Frequently Asked Questions</h1>
+            <p id="faqSubtitle">Find answers to common questions about LaborConnect</p>
+        </div>
+    </section>
+
+    <!-- Search Bar -->
+    <div class="faq-search-wrapper">
+        <div class="faq-search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchFaq" placeholder="Search for answers...">
+            <button onclick="searchFaq()" id="searchBtn">Search</button>
+        </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="container">
+        <div class="category-tabs">
+            <button class="category-btn active" data-category="all" id="catAll">All Questions</button>
+            <button class="category-btn" data-category="general" id="catGeneral">General</button>
+            <button class="category-btn" data-category="workers" id="catWorkers">For Workers</button>
+            <button class="category-btn" data-category="customers" id="catCustomers">For Customers</button>
+            <button class="category-btn" data-category="payments" id="catPayments">Payments & Safety</button>
+        </div>
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div class="faq-container" id="faqContainer">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <section class="faq-stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="stat1">24/7</div>
+                    <div class="stat-label" id="stat1Label">Support Available</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="stat2">98%</div>
+                    <div class="stat-label" id="stat2Label">Customer Satisfaction</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="stat3">&lt;5min</div>
+                    <div class="stat-label" id="stat3Label">Avg Response Time</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact CTA -->
+    <div class="container">
+        <div class="contact-cta">
+            <h3 id="ctaTitle">Still have questions?</h3>
+            <p id="ctaText">Can't find what you're looking for? Our support team is here to help.</p>
+            <a href="contact.html" class="btn-white" id="ctaBtn">Contact Support →</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white mb-3">LaborConnect</h5>
+                    <p class="small">Connecting skilled workers with customers — fast, simple, and transparent.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Platform</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="worker-directory.html">Find Workers</a></li>
+                        <li class="mb-2"><a href="customer-directory.html">Find Customers</a></li>
+                        <li class="mb-2"><a href="nearby-users.html">Nearby Jobs</a></li>
+                        <li class="mb-2"><a href="post-job.html">Post a Job</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Company</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="about.html">About</a></li>
+                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white mb-3">Get the App</h6>
+                    <p class="small">Coming soon to iOS and Android</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary p-2"><i class="fab fa-apple me-1"></i> App Store</span>
+                        <span class="badge bg-secondary p-2"><i class="fab fa-google-play me-1"></i> Google Play</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center small">
+                <p class="mb-0" id="copyright">&copy; 2026 LaborConnect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="common.js"></script>
+<script>
+    // ==================== FAQ DATA ====================
+    const faqData = {
+        en: {
+            general: [
+                { q: "What is LaborConnect?", a: "LaborConnect is a marketplace that connects skilled workers with customers looking for reliable services like plumbing, electrical work, cleaning, carpentry, and more." },
+                { q: "Is LaborConnect free to use?", a: "Yes! Signing up, browsing profiles, and messaging are completely free. We only charge a small platform fee for completed jobs." },
+                { q: "How do I get started?", a: "Simply create an account, choose whether you're a worker or customer, complete your profile, and start connecting!" }
+            ],
+            workers: [
+                { q: "How do I become a verified worker?", a: "Register as a worker, complete your profile with your skills and experience, upload photos of your work, and complete the verification process." },
+                { q: "How much can I earn?", a: "Earnings vary based on your skills, location, and job volume. Many workers earn $500-2000+ monthly through the platform." },
+                { q: "How do I get paid?", a: "Payments are processed securely through the platform. Funds are released to your account after job completion and customer confirmation." }
+            ],
+            customers: [
+                { q: "How do I find a reliable worker?", a: "Browse worker profiles, check their ratings and reviews, view their work gallery, and chat with them before hiring." },
+                { q: "What if I'm not satisfied with the work?", a: "We have a dispute resolution team to help. You can also leave honest reviews to help other customers make informed decisions." },
+                { q: "How quickly can I get help?", a: "Many workers respond within minutes. You can often have someone at your door within 1-2 hours for urgent jobs." }
+            ],
+            payments: [
+                { q: "Is my payment information secure?", a: "Yes! All payments are processed through secure, encrypted systems. We never store your full payment details." },
+                { q: "What is the platform fee?", a: "We charge a small fee (typically 5-10% of the job value) to cover verification, support, and platform maintenance." },
+                { q: "How is worker safety ensured?", a: "All workers are verified, background-checked, and rated by real customers. We also offer secure in-app messaging and payment protection." }
+            ]
+        }
+    };
+
+    let currentCategory = 'all';
+    let searchTerm = '';
+
+    function getAllFaqItems() {
+        const items = [];
+        const categories = ['general', 'workers', 'customers', 'payments'];
+        categories.forEach(cat => {
+            if (faqData.en && faqData.en[cat]) {
+                faqData.en[cat].forEach((item, index) => {
+                    items.push({
+                        id: `${cat}_${index}`,
+                        category: cat,
+                        question: item.q,
+                        answer: item.a
+                    });
+                });
+            }
+        });
+        return items;
+    }
+
+    function renderFaq() {
+        let items = getAllFaqItems();
+        
+        if (currentCategory !== 'all') {
+            items = items.filter(item => item.category === currentCategory);
+        }
+        
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase();
+            items = items.filter(item => 
+                item.question.toLowerCase().includes(term) || 
+                item.answer.toLowerCase().includes(term)
+            );
+        }
+        
+        const container = document.getElementById('faqContainer');
+        
+        if (items.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4>No results found</h4>
+                    <p class="text-muted">Try a different search term or category</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = items.map(item => `
+            <div class="faq-item" data-category="${item.category}">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <h4>${escapeHtml(item.question)}</h4>
+                    <div class="faq-icon">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer">
+                    <p>${escapeHtml(item.answer)}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleFaq(element) {
+        const faqItem = element.closest('.faq-item');
+        faqItem.classList.toggle('active');
+    }
+
+    function searchFaq() {
+        const searchInput = document.getElementById('searchFaq');
+        searchTerm = searchInput.value;
+        renderFaq();
+        
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('[data-category="all"]').classList.add('active');
+        currentCategory = 'all';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ==================== DARK MODE ====================
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    
+    function initDarkMode() {
+        if (localStorage.getItem(DARK_MODE_KEY) === 'true') {
+            document.body.classList.add('dark-active');
+        }
+    }
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === DARK_MODE_KEY) {
+            if (e.newValue === 'true') {
+                document.body.classList.add('dark-active');
+            } else {
+                document.body.classList.remove('dark-active');
+            }
+        }
+    });
+    
+    function checkDarkModeChange() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive && !document.body.classList.contains('dark-active')) {
+            document.body.classList.add('dark-active');
+        } else if (!isDarkActive && document.body.classList.contains('dark-active')) {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    setInterval(checkDarkModeChange, 500);
+    
+    initDarkMode();
+
+    // ==================== SCROLL EFFECT ====================
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // ==================== AUTH BUTTONS (empty) ====================
+    function loadAuthState() {
+        const authButtons = document.getElementById("authButtons");
+        authButtons.innerHTML = '';
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.category;
+            searchTerm = '';
+            document.getElementById('searchFaq').value = '';
+            renderFaq();
+        });
+    });
+
+    document.getElementById('searchFaq').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            searchFaq();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadAuthState();
+        renderFaq();
+    });
+</script>
+</body>
+</html>

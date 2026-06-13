@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Contact Us - LaborConnect</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-soft: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mesh-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.15), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.12), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.1), transparent 50%);
+            animation: slowRotate 30s infinite linear;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fast-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fastFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes fastFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: fastPulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes fastPulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        .dance-shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.06));
+            animation: dance 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes dance {
+            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            25% { border-radius: 58% 42% 75% 25% / 43% 37% 63% 57%; transform: rotate(90deg) scale(1.1) translate(20px, -20px); }
+            50% { border-radius: 84% 16% 58% 42% / 55% 73% 27% 45%; transform: rotate(180deg) scale(1.2) translate(-20px, 20px); }
+            75% { border-radius: 40% 60% 33% 67% / 58% 40% 60% 42%; transform: rotate(270deg) scale(1.05) translate(30px, 30px); }
+            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg) scale(1) translate(0, 0); }
+        }
+
+        .floating-card {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: floatCard 15s infinite ease-in-out;
+        }
+
+        @keyframes floatCard {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .light-ray {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: lightSweep 8s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes lightSweep {
+            0% { transform: translateX(-100%); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.3; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .moving-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(37, 99, 235, 0.03) 50px, rgba(37, 99, 235, 0.03) 100px);
+            animation: slideLines 20s infinite linear;
+        }
+
+        @keyframes slideLines {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        /* Dark mode enhancements */
+        body.dark-active .mesh-gradient {
+            background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.25), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.2), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.15), transparent 50%);
+        }
+
+        body.dark-active .fast-particle {
+            background: #60a5fa;
+            box-shadow: 0 0 4px #60a5fa;
+        }
+
+        body.dark-active .glow-orb {
+            filter: blur(100px);
+        }
+
+        body.dark-active .dance-shape {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+        }
+
+        body.dark-active .light-ray {
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+            opacity: 0.5;
+        }
+
+        body.dark-active .star {
+            background: #a78bfa;
+            box-shadow: 0 0 4px #a78bfa;
+        }
+
+        body.dark-active .moving-line {
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(59, 130, 246, 0.08) 50px, rgba(59, 130, 246, 0.08) 100px);
+        }
+
+        /* Main content wrapper */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== MODERN NAVBAR - FIXED LOGO ===== */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Logo - SOLID COLOR for light mode, gradient for dark mode */
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+        
+        /* Light mode - solid dark color (visible) */
+        .navbar-brand {
+            color: #1f2937 !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+        }
+
+        /* Dark mode - gradient */
+        body.dark-active .navbar-brand {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+        }
+
+        .dark-toggle-btn {
+            display: none !important;
+        }
+
+        .nav-link {
+            color: var(--gray-600) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        body.dark-active .nav-link {
+            color: var(--gray-300) !important;
+        }
+
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+            margin-left: auto;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-active .navbar-toggler {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .navbar-toggler-icon-custom {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .navbar-toggler-icon-custom span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background-color: #374151;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-active .navbar-toggler-icon-custom span {
+            background-color: #e5e7eb;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 1.5rem;
+                border-radius: 0 0 24px 24px;
+                box-shadow: var(--shadow-lg);
+                z-index: 999;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+            body.dark-active .navbar-collapse {
+                background: #1e293b;
+            }
+        }
+
+        /* Contact Page Specific Styles */
+        .contact-hero {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            padding: 4rem 0;
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .contact-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .contact-hero p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-cards {
+            padding: 0 1.5rem;
+            margin-top: -2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            height: 100%;
+            border: 1px solid #e5e7eb;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .contact-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .contact-icon i {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .contact-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .contact-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-card a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .contact-card a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        .form-section {
+            padding: 3rem 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .form-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-title h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-title p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .input-group-custom {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 1rem;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.5rem;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            background: white;
+            color: #1f2937;
+        }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea.form-control-custom {
+            resize: vertical;
+            min-height: 120px;
+            padding-top: 0.85rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .map-section {
+            padding: 2rem 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .map-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .map-placeholder {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 3rem;
+            text-align: center;
+            color: white;
+        }
+
+        .map-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+
+        .map-placeholder p {
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .social-section {
+            padding: 2rem 1.5rem 4rem;
+            text-align: center;
+        }
+
+        .social-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            text-decoration: none;
+        }
+
+        .social-link:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+        }
+
+        .alert-message {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #10b981;
+            border: 1px solid #a7f3d0;
+        }
+
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Dark Mode */
+        body.dark-active .contact-card,
+        body.dark-active .form-card,
+        body.dark-active .map-container {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(51, 65, 85, 0.5);
+        }
+
+        body.dark-active .contact-card h4,
+        body.dark-active .form-title h3,
+        body.dark-active .social-title {
+            color: #f1f5f9;
+        }
+
+        body.dark-active .contact-card p,
+        body.dark-active .form-title p {
+            color: #94a3b8;
+        }
+
+        body.dark-active .contact-icon {
+            background: rgba(37, 99, 235, 0.2);
+        }
+
+        body.dark-active .form-control-custom {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-active .form-control-custom:focus {
+            border-color: #3b82f6;
+        }
+
+        body.dark-active .form-label {
+            color: #cbd5e1;
+        }
+
+        body.dark-active .social-link {
+            background: #1e293b;
+            border-color: #334155;
+            color: #60a5fa;
+        }
+
+        body.dark-active .social-link:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        body.dark-active .navbar {
+            background: rgba(15, 23, 42, 0.95) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .contact-hero h1 {
+                font-size: 1.75rem;
+            }
+            .contact-hero {
+                padding: 2rem 0;
+            }
+            .contact-cards {
+                padding: 0 1rem;
+            }
+            .form-card {
+                padding: 1.5rem;
+            }
+            .contact-card {
+                margin-bottom: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .contact-icon {
+                width: 55px;
+                height: 55px;
+            }
+            .contact-icon i {
+                font-size: 1.4rem;
+            }
+            .social-link {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ANIMATED BACKGROUND -->
+<div class="animated-bg">
+    <div class="mesh-gradient"></div>
+    <div class="moving-line"></div>
+    
+    <div class="fast-particle" style="left: 5%; animation-duration: 5s; animation-delay: 0s;"></div>
+    <div class="fast-particle" style="left: 15%; animation-duration: 6s; animation-delay: 1s;"></div>
+    <div class="fast-particle" style="left: 25%; animation-duration: 4.5s; animation-delay: 2s;"></div>
+    <div class="fast-particle" style="left: 35%; animation-duration: 7s; animation-delay: 0.5s;"></div>
+    <div class="fast-particle" style="left: 45%; animation-duration: 5.5s; animation-delay: 3s;"></div>
+    <div class="fast-particle" style="left: 55%; animation-duration: 6.5s; animation-delay: 1.5s;"></div>
+    <div class="fast-particle" style="left: 65%; animation-duration: 4.8s; animation-delay: 4s;"></div>
+    <div class="fast-particle" style="left: 75%; animation-duration: 7.2s; animation-delay: 2.5s;"></div>
+    <div class="fast-particle" style="left: 85%; animation-duration: 5.2s; animation-delay: 0.8s;"></div>
+    <div class="fast-particle" style="left: 95%; animation-duration: 6.8s; animation-delay: 3.5s;"></div>
+    
+    <div class="glow-orb" style="width: 400px; height: 400px; background: radial-gradient(circle, #2563eb, transparent); top: -150px; left: -150px; animation-duration: 3s;"></div>
+    <div class="glow-orb" style="width: 500px; height: 500px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -200px; right: -200px; animation-duration: 3.5s;"></div>
+    <div class="glow-orb" style="width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent); top: 40%; left: 30%; animation-duration: 4s;"></div>
+    <div class="glow-orb" style="width: 350px; height: 350px; background: radial-gradient(circle, #10b981, transparent); bottom: 30%; right: 25%; animation-duration: 3.2s;"></div>
+    
+    <div class="dance-shape" style="width: 180px; height: 180px; top: 10%; left: -50px; animation-duration: 10s;"></div>
+    <div class="dance-shape" style="width: 140px; height: 140px; bottom: 15%; right: -30px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="dance-shape" style="width: 200px; height: 200px; top: 50%; right: 15%; animation-duration: 14s; animation-delay: 5s;"></div>
+    
+    <div class="floating-card" style="left: 10%; animation-duration: 14s; animation-delay: 0s;"></div>
+    <div class="floating-card" style="left: 30%; animation-duration: 16s; animation-delay: 3s;"></div>
+    <div class="floating-card" style="left: 50%; animation-duration: 12s; animation-delay: 6s;"></div>
+    <div class="floating-card" style="left: 70%; animation-duration: 18s; animation-delay: 2s;"></div>
+    <div class="floating-card" style="left: 90%; animation-duration: 13s; animation-delay: 8s;"></div>
+    
+    <div class="light-ray" style="top: 20%; animation-duration: 7s;"></div>
+    <div class="light-ray" style="top: 50%; animation-duration: 9s; animation-delay: 3s;"></div>
+    <div class="light-ray" style="top: 80%; animation-duration: 6s; animation-delay: 5s;"></div>
+    
+    <div class="star" style="left: 10%; top: 15%; animation-duration: 2.5s;"></div>
+    <div class="star" style="left: 30%; top: 25%; animation-duration: 3s; animation-delay: 1s;"></div>
+    <div class="star" style="left: 50%; top: 10%; animation-duration: 2s; animation-delay: 0.5s;"></div>
+    <div class="star" style="left: 70%; top: 20%; animation-duration: 3.5s; animation-delay: 2s;"></div>
+    <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
+</div>
+
+<div class="content-wrapper">
+    <!-- Navbar - No Auth Buttons -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <div class="navbar-toggler-icon-custom">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+                <!-- No auth buttons - completely removed -->
+                <div id="authButtons"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="contact-hero">
+        <div class="container">
+            <h1 id="contactTitle">Get in Touch</h1>
+            <p id="contactSubtitle">We'd love to hear from you. Reach out with any questions or feedback.</p>
+        </div>
+    </section>
+
+    <!-- Contact Cards -->
+    <div class="contact-cards">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 id="emailTitle">Email Us</h4>
+                    <p>We'll respond within 24 hours</p>
+                    <a href="mailto:support@laborconnect.com">support@laborconnect.com</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <h4 id="phoneTitle">Call Us</h4>
+                    <p>Mon-Fri, 9am - 6pm</p>
+                    <a href="tel:+1234567890">+1 (234) 567-890</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h4 id="locationTitle">Visit Us</h4>
+                    <p>Come say hello at our office</p>
+                    <p>123 Market Street, Tech City, TC 12345</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Form Section -->
+    <div class="form-section">
+        <div class="form-card">
+            <div class="form-title">
+                <h3 id="formTitle">Send us a Message</h3>
+                <p id="formSubtitle">Fill out the form below and we'll get back to you as soon as possible.</p>
+            </div>
+            
+            <div id="alertMessage" class="alert-message"></div>
+            
+            <form id="contactForm">
+                <div class="form-group">
+                    <label class="form-label" id="nameLabel">Full Name</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" class="form-control-custom" id="name" placeholder="John Doe" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" id="emailLabel">Email Address</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" class="form-control-custom" id="email" placeholder="you@example.com" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" id="subjectLabel">Subject</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-tag input-icon"></i>
+                        <input type="text" class="form-control-custom" id="subject" placeholder="How can we help you?" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" id="messageLabel">Message</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-comment input-icon" style="top: 1.2rem;"></i>
+                        <textarea class="form-control-custom" id="message" placeholder="Please provide details about your inquiry..." required></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-paper-plane me-2"></i> <span id="sendText">Send Message</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="map-section">
+        <div class="map-container">
+            <div class="map-placeholder">
+                <i class="fas fa-map-marked-alt"></i>
+                <p id="mapText">📍 123 Market Street, Tech City, TC 12345</p>
+                <small id="mapSubtext">Find us on the map - We're located in the heart of Tech City</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Links Section -->
+    <div class="social-section">
+        <h4 class="social-title" id="socialTitle">Follow Us</h4>
+        <div class="social-links">
+            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white mb-3">LaborConnect</h5>
+                    <p class="small">Connecting skilled workers with customers — fast, simple, and transparent.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Platform</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="worker-directory.html">Find Workers</a></li>
+                        <li class="mb-2"><a href="customer-directory.html">Find Customers</a></li>
+                        <li class="mb-2"><a href="nearby-users.html">Nearby Jobs</a></li>
+                        <li class="mb-2"><a href="post-job.html">Post a Job</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Company</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="about.html">About</a></li>
+                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white mb-3">Get the App</h6>
+                    <p class="small">Coming soon to iOS and Android</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary p-2"><i class="fab fa-apple me-1"></i> App Store</span>
+                        <span class="badge bg-secondary p-2"><i class="fab fa-google-play me-1"></i> Google Play</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center small">
+                <p class="mb-0" id="copyright">&copy; 2026 LaborConnect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="common.js"></script>
+<script>
+    // ==================== TRANSLATIONS ====================
+    const contactTranslations = {
+        en: {
+            contactTitle: "Get in Touch",
+            contactSubtitle: "We'd love to hear from you. Reach out with any questions or feedback.",
+            emailTitle: "Email Us",
+            phoneTitle: "Call Us",
+            locationTitle: "Visit Us",
+            formTitle: "Send us a Message",
+            formSubtitle: "Fill out the form below and we'll get back to you as soon as possible.",
+            nameLabel: "Full Name",
+            emailLabel: "Email Address",
+            subjectLabel: "Subject",
+            messageLabel: "Message",
+            sendText: "Send Message",
+            mapText: "📍 123 Market Street, Tech City, TC 12345",
+            mapSubtext: "Find us on the map - We're located in the heart of Tech City",
+            socialTitle: "Follow Us",
+            copyright: "© 2026 LaborConnect. All rights reserved.",
+            successMessage: "Thank you for your message! We'll get back to you soon.",
+            errorMessage: "Please fill in all fields correctly."
+        },
+        ko: {
+            contactTitle: "문의하기",
+            contactSubtitle: "여러분의 의견을 듣고 싶습니다. 질문이나 피드백이 있으시면 언제든지 연락주세요.",
+            emailTitle: "이메일 보내기",
+            phoneTitle: "전화하기",
+            locationTitle: "방문하기",
+            formTitle: "메시지 보내기",
+            formSubtitle: "아래 양식을 작성해 주시면 최대한 빨리 연락드리겠습니다.",
+            nameLabel: "이름",
+            emailLabel: "이메일 주소",
+            subjectLabel: "제목",
+            messageLabel: "메시지",
+            sendText: "메시지 보내기",
+            mapText: "📍 테크시티 마켓스트리트 123, TC 12345",
+            mapSubtext: "지도에서 찾아보세요 - 테크시티 중심부에 위치하고 있습니다",
+            socialTitle: "팔로우하기",
+            copyright: "© 2024 노동커넥트. 모든 권리 보유.",
+            successMessage: "메시지를 보내주셔서 감사합니다! 곧 연락드리겠습니다.",
+            errorMessage: "모든 필드를 올바르게 입력해주세요."
+        },
+        zh: {
+            contactTitle: "联系我们",
+            contactSubtitle: "我们期待听到您的意见。如有任何问题或反馈，请随时联系我们。",
+            emailTitle: "发送邮件",
+            phoneTitle: "电话联系",
+            locationTitle: "访问我们",
+            formTitle: "发送消息",
+            formSubtitle: "填写下面的表格，我们会尽快回复您。",
+            nameLabel: "姓名",
+            emailLabel: "电子邮件地址",
+            subjectLabel: "主题",
+            messageLabel: "消息",
+            sendText: "发送消息",
+            mapText: "📍 科技城市场街123号, TC 12345",
+            mapSubtext: "在地图上找到我们 - 我们位于科技城的中心地带",
+            socialTitle: "关注我们",
+            copyright: "© 2024 劳务连接。保留所有权利。",
+            successMessage: "感谢您的留言！我们会尽快回复您。",
+            errorMessage: "请正确填写所有字段。"
+        },
+        fr: {
+            contactTitle: "Contactez-nous",
+            contactSubtitle: "Nous aimerions avoir de vos nouvelles. N'hésitez pas à nous contacter pour toute question ou retour.",
+            emailTitle: "Envoyez un email",
+            phoneTitle: "Appelez-nous",
+            locationTitle: "Visitez-nous",
+            formTitle: "Envoyez-nous un message",
+            formSubtitle: "Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.",
+            nameLabel: "Nom complet",
+            emailLabel: "Adresse e-mail",
+            subjectLabel: "Sujet",
+            messageLabel: "Message",
+            sendText: "Envoyer le message",
+            mapText: "📍 123 Rue du Marché, Tech City, TC 12345",
+            mapSubtext: "Trouvez-nous sur la carte - Nous sommes situés au cœur de Tech City",
+            socialTitle: "Suivez-nous",
+            copyright: "© 2024 ConnectTravail. Tous droits réservés.",
+            successMessage: "Merci pour votre message ! Nous vous répondrons bientôt.",
+            errorMessage: "Veuillez remplir correctement tous les champs."
+        },
+        ru: {
+            contactTitle: "Свяжитесь с нами",
+            contactSubtitle: "Мы будем рады услышать вас. Свяжитесь с нами по любым вопросам или отзывам.",
+            emailTitle: "Написать нам",
+            phoneTitle: "Позвонить нам",
+            locationTitle: "Посетить нас",
+            formTitle: "Отправить сообщение",
+            formSubtitle: "Заполните форму ниже, и мы свяжемся с вами как можно скорее.",
+            nameLabel: "Полное имя",
+            emailLabel: "Электронная почта",
+            subjectLabel: "Тема",
+            messageLabel: "Сообщение",
+            sendText: "Отправить сообщение",
+            mapText: "📍 123 Рыночная улица, Тех-Сити, TC 12345",
+            mapSubtext: "Найдите нас на карте - Мы находимся в центре Тех-Сити",
+            socialTitle: "Подписывайтесь на нас",
+            copyright: "© 2024 ТрудСвязь. Все права защищены.",
+            successMessage: "Спасибо за ваше сообщение! Мы скоро свяжемся с вами.",
+            errorMessage: "Пожалуйста, правильно заполните все поля."
+        }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    function updateContactLanguage() {
+        const t = contactTranslations[currentLanguage] || contactTranslations.en;
+        
+        document.getElementById('contactTitle').textContent = t.contactTitle;
+        document.getElementById('contactSubtitle').textContent = t.contactSubtitle;
+        document.getElementById('emailTitle').textContent = t.emailTitle;
+        document.getElementById('phoneTitle').textContent = t.phoneTitle;
+        document.getElementById('locationTitle').textContent = t.locationTitle;
+        document.getElementById('formTitle').textContent = t.formTitle;
+        document.getElementById('formSubtitle').textContent = t.formSubtitle;
+        document.getElementById('nameLabel').textContent = t.nameLabel;
+        document.getElementById('emailLabel').textContent = t.emailLabel;
+        document.getElementById('subjectLabel').textContent = t.subjectLabel;
+        document.getElementById('messageLabel').textContent = t.messageLabel;
+        document.getElementById('sendText').textContent = t.sendText;
+        document.getElementById('mapText').textContent = t.mapText;
+        document.getElementById('mapSubtext').textContent = t.mapSubtext;
+        document.getElementById('socialTitle').textContent = t.socialTitle;
+        document.getElementById('copyright').textContent = t.copyright;
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'language') {
+            currentLanguage = e.newValue || 'en';
+            updateContactLanguage();
+        }
+    });
+    
+    function checkLanguageChange() {
+        const newLang = localStorage.getItem('language') || 'en';
+        if (newLang !== currentLanguage) {
+            currentLanguage = newLang;
+            updateContactLanguage();
+        }
+    }
+    setInterval(checkLanguageChange, 500);
+
+    // ==================== DARK MODE - RESPONSIVE TO HOMEPAGE ====================
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    
+    function applyDarkMode() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive) {
+            document.body.classList.add('dark-active');
+        } else {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === DARK_MODE_KEY) {
+            applyDarkMode();
+        }
+    });
+    
+    function checkDarkModeChange() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive && !document.body.classList.contains('dark-active')) {
+            document.body.classList.add('dark-active');
+        } else if (!isDarkActive && document.body.classList.contains('dark-active')) {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    setInterval(checkDarkModeChange, 500);
+    
+    applyDarkMode();
+
+    // ==================== AUTH BUTTONS (COMPLETELY REMOVED - NO LOGIN/REGISTER/LOGOUT) ====================
+    async function loadAuthState() {
+        const authButtons = document.getElementById("authButtons");
+        // Remove ALL buttons - no Register, no Login, no Logout
+        authButtons.innerHTML = ``;
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById("alertMessage");
+        alertDiv.textContent = message;
+        alertDiv.className = `alert-message alert-${type}`;
+        alertDiv.style.display = "block";
+        
+        setTimeout(() => {
+            alertDiv.style.display = "none";
+        }, 5000);
+    }
+
+    // ==================== CONTACT FORM SUBMIT ====================
+    document.getElementById("contactForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const message = document.getElementById("message").value.trim();
+        const submitBtn = document.getElementById("submitBtn");
+        const originalText = submitBtn.innerHTML;
+        const t = contactTranslations[currentLanguage] || contactTranslations.en;
+        
+        if (!name || !email || !subject || !message) {
+            showAlert(t.errorMessage, "error");
+            return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showAlert("Please enter a valid email address", "error");
+            return;
+        }
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Sending...';
+        
+        try {
+            const response = await fetch(`${API_URL}/contact`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, subject, message })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showAlert(t.successMessage, "success");
+                document.getElementById("contactForm").reset();
+            } else {
+                showAlert(data.message || "Failed to send message. Please try again.", "error");
+            }
+        } catch (error) {
+            console.error("Contact form error:", error);
+            showAlert("Network error. Please check your connection and try again.", "error");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateContactLanguage();
+        loadAuthState();
+    });
+</script>
+</body>
+</html>

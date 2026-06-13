@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Call History - LaborConnect</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #F6EAEA 0%, #E6D8F0 60%);
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+        
+        .calls-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .calls-header {
+            background: rgba(255,255,255,0.92);
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+        
+        .calls-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .calls-header p {
+            font-size: 0.8rem;
+            margin: 5px 0 0;
+        }
+        
+        .call-item {
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .call-item:active {
+            transform: scale(0.98);
+        }
+        
+        .call-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #0d6efd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .call-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .call-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .call-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .call-details {
+            font-size: 0.7rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .call-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .call-status.missed {
+            color: #dc3545;
+        }
+        
+        .call-status.answered {
+            color: #28a745;
+        }
+        
+        .call-status.outgoing {
+            color: #0d6efd;
+        }
+        
+        .call-duration {
+            font-size: 0.65rem;
+            color: #888;
+        }
+        
+        .call-time {
+            font-size: 0.65rem;
+            color: #999;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 12px;
+            border-top: 1px solid #e0e0e0;
+            z-index: 100;
+        }
+        
+        .nav-item {
+            text-align: center;
+            color: #999;
+            text-decoration: none;
+            font-size: 0.65rem;
+            flex: 1;
+        }
+        
+        .nav-item i {
+            font-size: 1.2rem;
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        .nav-item.active {
+            color: #0d6efd;
+        }
+        
+        .back-btn {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+        
+        .filter-btn.active {
+            background: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #0d6efd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        /* Auto-refresh indicator */
+        .auto-refresh-badge {
+            font-size: 0.65rem;
+            color: #28a745;
+            margin-top: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 480px) {
+            .calls-container {
+                padding: 0.75rem;
+            }
+            .call-avatar {
+                width: 42px;
+                height: 42px;
+            }
+            .call-name {
+                font-size: 0.85rem;
+            }
+            .filter-btn {
+                padding: 4px 12px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="profile.html?uid=" id="profileLink">Profile</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="calls-container">
+    <button class="back-btn" onclick="history.back()">
+        <i class="fas fa-arrow-left me-2"></i> Back
+    </button>
+    
+    <div class="calls-header">
+        <h2><i class="fas fa-phone-alt me-2"></i> Call History</h2>
+        <p class="text-muted">View your call logs</p>
+        <div class="auto-refresh-badge" id="autoRefreshBadge">
+            <i class="fas fa-sync-alt fa-fw"></i> Auto-refreshing
+        </div>
+    </div>
+    
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="missed">Missed</button>
+        <button class="filter-btn" data-filter="answered">Answered</button>
+        <button class="filter-btn" data-filter="outgoing">Outgoing</button>
+    </div>
+    
+    <div id="callsList">
+        <div class="text-center p-5">
+            <div class="spinner"></div>
+            <p>Loading call history...</p>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+    </a>
+    <a href="inbox.html" class="nav-item">
+        <i class="fas fa-comment-dots"></i>
+        <span>Chats</span>
+    </a>
+    <a href="calls.html" class="nav-item active">
+        <i class="fas fa-phone"></i>
+        <span>Calls</span>
+    </a>
+    <a href="worker-directory.html" class="nav-item">
+        <i class="fas fa-briefcase"></i>
+        <span>Workers</span>
+    </a>
+    <a href="profile.html?uid=" class="nav-item" id="profileNav">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="common.js"></script>
+<script>
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    
+    if (!currentUser || !currentUser.id) {
+        window.location.href = "login.html";
+    }
+    
+    document.getElementById("profileLink").href = `profile.html?uid=${currentUser.id}`;
+    document.getElementById("profileNav").href = `profile.html?uid=${currentUser.id}`;
+    
+    let allCalls = [];
+    let currentFilter = 'all';
+    let refreshInterval = null;
+    
+    async function loadCalls() {
+        try {
+            const res = await fetch(`${API_URL}/calls/user/${currentUser.id}`);
+            allCalls = await res.json();
+            renderCalls();
+        } catch (e) {
+            console.error('Error loading calls:', e);
+            document.getElementById('callsList').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-phone-slash fa-3x mb-3"></i>
+                    <h4>No call history</h4>
+                    <p>Your call logs will appear here</p>
+                    <button class="btn btn-primary btn-sm mt-2" onclick="loadCalls()">Refresh</button>
+                </div>
+            `;
+        }
+    }
+    
+    function formatDuration(seconds) {
+        if (!seconds || seconds === 0) return '';
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        if (mins > 0) return `${mins} min ${secs} sec`;
+        return `${secs} sec`;
+    }
+    
+    function formatTime(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (date >= today) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (date >= yesterday) {
+            return 'Yesterday';
+        } else {
+            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        }
+    }
+    
+    function getOtherUser(call) {
+        if (String(call.caller_id) === String(currentUser.id)) {
+            return {
+                id: call.receiver_id,
+                name: call.receiver_name || 'Unknown User',
+                photo: call.receiver_photo
+            };
+        } else {
+            return {
+                id: call.caller_id,
+                name: call.caller_name || 'Unknown User',
+                photo: call.caller_photo
+            };
+        }
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function renderCalls() {
+        let filtered = allCalls;
+        
+        if (currentFilter === 'missed') {
+            filtered = allCalls.filter(c => c.call_status === 'missed');
+        } else if (currentFilter === 'answered') {
+            filtered = allCalls.filter(c => c.call_status === 'answered');
+        } else if (currentFilter === 'outgoing') {
+            filtered = allCalls.filter(c => String(c.caller_id) === String(currentUser.id));
+        }
+        
+        const container = document.getElementById('callsList');
+        
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-phone-slash fa-3x mb-3"></i>
+                    <h4>No calls found</h4>
+                    <p>${currentFilter !== 'all' ? 'Try a different filter' : 'Start a call to see it here'}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = filtered.map(call => {
+            const otherUser = getOtherUser(call);
+            const isOutgoing = String(call.caller_id) === String(currentUser.id);
+            let statusIcon = '';
+            let statusClass = '';
+            let statusText = '';
+            
+            if (call.call_status === 'missed' && !isOutgoing) {
+                statusIcon = '<i class="fas fa-phone-slash"></i>';
+                statusClass = 'missed';
+                statusText = 'Missed';
+            } else if (call.call_status === 'answered') {
+                statusIcon = '<i class="fas fa-phone-alt"></i>';
+                statusClass = 'answered';
+                statusText = isOutgoing ? 'Outgoing' : 'Incoming';
+            } else if (isOutgoing) {
+                statusIcon = '<i class="fas fa-arrow-right"></i>';
+                statusClass = 'outgoing';
+                statusText = 'Outgoing';
+            } else if (call.call_status === 'missed') {
+                statusIcon = '<i class="fas fa-phone-slash"></i>';
+                statusClass = 'missed';
+                statusText = 'Missed';
+            } else {
+                statusIcon = '<i class="fas fa-phone-alt"></i>';
+                statusClass = 'answered';
+                statusText = 'Incoming';
+            }
+            
+            const initials = otherUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const callTypeIcon = call.call_type === 'video' ? '<i class="fas fa-video"></i>' : '<i class="fas fa-phone"></i>';
+            
+            return `
+                <div class="call-item" onclick="window.location.href='chat.html?with=${otherUser.id}'">
+                    <div class="call-avatar">
+                        ${otherUser.photo && otherUser.photo !== 'null' ? 
+                            `<img src="${otherUser.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : 
+                            `<span>${initials}</span>`
+                        }
+                    </div>
+                    <div class="call-info">
+                        <div class="call-name">${escapeHtml(otherUser.name)}</div>
+                        <div class="call-details">
+                            <span class="call-status ${statusClass}">
+                                ${statusIcon} ${statusText} ${callTypeIcon}
+                            </span>
+                            ${call.duration > 0 ? `<span class="call-duration"> • ${formatDuration(call.duration)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="call-time">
+                        ${formatTime(call.started_at)}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            renderCalls();
+        });
+    });
+    
+    // Auto-refresh every 10 seconds
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            loadCalls();
+        }, 10000);
+    }
+    
+    // Socket listener for real-time call updates
+    if (typeof io !== 'undefined') {
+        const socket = io(SOCKET_URL, { transports: ['websocket', 'polling'] });
+        
+        socket.on('connect', () => {
+            console.log('Socket connected for calls');
+            socket.emit('register-user', currentUser.id);
+        });
+        
+        socket.on('call-ended', () => {
+            console.log('Call ended, refreshing call history');
+            loadCalls();
+        });
+        
+        socket.on('call-accepted', () => {
+            console.log('Call accepted, refreshing call history');
+            loadCalls();
+        });
+    }
+    
+    // Initialize
+    loadCalls();
+    startAutoRefresh();
+    
+    // Cleanup interval on page unload
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+    });
+</script>
+</body>
+</html>

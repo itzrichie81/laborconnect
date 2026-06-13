@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>My Gallery - LaborConnect</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-soft: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #8b5cf6;
+            --accent-soft: #f5f3ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            
+            --radius-sm: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+        }
+
+        /* ===== MODERN NAVBAR ===== */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link {
+            color: var(--gray-600) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        body.dark-active .nav-link {
+            color: #e2e8f0 !important;
+        }
+        body.dark-active .nav-link:hover {
+            color: var(--primary-light) !important;
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .gallery-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            min-height: calc(100vh - 200px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== BACK BUTTON ===== */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 100px;
+            padding: 0.7rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 1.5rem;
+            text-decoration: none;
+            width: fit-content;
+        }
+
+        .back-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-soft);
+            transform: translateX(-3px);
+        }
+
+        /* ===== GALLERY HEADER ===== */
+        .gallery-header {
+            background: white;
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-100);
+        }
+
+        .gallery-header h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .gallery-header p {
+            color: var(--gray-500);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 0.9rem 2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-md);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .upload-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        /* Progress Bar */
+        .upload-progress {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.7rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        /* ===== GALLERY GRID ===== */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .gallery-grid.empty-state-active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+        }
+
+        .gallery-item {
+            background: white;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            border: 1px solid var(--gray-100);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .gallery-media-wrapper {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background: var(--gray-100);
+        }
+
+        .gallery-media {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-media {
+            transform: scale(1.05);
+        }
+
+        .media-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .media-overlay {
+            opacity: 1;
+        }
+
+        .media-type-badge {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 100px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(239, 68, 68, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .gallery-item:hover .delete-btn {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .delete-btn:hover {
+            background: var(--danger);
+            transform: scale(1.05);
+        }
+
+        .gallery-info {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+        }
+
+        .media-date {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+
+        .media-type {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 100px;
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state-wrapper {
+            width: 100%;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-100);
+            max-width: 450px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: var(--shadow-md);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--gray-300);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--gray-900);
+        }
+
+        .empty-state p {
+            color: var(--gray-500);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* ===== LOADING STATE ===== */
+        .loading-state {
+            text-align: center;
+            padding: 4rem;
+            width: 100%;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== FULLSCREEN MODAL - NO CANCEL BUTTON ===== */
+        .fullscreen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .fullscreen-modal.active {
+            display: flex;
+        }
+
+        .fullscreen-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-media-container {
+            text-align: center;
+            max-width: 90vw;
+            max-height: 85vh;
+        }
+
+        .fullscreen-media {
+            max-width: 100%;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: var(--radius-lg);
+        }
+
+        /* Navigation buttons - left and right */
+        .fullscreen-nav {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10001;
+        }
+
+        .fullscreen-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .fullscreen-nav.prev {
+            left: 20px;
+        }
+
+        .fullscreen-nav.next {
+            right: 20px;
+        }
+
+        /* Done button - bottom center */
+        .fullscreen-action-row {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            z-index: 10001;
+        }
+
+        .fullscreen-done {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: white;
+            padding: 0.85rem 1.5rem;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            min-width: 120px;
+            transition: all 0.2s ease;
+        }
+
+        .fullscreen-done:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: rgba(34, 34, 34, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 14px;
+            overflow: hidden;
+            z-index: 10001;
+            min-width: 180px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .context-menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: white;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.2s;
+        }
+
+        .context-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .context-menu-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .context-menu-item.delete-item {
+            color: #ff6b6b;
+        }
+
+        /* ===== DARK MODE ===== */
+        body.dark-active {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+
+        body.dark-active .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-active .gallery-header,
+        body.dark-active .gallery-item,
+        body.dark-active .empty-state,
+        body.dark-active .back-btn {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark-active .gallery-header h2,
+        body.dark-active .empty-state h3,
+        body.dark-active .gallery-info .media-type {
+            color: white;
+        }
+
+        body.dark-active .gallery-header p,
+        body.dark-active .empty-state p,
+        body.dark-active .media-date {
+            color: var(--gray-400);
+        }
+
+        body.dark-active .back-btn {
+            color: var(--gray-300);
+        }
+
+        body.dark-active .back-btn:hover {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        body.dark-active .gallery-info {
+            background: rgba(30, 41, 59, 0.95);
+        }
+
+        body.dark-active .media-type {
+            background: rgba(37, 99, 235, 0.2);
+            color: var(--primary-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .gallery-container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+                min-height: calc(100vh - 150px);
+            }
+
+            .gallery-header {
+                padding: 1.5rem;
+            }
+
+            .gallery-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 1rem;
+            }
+
+            .fullscreen-nav {
+                width: 40px;
+                height: 40px;
+            }
+
+            .fullscreen-nav.prev {
+                left: 10px;
+            }
+
+            .fullscreen-nav.next {
+                right: 10px;
+            }
+
+            .fullscreen-done {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.85rem;
+                min-width: 100px;
+            }
+
+            .empty-state {
+                padding: 2rem 1.5rem;
+                max-width: 350px;
+            }
+
+            .empty-icon {
+                font-size: 3rem;
+            }
+
+            .empty-state h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg" id="navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="profile.html?uid=" id="profileLink">Profile</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="gallery-container">
+    <a href="#" onclick="history.back()" class="back-btn" id="backBtn">
+        <i class="fas fa-arrow-left"></i> <span id="backText">Back to Profile</span>
+    </a>
+
+    <div class="gallery-header">
+        <h2 id="galleryTitle"><i class="fas fa-images me-2"></i> My Gallery</h2>
+        <p id="gallerySubtitle">Showcase your best work to attract more clients</p>
+        <label for="uploadNewMedia" class="upload-btn" id="uploadBtnLabel">
+            <i class="fas fa-cloud-upload-alt"></i> <span id="uploadBtnText">Upload New Media</span>
+        </label>
+        <div class="upload-progress" id="uploadProgress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="progress-text" id="progressText">0%</span>
+        </div>
+        <input type="file" id="uploadNewMedia" class="hidden-input" accept="image/*,video/*" multiple>
+    </div>
+
+    <div id="galleryGrid" class="gallery-grid">
+        <div class="loading-state">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Loading your gallery...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen Modal - No Cancel Button -->
+<div id="fullscreenModal" class="fullscreen-modal">
+    <div class="fullscreen-content">
+        <button class="fullscreen-nav prev" onclick="prevMedia()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="fullscreen-nav next" onclick="nextMedia()">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="fullscreen-media-container">
+            <img id="fullscreenImg" class="fullscreen-media" style="display: none;">
+            <video id="fullscreenVideo" class="fullscreen-media" controls style="display: none;"></video>
+        </div>
+        <div class="fullscreen-action-row">
+            <button class="fullscreen-done" onclick="closeFullscreen()">Done</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="common.js"></script>
+<script>
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    
+    if (currentUser && currentUser.id) {
+        document.getElementById("profileLink").href = `profile.html?uid=${currentUser.id}`;
+    } else {
+        window.location.href = "login.html";
+    }
+    
+    let galleryItems = [];
+    let contextMenu = null;
+    let currentMediaUrl = null;
+    let currentMediaType = null;
+    let currentMediaIndex = null;
+    let currentFullscreenIndex = 0;
+    let pressTimer = null;
+    let isLongPress = false;
+    
+    const galleryTranslations = {
+        en: {
+            backText: "Back to Profile",
+            galleryTitle: "My Gallery",
+            gallerySubtitle: "Showcase your best work to attract more clients",
+            uploadBtnText: "Upload New Media",
+            loadingText: "Loading your gallery...",
+            emptyTitle: "Your gallery is empty",
+            emptyText: "Upload photos or videos of your work to showcase your skills!",
+            uploadNow: "Upload Now",
+            image: "Image",
+            video: "Video",
+            view: "View",
+            download: "Download",
+            delete: "Delete"
+        },
+        ko: {
+            backText: "프로필로 돌아가기",
+            galleryTitle: "내 갤러리",
+            gallerySubtitle: "더 많은 고객을 유치하기 위해 최고의 작업을 선보이세요",
+            uploadBtnText: "새 미디어 업로드",
+            loadingText: "갤러리를 불러오는 중...",
+            emptyTitle: "갤러리가 비어 있습니다",
+            emptyText: "당신의 기술을 보여주기 위해 작업 사진이나 비디오를 업로드하세요!",
+            uploadNow: "지금 업로드",
+            image: "이미지",
+            video: "비디오",
+            view: "보기",
+            download: "다운로드",
+            delete: "삭제"
+        },
+        zh: {
+            backText: "返回个人资料",
+            galleryTitle: "我的画廊",
+            gallerySubtitle: "展示您最好的作品以吸引更多客户",
+            uploadBtnText: "上传新媒体",
+            loadingText: "正在加载您的画廊...",
+            emptyTitle: "您的画廊是空的",
+            emptyText: "上传您的工作照片或视频来展示您的技能！",
+            uploadNow: "立即上传",
+            image: "图片",
+            video: "视频",
+            view: "查看",
+            download: "下载",
+            delete: "删除"
+        },
+        fr: {
+            backText: "Retour au profil",
+            galleryTitle: "Ma Galerie",
+            gallerySubtitle: "Présentez votre meilleur travail pour attirer plus de clients",
+            uploadBtnText: "Télécharger un média",
+            loadingText: "Chargement de votre galerie...",
+            emptyTitle: "Votre galerie est vide",
+            emptyText: "Téléchargez des photos ou vidéos de votre travail pour mettre en valeur vos compétences !",
+            uploadNow: "Télécharger maintenant",
+            image: "Image",
+            video: "Vidéo",
+            view: "Voir",
+            download: "Télécharger",
+            delete: "Supprimer"
+        },
+        ru: {
+            backText: "Назад к профилю",
+            galleryTitle: "Моя галерея",
+            gallerySubtitle: "Продемонстрируйте свои лучшие работы, чтобы привлечь больше клиентов",
+            uploadBtnText: "Загрузить медиа",
+            loadingText: "Загрузка галереи...",
+            emptyTitle: "Ваша галерея пуста",
+            emptyText: "Загрузите фото или видео ваших работ, чтобы продемонстрировать свои навыки!",
+            uploadNow: "Загрузить сейчас",
+            image: "Изображение",
+            video: "Видео",
+            view: "Просмотр",
+            download: "Скачать",
+            delete: "Удалить"
+        }
+    };
+    
+    let currentLanguage = localStorage.getItem('language') || 'en';
+    
+    function updateGalleryLanguage() {
+        const t = galleryTranslations[currentLanguage] || galleryTranslations.en;
+        document.getElementById('backText').textContent = t.backText;
+        document.getElementById('galleryTitle').innerHTML = `<i class="fas fa-images me-2"></i> ${t.galleryTitle}`;
+        document.getElementById('gallerySubtitle').textContent = t.gallerySubtitle;
+        document.getElementById('uploadBtnText').textContent = t.uploadBtnText;
+        document.getElementById('loadingText').textContent = t.loadingText;
+        window.galleryTrans = t;
+    }
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'language') {
+            currentLanguage = e.newValue || 'en';
+            updateGalleryLanguage();
+            renderGallery();
+        }
+    });
+    
+    function checkLanguageChange() {
+        const newLang = localStorage.getItem('language') || 'en';
+        if (newLang !== currentLanguage) {
+            currentLanguage = newLang;
+            updateGalleryLanguage();
+            renderGallery();
+        }
+    }
+    setInterval(checkLanguageChange, 500);
+    
+    function removeContextMenu() {
+        if (contextMenu) {
+            contextMenu.remove();
+            contextMenu = null;
+        }
+    }
+    
+    function showContextMenu(x, y, url, type, index) {
+        removeContextMenu();
+        currentMediaUrl = url;
+        currentMediaType = type;
+        currentMediaIndex = index;
+        const t = window.galleryTrans || galleryTranslations.en;
+        
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.style.left = x + 'px';
+        menu.style.top = y + 'px';
+        
+        setTimeout(() => {
+            const menuRect = menu.getBoundingClientRect();
+            if (x + menuRect.width > window.innerWidth) {
+                menu.style.left = (window.innerWidth - menuRect.width - 10) + 'px';
+            }
+            if (y + menuRect.height > window.innerHeight) {
+                menu.style.top = (y - menuRect.height - 10) + 'px';
+            }
+        }, 10);
+        
+        menu.innerHTML = `
+            <div class="context-menu-item" data-action="view">
+                <i class="fas fa-eye"></i> <span>${t.view}</span>
+            </div>
+            <div class="context-menu-item" data-action="download">
+                <i class="fas fa-download"></i> <span>${t.download}</span>
+            </div>
+            <div class="context-menu-divider"></div>
+            <div class="context-menu-item delete-item" data-action="delete">
+                <i class="fas fa-trash-alt"></i> <span>${t.delete}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(menu);
+        contextMenu = menu;
+        
+        menu.querySelectorAll('.context-menu-item').forEach(item => {
+            item.addEventListener('click', async () => {
+                const action = item.dataset.action;
+                switch(action) {
+                    case 'view': openFullscreen(currentMediaIndex); break;
+                    case 'download': downloadMedia(); break;
+                    case 'delete': await deleteMedia(); break;
+                }
+                removeContextMenu();
+            });
+        });
+        
+        const closeMenuOnClick = (e) => {
+            if (!menu.contains(e.target)) {
+                removeContextMenu();
+                document.removeEventListener('click', closeMenuOnClick);
+                document.removeEventListener('touchstart', closeMenuOnClick);
+            }
+        };
+        setTimeout(() => {
+            document.addEventListener('click', closeMenuOnClick);
+            document.addEventListener('touchstart', closeMenuOnClick);
+        }, 50);
+    }
+    
+    function downloadMedia() {
+        if (!currentMediaUrl) return;
+        window.open(currentMediaUrl, '_blank');
+    }
+    
+    async function deleteMedia() {
+        const t = window.galleryTrans || galleryTranslations.en;
+        if (!confirm(`Delete this ${currentMediaType} permanently?`)) return;
+        if (currentMediaIndex !== null) {
+            try {
+                const res = await fetch(`${API_URL}/user/${currentUser.id}/gallery/${currentMediaIndex}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Delete failed');
+                await loadGallery();
+                removeContextMenu();
+            } catch (e) {
+                console.error(e);
+                alert('Could not delete media. Try again.');
+            }
+        }
+    }
+    
+    function openFullscreen(index) {
+        currentFullscreenIndex = index;
+        const item = galleryItems[currentFullscreenIndex];
+        if (!item) return;
+        
+        const modal = document.getElementById("fullscreenModal");
+        const img = document.getElementById("fullscreenImg");
+        const video = document.getElementById("fullscreenVideo");
+        
+        img.style.display = "none";
+        video.style.display = "none";
+        
+        if (item.type === "image") {
+            img.src = item.url;
+            img.style.display = "block";
+            if (video) video.pause();
+        } else {
+            video.src = item.url;
+            video.style.display = "block";
+            img.style.display = "none";
+            video.load();
+            video.play().catch(e => console.log('Auto-play prevented:', e));
+        }
+        modal.classList.add("active");
+    }
+    
+    function closeFullscreen() {
+        const modal = document.getElementById("fullscreenModal");
+        const video = document.getElementById("fullscreenVideo");
+        const img = document.getElementById("fullscreenImg");
+        modal.classList.remove("active");
+        if (video) {
+            video.pause();
+            video.src = '';
+        }
+        img.src = '';
+    }
+    
+    function prevMedia() {
+        if (currentFullscreenIndex > 0) {
+            openFullscreen(currentFullscreenIndex - 1);
+        }
+    }
+    
+    function nextMedia() {
+        if (currentFullscreenIndex < galleryItems.length - 1) {
+            openFullscreen(currentFullscreenIndex + 1);
+        }
+    }
+    
+    // ==================== UPLOAD FUNCTIONS ====================
+    function uploadFile(file, onProgress) {
+        return new Promise((resolve, reject) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable && onProgress) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    onProgress(percent);
+                }
+            });
+            
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        resolve(response.url);
+                    } catch (err) {
+                        reject(new Error('Invalid server response'));
+                    }
+                } else {
+                    reject(new Error(`Upload failed: ${xhr.status}`));
+                }
+            });
+            
+            xhr.addEventListener('error', () => reject(new Error('Network error')));
+            xhr.addEventListener('timeout', () => reject(new Error('Upload timeout')));
+            
+            xhr.open('POST', `${API_URL}/upload`);
+            xhr.send(formData);
+        });
+    }
+    
+    async function addMediaToGallery(file) {
+        const maxSize = 50 * 1024 * 1024;
+        if (file.size > maxSize) {
+            throw new Error(`File too large. Max 50MB allowed.`);
+        }
+        
+        const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+        const isImage = allowedImageTypes.includes(file.type);
+        const isVideo = allowedVideoTypes.includes(file.type);
+        
+        if (!isImage && !isVideo) {
+            throw new Error('Invalid file type. Only JPG, PNG, GIF, WEBP images and MP4, WEBM videos are allowed.');
+        }
+        
+        const type = isImage ? 'image' : 'video';
+        const fileUrl = await uploadFile(file, (percent) => {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            if (progressFill && progressText) {
+                progressFill.style.width = `${percent}%`;
+                progressText.textContent = `${percent}%`;
+            }
+        });
+        
+        const response = await fetch(`${API_URL}/user/${currentUser.id}/gallery`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: fileUrl, type })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save to gallery');
+        }
+        
+        return { url: fileUrl, type };
+    }
+    
+    async function loadGallery() {
+        try {
+            const res = await fetch(`${API_URL}/user/${currentUser.id}/gallery`);
+            const items = await res.json();
+            galleryItems = items.filter(item => item && item.url && !item.url.startsWith('blob:'));
+            renderGallery();
+        } catch (e) {
+            console.error(e);
+            const grid = document.getElementById("galleryGrid");
+            grid.innerHTML = `
+                <div class="empty-state-wrapper">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <h3>Error loading gallery</h3>
+                        <p>Please refresh the page</p>
+                    </div>
+                </div>
+            `;
+            grid.classList.add('empty-state-active');
+        }
+    }
+    
+    function renderGallery() {
+        const t = window.galleryTrans || galleryTranslations.en;
+        const grid = document.getElementById("galleryGrid");
+        
+        if (!galleryItems || galleryItems.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state-wrapper">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-images"></i></div>
+                        <h3>${t.emptyTitle}</h3>
+                        <p>${t.emptyText}</p>
+                        <label for="uploadNewMedia" class="upload-btn" style="display: inline-flex;">
+                            <i class="fas fa-upload me-2"></i> ${t.uploadNow}
+                        </label>
+                    </div>
+                </div>
+            `;
+            grid.classList.add('empty-state-active');
+            return;
+        }
+        
+        grid.classList.remove('empty-state-active');
+        grid.innerHTML = "";
+        
+        galleryItems.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'gallery-item';
+            itemDiv.setAttribute('data-index', index);
+            
+            const date = item.created_at ? new Date(item.created_at).toLocaleDateString() : new Date().toLocaleDateString();
+            const typeLabel = item.type === 'image' ? t.image : t.video;
+            
+            itemDiv.innerHTML = `
+                <div class="gallery-media-wrapper">
+                    ${item.type === "image" ? 
+                        `<img src="${item.url}" class="gallery-media" loading="lazy">` : 
+                        `<video class="gallery-media" preload="metadata">
+                            <source src="${item.url}" type="video/mp4">
+                         </video>`
+                    }
+                    <div class="media-overlay">
+                        <span class="media-type-badge"><i class="fas ${item.type === 'image' ? 'fa-image' : 'fa-video'}"></i> ${typeLabel}</span>
+                    </div>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteMediaAtIndex(${index})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <div class="gallery-info">
+                    <span class="media-date"><i class="far fa-calendar-alt me-1"></i>${date}</span>
+                    <span class="media-type">${typeLabel}</span>
+                </div>
+            `;
+            
+            let pressTimer;
+            const startPress = (e) => {
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    let x, y;
+                    if (e.touches) {
+                        x = e.touches[0].clientX;
+                        y = e.touches[0].clientY;
+                    } else {
+                        x = e.clientX;
+                        y = e.clientY;
+                    }
+                    showContextMenu(x, y, item.url, item.type, index);
+                }, 500);
+            };
+            
+            const cancelPress = () => {
+                clearTimeout(pressTimer);
+            };
+            
+            const handleClick = (e) => {
+                if (!isLongPress && !e.target.closest('.delete-btn')) {
+                    openFullscreen(index);
+                }
+                isLongPress = false;
+            };
+            
+            itemDiv.addEventListener('touchstart', startPress);
+            itemDiv.addEventListener('touchend', cancelPress);
+            itemDiv.addEventListener('touchcancel', cancelPress);
+            itemDiv.addEventListener('touchmove', cancelPress);
+            itemDiv.addEventListener('click', handleClick);
+            itemDiv.addEventListener('mousedown', startPress);
+            itemDiv.addEventListener('mouseup', cancelPress);
+            itemDiv.addEventListener('mouseleave', cancelPress);
+            itemDiv.addEventListener('click', handleClick);
+            
+            grid.appendChild(itemDiv);
+        });
+    }
+    
+    async function deleteMediaAtIndex(index) {
+        const t = window.galleryTrans || galleryTranslations.en;
+        if (!confirm(`Delete this ${galleryItems[index]?.type} permanently?`)) return;
+        
+        try {
+            const res = await fetch(`${API_URL}/user/${currentUser.id}/gallery/${index}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Delete failed');
+            await loadGallery();
+        } catch (e) {
+            console.error(e);
+            alert('Could not delete media. Try again.');
+        }
+    }
+    
+    document.getElementById("uploadNewMedia").onchange = async function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        const uploadBtn = document.querySelector('.upload-btn');
+        const progressContainer = document.getElementById('uploadProgress');
+        const originalHTML = uploadBtn.innerHTML;
+        
+        uploadBtn.disabled = true;
+        uploadBtn.style.opacity = '0.7';
+        uploadBtn.style.cursor = 'not-allowed';
+        
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            if (progressContainer) {
+                progressContainer.style.display = 'block';
+            }
+            
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            if (progressFill) progressFill.style.width = '0%';
+            if (progressText) progressText.textContent = `Uploading ${i + 1}/${files.length}: 0%`;
+            
+            try {
+                uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> Uploading ${i + 1}/${files.length}...`;
+                await addMediaToGallery(file);
+                successCount++;
+            } catch (err) {
+                console.error(`Upload failed for ${file.name}:`, err);
+                failCount++;
+                alert(`Failed to upload ${file.name}: ${err.message}`);
+            }
+        }
+        
+        if (progressContainer) {
+            progressContainer.style.display = 'none';
+        }
+        
+        uploadBtn.disabled = false;
+        uploadBtn.style.opacity = '1';
+        uploadBtn.style.cursor = 'pointer';
+        uploadBtn.innerHTML = originalHTML;
+        
+        document.getElementById("uploadNewMedia").value = '';
+        await loadGallery();
+        
+        if (successCount > 0) {
+            alert(`${successCount} file(s) uploaded successfully!${failCount > 0 ? ` ${failCount} failed.` : ''}`);
+        }
+    };
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeFullscreen();
+            removeContextMenu();
+        }
+        if (e.key === 'ArrowLeft' && document.getElementById('fullscreenModal').classList.contains('active')) {
+            prevMedia();
+        }
+        if (e.key === 'ArrowRight' && document.getElementById('fullscreenModal').classList.contains('active')) {
+            nextMedia();
+        }
+    });
+    
+    document.getElementById("fullscreenModal").addEventListener("click", function(e) {
+        if (e.target === this || e.target.classList.contains('fullscreen-modal') || e.target.classList.contains('fullscreen-content')) {
+            closeFullscreen();
+        }
+    });
+    
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    function initDarkMode() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive) {
+            document.body.classList.add('dark-active');
+        }
+    }
+    initDarkMode();
+    
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+    
+    updateGalleryLanguage();
+    loadGallery();
+</script>
+</body>
+</html>
