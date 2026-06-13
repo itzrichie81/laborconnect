@@ -16,14 +16,20 @@ const server = http.createServer(app);
 // Use environment port or fallback to 5000 for local development
 const PORT = process.env.PORT || 5000;
 
+// Get frontend URL from environment variable or use default
+const frontendUrl = process.env.FRONTEND_URL || 'https://laborconnect-eq1k.onrender.com';
+
 // Update CORS to allow both local and Render frontend
 const allowedOrigins = [
   'http://localhost:5500',
   'http://localhost:5501',
-  'https://laborconnect.onrender.com',
+  'http://127.0.0.1:5500',
+  frontendUrl,
   'https://laborconnect-api.onrender.com',
-  /\.onrender\.com$/
+  /\.onrender\.com$/  // Allow all onrender.com subdomains
 ];
+
+console.log('Allowed origins:', allowedOrigins);
 
 // IMPORTANT: Socket.IO CORS must be configured separately
 const io = new Server(server, {
@@ -266,10 +272,7 @@ const createTables = async () => {
 };
 createTables();
 
-// ========== ALL YOUR EXISTING ROUTES GO HERE ==========
-// (Keep all your existing route handlers - they don't need changes)
-
-// REGISTER
+// ========== REGISTER ==========
 app.post('/api/register', async (req, res) => {
   try {
     const { firstName, lastName, username, gender, email, password, phone, userType, trade, photoURL } = req.body;
@@ -317,7 +320,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// LOGIN
+// ========== LOGIN ==========
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -350,11 +353,12 @@ app.post('/api/login', async (req, res) => {
     });
 
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// VERIFY CODE
+// ========== VERIFY CODE ==========
 app.post('/api/verify-code', async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -376,10 +380,12 @@ app.post('/api/verify-code', async (req, res) => {
       user: result.rows[0]
     });
   } catch (err) {
+    console.error('Verify code error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+// ========== GET ALL USERS ==========
 app.get('/api/users', async (req, res) => {
   try {
     const { type } = req.query;
@@ -399,22 +405,29 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// ========== GET USER BY ID ==========
 app.get('/api/user/:id', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
     res.json(result.rows[0] || null);
   } catch (err) {
+    console.error('Get user error:', err);
     res.status(500).json(null);
   }
 });
 
+// ========== UPDATE USER PHOTO ==========
 app.patch('/api/user/:id/photo', async (req, res) => {
   try {
     await pool.query('UPDATE users SET photoURL = $1 WHERE id = $2', [req.body.photoURL, req.params.id]);
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Update photo error:', err);
+    res.sendStatus(500); 
+  }
 });
 
+// ========== GALLERY ENDPOINTS ==========
 app.post('/api/user/:id/gallery', async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
@@ -423,14 +436,20 @@ app.post('/api/user/:id/gallery', async (req, res) => {
       await pool.query('UPDATE users SET gallery = gallery || $1 WHERE id = $2', [JSON.stringify([req.body]), req.params.id]);
     }
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Add gallery error:', err);
+    res.sendStatus(500); 
+  }
 });
 
 app.get('/api/user/:id/gallery', async (req, res) => {
   try {
     const result = await pool.query('SELECT gallery FROM users WHERE id = $1', [req.params.id]);
     res.json(result.rows[0]?.gallery || []);
-  } catch (err) { res.json([]); }
+  } catch (err) { 
+    console.error('Get gallery error:', err);
+    res.json([]); 
+  }
 });
 
 app.delete('/api/user/:id/gallery/:mediaId', async (req, res) => {
@@ -457,20 +476,29 @@ app.delete('/api/user/:id/gallery/:mediaId', async (req, res) => {
   }
 });
 
+// ========== UPDATE USER NAME ==========
 app.patch('/api/user/:id/name', async (req, res) => {
   try {
     await pool.query('UPDATE users SET name = $1 WHERE id = $2', [req.body.name, req.params.id]);
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Update name error:', err);
+    res.sendStatus(500); 
+  }
 });
 
+// ========== UPDATE USER EMAIL ==========
 app.patch('/api/user/:id/email', async (req, res) => {
   try {
     await pool.query('UPDATE users SET email = $1 WHERE id = $2', [req.body.email, req.params.id]);
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Update email error:', err);
+    res.sendStatus(500); 
+  }
 });
 
+// ========== UPDATE USER PASSWORD ==========
 app.patch('/api/user/:id/password', async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -497,14 +525,18 @@ app.patch('/api/user/:id/password', async (req, res) => {
   }
 });
 
+// ========== DELETE USER ==========
 app.delete('/api/user/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Delete user error:', err);
+    res.sendStatus(500); 
+  }
 });
 
-// JOB ENDPOINTS
+// ========== JOB ENDPOINTS ==========
 app.post('/api/jobs', async (req, res) => {
   try {
     const { title, trade, description, location, postedBy, posterName } = req.body;
@@ -602,7 +634,7 @@ app.delete('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// UPLOAD
+// ========== UPLOAD FILE ==========
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
@@ -616,7 +648,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// CONTACT FORM
+// ========== CONTACT FORM ==========
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
@@ -659,12 +691,15 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-// MESSAGES
+// ========== MESSAGES ENDPOINTS ==========
 app.get('/api/messages/:chatId', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM messages WHERE chatId = $1 ORDER BY time ASC', [req.params.chatId]);
     res.json(result.rows);
-  } catch (err) { res.json([]); }
+  } catch (err) { 
+    console.error('Get messages error:', err);
+    res.json([]); 
+  }
 });
 
 app.patch('/api/messages/:id', async (req, res) => {
@@ -672,17 +707,23 @@ app.patch('/api/messages/:id', async (req, res) => {
     const { text, payload } = req.body;
     await pool.query('UPDATE messages SET text = $1, payload = $2 WHERE id = $3', [text, payload || null, req.params.id]);
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Update message error:', err);
+    res.sendStatus(500); 
+  }
 });
 
 app.delete('/api/messages/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM messages WHERE id = $1', [req.params.id]);
     res.sendStatus(200);
-  } catch (err) { res.sendStatus(500); }
+  } catch (err) { 
+    console.error('Delete message error:', err);
+    res.sendStatus(500); 
+  }
 });
 
-// CONVERSATIONS
+// ========== CONVERSATIONS ENDPOINTS ==========
 app.get('/api/conversations/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -770,11 +811,12 @@ app.post('/api/messages/read', async (req, res) => {
     );
     res.sendStatus(200);
   } catch (err) {
+    console.error('Mark read error:', err);
     res.sendStatus(500);
   }
 });
 
-// VERIFY EMAIL
+// ========== VERIFY EMAIL ==========
 app.get('/api/verify-email/:token', async (req, res) => {
   try {
     const token = req.params.token;
@@ -798,11 +840,12 @@ app.get('/api/verify-email/:token', async (req, res) => {
       <a href="${process.env.FRONTEND_URL || 'http://localhost:5500'}/login.html">Go to Login</a>
     `);
   } catch (err) {
+    console.error('Verify email error:', err);
     res.send('<h3>Error verifying email</h3>');
   }
 });
 
-// FORGOT PASSWORD
+// ========== FORGOT PASSWORD ==========
 app.post('/api/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -858,6 +901,7 @@ app.get('/api/reset-password/:token', async (req, res) => {
       </form>
     `);
   } catch (err) {
+    console.error('Reset password GET error:', err);
     res.send('<h3>Error</h3>');
   }
 });
@@ -882,11 +926,12 @@ app.post('/api/reset-password/:token', async (req, res) => {
       <a href="${process.env.FRONTEND_URL || 'http://localhost:5500'}/login.html">Login Now</a>
     `);
   } catch (err) {
+    console.error('Reset password POST error:', err);
     res.send('<h3>Error resetting password</h3>');
   }
 });
 
-// RESEND VERIFICATION
+// ========== RESEND VERIFICATION ==========
 app.post('/api/resend-verification', async (req, res) => {
   try {
     const { email } = req.body;
@@ -942,7 +987,7 @@ app.post('/api/resend-verification', async (req, res) => {
   }
 });
 
-// ADMIN ENDPOINTS
+// ========== ADMIN ENDPOINTS ==========
 async function isAdmin(req, res, next) {
   const userId = req.headers['user-id'];
   if (!userId) {
@@ -1136,6 +1181,7 @@ app.delete('/api/admin/message/:id', isAdmin, async (req, res) => {
     await pool.query('DELETE FROM messages WHERE id = $1', [req.params.id]);
     res.json({ message: 'Message deleted' });
   } catch (err) {
+    console.error('Delete admin message error:', err);
     res.status(500).json({ message: 'Error deleting message' });
   }
 });
@@ -1145,11 +1191,12 @@ app.delete('/api/admin/job/:id', isAdmin, async (req, res) => {
     await pool.query('DELETE FROM jobs WHERE id = $1', [req.params.id]);
     res.json({ message: 'Job deleted' });
   } catch (err) {
+    console.error('Delete admin job error:', err);
     res.status(500).json({ message: 'Error deleting job' });
   }
 });
 
-// CALL LOGS ENDPOINTS
+// ========== CALL LOGS ENDPOINTS ==========
 app.post('/api/calls', async (req, res) => {
   try {
     const { callerId, receiverId, callType, callStatus, duration, chatId } = req.body;
@@ -1361,7 +1408,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // CALL HANDLERS
+  // ========== CALL HANDLERS ==========
   socket.on('start-call', async (data) => {
     const { to, from, callType, chatId, sdp } = data;
     console.log(`📞 Starting call from ${from} to ${to}`);
