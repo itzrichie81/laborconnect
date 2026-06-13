@@ -24,9 +24,11 @@ const allowedOrigins = [
   'http://localhost:5500',
   'http://localhost:5501',
   'http://127.0.0.1:5500',
+  'http://localhost:5000',
   frontendUrl,
   'https://laborconnect-api.onrender.com',
-  /\.onrender\.com$/  // Allow all onrender.com subdomains
+  'https://laborconnect.onrender.com',
+  /\.onrender\.com$/
 ];
 
 console.log('Allowed origins:', allowedOrigins);
