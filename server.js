@@ -15,24 +15,26 @@ const server = http.createServer(app);
 // ========== ADDED FOR RENDER DEPLOYMENT ==========
 // Use environment port or fallback to 5000 for local development
 const PORT = process.env.PORT || 5000;
-const isProduction = process.env.NODE_ENV === 'production';
 
 // Update CORS to allow both local and Render frontend
 const allowedOrigins = [
   'http://localhost:5500',
   'http://localhost:5501',
-  'https://laborconnect.onrender.com',     // Your frontend on Render
-  'https://laborconnect-api.onrender.com',  // Your API on Render
-  /\.onrender\.com$/  // Allow all onrender.com subdomains
+  'https://laborconnect.onrender.com',
+  'https://laborconnect-api.onrender.com',
+  /\.onrender\.com$/
 ];
 
+// IMPORTANT: Socket.IO CORS must be configured separately
 const io = new Server(server, {
   cors: { 
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
+// Express CORS middleware
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps or curl)
@@ -44,7 +46,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.log('Blocked origin:', origin);
-      callback(null, true); // Still allow for now, but log it
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -64,7 +66,6 @@ app.use('/uploads', express.static(uploadDir));
 app.use(express.static(__dirname));
 
 // ========== UPDATED FOR RENDER - Dynamic base URL ==========
-// Instead of hardcoding localhost, use environment variable or request host
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -92,7 +93,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max file size
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: fileFilter
 });
 
@@ -139,11 +140,10 @@ async function processEmailQueue() {
     reject(err);
   } finally {
     activeProcesses--;
-    processEmailQueue(); // Process next
+    processEmailQueue();
   }
 }
 
-// Start processing with multiple workers
 for (let i = 0; i < MAX_CONCURRENT; i++) {
   setInterval(() => processEmailQueue(), 100);
 }
@@ -154,10 +154,8 @@ function queueEmail(to, subject, html) {
     processEmailQueue();
   });
 }
-// ========== END FAST EMAIL QUEUE ==========
 
 async function sendPasswordResetEmail(email, token) {
-  // ========== UPDATED FOR RENDER - Use environment variable for base URL ==========
   const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
   const url = `${baseUrl}/api/reset-password/${token}`;
   
@@ -268,7 +266,10 @@ const createTables = async () => {
 };
 createTables();
 
-// ✅ REGISTER
+// ========== ALL YOUR EXISTING ROUTES GO HERE ==========
+// (Keep all your existing route handlers - they don't need changes)
+
+// REGISTER
 app.post('/api/register', async (req, res) => {
   try {
     const { firstName, lastName, username, gender, email, password, phone, userType, trade, photoURL } = req.body;
@@ -316,7 +317,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// ✅ LOGIN
+// LOGIN
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -353,7 +354,7 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// ✅ VERIFY CODE
+// VERIFY CODE
 app.post('/api/verify-code', async (req, res) => {
   try {
     const { email, code } = req.body;
@@ -470,7 +471,6 @@ app.patch('/api/user/:id/email', async (req, res) => {
   } catch (err) { res.sendStatus(500); }
 });
 
-// ✅ PASSWORD CHANGE WITH CURRENT PASSWORD VERIFICATION (FIXED)
 app.patch('/api/user/:id/password', async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -504,8 +504,7 @@ app.delete('/api/user/:id', async (req, res) => {
   } catch (err) { res.sendStatus(500); }
 });
 
-// ==================== JOB ENDPOINTS (WITH EDIT/DELETE) ====================
-
+// JOB ENDPOINTS
 app.post('/api/jobs', async (req, res) => {
   try {
     const { title, trade, description, location, postedBy, posterName } = req.body;
@@ -603,12 +602,10 @@ app.delete('/api/jobs/:id', async (req, res) => {
   }
 });
 
-// ==================== END OF JOB ENDPOINTS ====================
-
+// UPLOAD
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-    // ========== UPDATED FOR RENDER - Use dynamic host for file URLs ==========
     const host = req.get('host');
     const protocol = req.protocol;
     const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
@@ -619,7 +616,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// ✅ CONTACT FORM ENDPOINT
+// CONTACT FORM
 app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
@@ -662,6 +659,7 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// MESSAGES
 app.get('/api/messages/:chatId', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM messages WHERE chatId = $1 ORDER BY time ASC', [req.params.chatId]);
@@ -684,8 +682,7 @@ app.delete('/api/messages/:id', async (req, res) => {
   } catch (err) { res.sendStatus(500); }
 });
 
-// ========== 📨 INBOX / CONVERSATION ENDPOINTS ==========
-
+// CONVERSATIONS
 app.get('/api/conversations/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -777,8 +774,7 @@ app.post('/api/messages/read', async (req, res) => {
   }
 });
 
-// ========== END OF INBOX ENDPOINTS ==========
-
+// VERIFY EMAIL
 app.get('/api/verify-email/:token', async (req, res) => {
   try {
     const token = req.params.token;
@@ -806,6 +802,7 @@ app.get('/api/verify-email/:token', async (req, res) => {
   }
 });
 
+// FORGOT PASSWORD
 app.post('/api/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -889,6 +886,7 @@ app.post('/api/reset-password/:token', async (req, res) => {
   }
 });
 
+// RESEND VERIFICATION
 app.post('/api/resend-verification', async (req, res) => {
   try {
     const { email } = req.body;
@@ -944,8 +942,7 @@ app.post('/api/resend-verification', async (req, res) => {
   }
 });
 
-// ========== 👑 ADMIN ENDPOINTS ==========
-
+// ADMIN ENDPOINTS
 async function isAdmin(req, res, next) {
   const userId = req.headers['user-id'];
   if (!userId) {
@@ -1152,138 +1149,133 @@ app.delete('/api/admin/job/:id', isAdmin, async (req, res) => {
   }
 });
 
-// ========== 📞 CALL LOGS ENDPOINTS ==========
-
+// CALL LOGS ENDPOINTS
 app.post('/api/calls', async (req, res) => {
-    try {
-        const { callerId, receiverId, callType, callStatus, duration, chatId } = req.body;
-        
-        const result = await pool.query(
-            `INSERT INTO calls (caller_id, receiver_id, call_type, call_status, duration, chat_id, started_at)
-             VALUES ($1, $2, $3, $4, $5, $6, NOW())
-             RETURNING id`,
-            [callerId, receiverId, callType, callStatus, duration, chatId]
-        );
-        
-        res.json({ success: true, id: result.rows[0].id });
-    } catch (err) {
-        console.error('Save call error:', err);
-        res.status(500).json({ error: 'Failed to save call record' });
-    }
+  try {
+    const { callerId, receiverId, callType, callStatus, duration, chatId } = req.body;
+    
+    const result = await pool.query(
+      `INSERT INTO calls (caller_id, receiver_id, call_type, call_status, duration, chat_id, started_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       RETURNING id`,
+      [callerId, receiverId, callType, callStatus, duration, chatId]
+    );
+    
+    res.json({ success: true, id: result.rows[0].id });
+  } catch (err) {
+    console.error('Save call error:', err);
+    res.status(500).json({ error: 'Failed to save call record' });
+  }
 });
 
 app.put('/api/calls/:id', async (req, res) => {
-    try {
-        const { duration, endedAt, callStatus } = req.body;
-        const callId = req.params.id;
-        
-        let query = 'UPDATE calls SET ';
-        const updates = [];
-        const values = [];
-        let paramCount = 1;
-        
-        if (duration !== undefined) {
-            updates.push(`duration = $${paramCount++}`);
-            values.push(duration);
-        }
-        if (endedAt !== undefined) {
-            updates.push(`ended_at = $${paramCount++}`);
-            values.push(endedAt);
-        }
-        if (callStatus !== undefined) {
-            updates.push(`call_status = $${paramCount++}`);
-            values.push(callStatus);
-        }
-        
-        if (updates.length === 0) {
-            return res.json({ success: true });
-        }
-        
-        query += updates.join(', ') + ` WHERE id = $${paramCount}`;
-        values.push(callId);
-        
-        await pool.query(query, values);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Update call error:', err);
-        res.status(500).json({ error: 'Failed to update call record' });
+  try {
+    const { duration, endedAt, callStatus } = req.body;
+    const callId = req.params.id;
+    
+    let query = 'UPDATE calls SET ';
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+    
+    if (duration !== undefined) {
+      updates.push(`duration = $${paramCount++}`);
+      values.push(duration);
     }
+    if (endedAt !== undefined) {
+      updates.push(`ended_at = $${paramCount++}`);
+      values.push(endedAt);
+    }
+    if (callStatus !== undefined) {
+      updates.push(`call_status = $${paramCount++}`);
+      values.push(callStatus);
+    }
+    
+    if (updates.length === 0) {
+      return res.json({ success: true });
+    }
+    
+    query += updates.join(', ') + ` WHERE id = $${paramCount}`;
+    values.push(callId);
+    
+    await pool.query(query, values);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Update call error:', err);
+    res.status(500).json({ error: 'Failed to update call record' });
+  }
 });
 
 app.get('/api/calls/user/:userId', async (req, res) => {
-    try {
-        const userId = req.params.userId;
-        
-        const result = await pool.query(
-            `SELECT c.*, 
-                u1.name as caller_name, u1.photoURL as caller_photo,
-                u2.name as receiver_name, u2.photoURL as receiver_photo
-             FROM calls c
-             LEFT JOIN users u1 ON c.caller_id = u1.id::text
-             LEFT JOIN users u2 ON c.receiver_id = u2.id::text
-             WHERE c.caller_id = $1 OR c.receiver_id = $1
-             ORDER BY c.started_at DESC
-             LIMIT 100`,
-            [userId]
-        );
-        
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Get calls error:', err);
-        res.status(500).json([]);
-    }
+  try {
+    const userId = req.params.userId;
+    
+    const result = await pool.query(
+      `SELECT c.*, 
+        u1.name as caller_name, u1.photoURL as caller_photo,
+        u2.name as receiver_name, u2.photoURL as receiver_photo
+       FROM calls c
+       LEFT JOIN users u1 ON c.caller_id = u1.id::text
+       LEFT JOIN users u2 ON c.receiver_id = u2.id::text
+       WHERE c.caller_id = $1 OR c.receiver_id = $1
+       ORDER BY c.started_at DESC
+       LIMIT 100`,
+      [userId]
+    );
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get calls error:', err);
+    res.status(500).json([]);
+  }
 });
 
 app.get('/api/calls/chat/:chatId', async (req, res) => {
-    try {
-        const chatId = req.params.chatId;
-        
-        const result = await pool.query(
-            `SELECT c.*, 
-                u1.name as caller_name,
-                u2.name as receiver_name
-             FROM calls c
-             LEFT JOIN users u1 ON c.caller_id = u1.id::text
-             LEFT JOIN users u2 ON c.receiver_id = u2.id::text
-             WHERE c.chat_id = $1
-             ORDER BY c.started_at DESC`,
-            [chatId]
-        );
-        
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Get chat calls error:', err);
-        res.status(500).json([]);
-    }
+  try {
+    const chatId = req.params.chatId;
+    
+    const result = await pool.query(
+      `SELECT c.*, 
+        u1.name as caller_name,
+        u2.name as receiver_name
+       FROM calls c
+       LEFT JOIN users u1 ON c.caller_id = u1.id::text
+       LEFT JOIN users u2 ON c.receiver_id = u2.id::text
+       WHERE c.chat_id = $1
+       ORDER BY c.started_at DESC`,
+      [chatId]
+    );
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Get chat calls error:', err);
+    res.status(500).json([]);
+  }
 });
 
-// ========== END CALL LOGS ENDPOINTS ==========
-
-// ========== HELPER FUNCTIONS FOR SOCKET.IO ==========
-
+// ========== SOCKET.IO HELPER FUNCTIONS ==========
 const userSockets = new Map();
 
 function emitToUserSockets(userId, event, data) {
-    const socketId = userSockets.get(String(userId));
-    if (socketId) {
-        io.to(socketId).emit(event, data);
-        return true;
-    }
-    return false;
+  const socketId = userSockets.get(String(userId));
+  if (socketId) {
+    io.to(socketId).emit(event, data);
+    return true;
+  }
+  return false;
 }
 
 function removeUserSocket(socketId) {
-    for (const [userId, storedSocketId] of userSockets.entries()) {
-        if (storedSocketId === socketId) {
-            userSockets.delete(userId);
-            return userId;
-        }
+  for (const [userId, storedSocketId] of userSockets.entries()) {
+    if (storedSocketId === socketId) {
+      userSockets.delete(userId);
+      return userId;
     }
-    return null;
+  }
+  return null;
 }
 
-// ========== ✅ SOCKET.IO WITH GLOBAL CALL HANDLING ==========
-
+// ========== SOCKET.IO CONNECTION ==========
 io.on('connection', (socket) => {
   console.log('🔌 New client connected:', socket.id);
 
@@ -1369,8 +1361,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ========== GLOBAL CALL HANDLERS ==========
-  
+  // CALL HANDLERS
   socket.on('start-call', async (data) => {
     const { to, from, callType, chatId, sdp } = data;
     console.log(`📞 Starting call from ${from} to ${to}`);
@@ -1526,7 +1517,5 @@ io.on('connection', (socket) => {
   });
 });
 
-// ========== END OF SOCKET.IO ==========
-
-// ========== UPDATED FOR RENDER - Use environment port ==========
+// ========== START SERVER ==========
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
