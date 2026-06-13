@@ -15,6 +15,7 @@ const server = http.createServer(app);
 // ========== ADDED FOR RENDER DEPLOYMENT ==========
 // Use environment port or fallback to 5000 for local development
 const PORT = process.env.PORT || 5000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 // Update CORS to allow both local and Render frontend
 const allowedOrigins = [
@@ -102,14 +103,14 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASS,
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false, // For Render PostgreSQL
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
+  port: Number(process.env.SMTP_PORT || 587),
   secure: false,
   auth: {
     user: process.env.SMTP_USER,

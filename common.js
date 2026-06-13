@@ -1,3 +1,5 @@
+/* global window, document, localStorage, navigator, sessionStorage */
+
 // Global dark mode management - persists across all pages
 (function() {
   const DARK_MODE_KEY = 'laborconnect-dark-mode';
@@ -37,17 +39,21 @@
 })();
 
 // ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
-if (typeof API_URL === 'undefined') {
-  var API_URL = (location.port && location.port === '5000') ? `${location.origin}/api` : 'http://localhost:5000/api';
-}
-window.API_URL = API_URL;
+// Check if we're on Render (production) or localhost
+const isBrowser = typeof window !== 'undefined' && typeof window.location !== 'undefined';
+const hostname = isBrowser ? window.location.hostname : '';
+const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+const API_URL = isLocalhost ? 'http://localhost:5000/api' : 'https://laborconnect-api.onrender.com/api';
+const SOCKET_URL = isLocalhost ? 'http://localhost:5000' : 'https://laborconnect-api.onrender.com';
 
-if (typeof SOCKET_URL === 'undefined') {
-  var SOCKET_URL = (location.port && location.port === '5000') ? `${location.origin}` : 'http://localhost:5000';
+if (typeof API_URL !== 'undefined') {
+    window.API_URL = API_URL;
 }
-window.SOCKET_URL = SOCKET_URL;
+if (typeof SOCKET_URL !== 'undefined') {
+    window.SOCKET_URL = SOCKET_URL;
+}
 
-// ==================== GLOBAL SOCKET CONNECTION FOR CALLS ====================
+
 if (typeof window.__COMMON_CALLS_LOADED__ === 'undefined') {
 window.__COMMON_CALLS_LOADED__ = true;
 
