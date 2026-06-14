@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Admin Dashboard - LaborConnect</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .sidebar h3 {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar .nav-link {
+            padding: 12px 24px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar .nav-link i { width: 24px; }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover { transform: translateY(-3px); }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        
+        .user-row, .message-row, .job-row {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .user-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .badge-worker { background: #0d6efd; color: white; }
+        .badge-customer { background: #198754; color: white; }
+        .badge-suspended { background: #dc3545; color: white; }
+        .badge-unverified { background: #ffc107; color: #333; }
+        .badge-admin { background: #6f42c1; color: white; }
+        
+        .search-bar { margin-bottom: 20px; }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn.active {
+            background: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .message-text {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .job-title {
+            font-weight: 600;
+        }
+        
+        .refresh-btn {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        /* Dark mode support */
+        body.dark-active {
+            background: #0f172a;
+        }
+
+        body.dark-active .stat-card,
+        body.dark-active .user-row,
+        body.dark-active .message-row,
+        body.dark-active .job-row {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        body.dark-active .filter-btn {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+
+        body.dark-active .filter-btn.active {
+            background: #0d6efd;
+            color: white;
+        }
+
+        body.dark-active .empty-state {
+            color: #94a3b8;
+        }
+
+        /* ========== MOBILE NAVIGATION FIX ========== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                top: 0;
+                bottom: 0;
+                width: 260px;
+                background: #1a1a2e;
+                color: white;
+                padding: 20px 0;
+                overflow-y: auto;
+                transition: left 0.3s ease;
+                z-index: 1000;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 60px 15px 15px 15px;
+            }
+            
+            .mobile-menu-btn {
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                background: #1a1a2e;
+                border: none;
+                color: white;
+                width: 45px;
+                height: 45px;
+                border-radius: 8px;
+                cursor: pointer;
+                z-index: 1001;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+            
+            .mobile-menu-btn:hover {
+                background: #0d6efd;
+            }
+            
+            .menu-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 999;
+                display: none;
+            }
+            
+            .menu-overlay.active {
+                display: block;
+            }
+            
+            .stat-card {
+                margin-bottom: 15px;
+            }
+            
+            .stat-number {
+                font-size: 1.5rem;
+            }
+            
+            .filter-buttons {
+                gap: 8px;
+            }
+            
+            .filter-btn {
+                padding: 4px 12px;
+                font-size: 0.75rem;
+            }
+            
+            .user-row, .message-row, .job-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .user-row div:last-child {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 10px;
+            }
+            
+            .btn-sm {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">
+    <i class="fas fa-bars"></i>
+</button>
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<div class="sidebar">
+    <h3 id="adminTitle"><i class="fas fa-crown me-2"></i> Admin Panel</h3>
+    <div class="nav-link active" data-page="dashboard">
+        <i class="fas fa-chart-line"></i> <span id="navDashboard">Dashboard</span>
+    </div>
+    <div class="nav-link" data-page="users">
+        <i class="fas fa-users"></i> <span id="navUsers">Users</span>
+    </div>
+    <div class="nav-link" data-page="messages">
+        <i class="fas fa-comments"></i> <span id="navMessages">Messages</span>
+    </div>
+    <div class="nav-link" data-page="jobs">
+        <i class="fas fa-briefcase"></i> <span id="navJobs">Jobs</span>
+    </div>
+    <a href="index.html" class="nav-link" style="margin-top: 20px;">
+        <i class="fas fa-arrow-left"></i> <span id="backToSite">Back to Site</span>
+    </a>
+</div>
+
+<div class="main-content">
+    <div id="page-content">
+        <div class="loading"><i class="fas fa-spinner fa-spin"></i> <span id="loadingText">Loading...</span></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="common.js"></script>
+<script>
+    // Fix 1: Fallback API URL if not defined in common.js
+    if (typeof API_URL === 'undefined') {
+        window.API_URL = 'http://localhost:3000/api';
+    }
+
+    // Fix 2: Safe localStorage parse
+    const rawUser = localStorage.getItem('user');
+    const currentUser = rawUser ? JSON.parse(rawUser) : null;
+    
+    let currentPage = 'dashboard';
+    let usersData = [];
+    let currentFilter = 'all';
+    let currentRole = 'all';
+    let searchQuery = '';
+    
+    // ==================== PREVENT DUPLICATE CALL UI ON ADMIN PAGE ====================
+    let isAdminCallActive = false;
+    
+    // Store original startCall if it exists, then wrap it
+    if (typeof window.startCall === 'function') {
+        const originalStartCall = window.startCall;
+        window.startCall = function(toUserId, callType) {
+            if (isAdminCallActive) {
+                console.log('Admin: Call already active, ignoring duplicate');
+                return;
+            }
+            isAdminCallActive = true;
+            originalStartCall(toUserId, callType);
+            
+            // Reset flag when call ends
+            const checkInterval = setInterval(() => {
+                if (typeof isInCall !== 'undefined' && !isInCall && !document.getElementById('callMediaContainer')) {
+                    isAdminCallActive = false;
+                    clearInterval(checkInterval);
+                }
+            }, 1000);
+        };
+    }
+    
+    // ==================== TRANSLATIONS ====================
+    const adminTranslations = {
+        en: {
+            adminTitle: "Admin Panel",
+            navDashboard: "Dashboard",
+            navUsers: "Users",
+            navMessages: "Messages",
+            navJobs: "Jobs",
+            backToSite: "Back to Site",
+            loadingText: "Loading...",
+            dashboardTitle: "Dashboard",
+            refresh: "Refresh",
+            totalUsers: "Total Users",
+            workers: "Workers",
+            customers: "Customers",
+            messages: "Messages",
+            suspendedAccounts: "Suspended Accounts",
+            unverifiedAccounts: "Unverified Accounts",
+            jobsPosted: "Jobs Posted",
+            usersManagement: "Users Management",
+            searchPlaceholder: "Search by name or email...",
+            all: "All",
+            active: "Active",
+            suspended: "Suspended",
+            allStatus: "All Status",
+            noUsersFound: "No users found",
+            noMessagesFound: "No messages found",
+            noJobsFound: "No jobs found",
+            view: "View",
+            suspend: "Suspend",
+            unsuspend: "Unsuspend",
+            delete: "Delete",
+            errorLoading: "Error loading data. Make sure server is running.",
+            errorLoadingUsers: "Error loading users",
+            errorLoadingMessages: "Error loading messages",
+            errorLoadingJobs: "Error loading jobs",
+            adminAccessRequired: "Admin access required",
+            suspendReason: "Reason for suspension:",
+            suspendSuccess: "User suspended successfully",
+            suspendFailed: "Failed to suspend user",
+            unsuspendConfirm: "Unsuspend this user?",
+            unsuspendSuccess: "User unsuspended successfully",
+            unsuspendFailed: "Failed to unsuspend user",
+            deleteConfirm: "⚠️ WARNING: This will permanently delete the user and all their data! Are you sure?",
+            deleteSuccess: "User deleted permanently",
+            deleteFailed: "Failed to delete user",
+            deleteMessageConfirm: "Delete this message?",
+            deleteMessageSuccess: "Message deleted",
+            deleteMessageFailed: "Failed to delete message",
+            deleteJobConfirm: "Delete this job?",
+            deleteJobSuccess: "Job deleted",
+            deleteJobFailed: "Failed to delete job"
+        },
+        ko: {
+            adminTitle: "관리자 패널",
+            navDashboard: "대시보드",
+            navUsers: "사용자",
+            navMessages: "메시지",
+            navJobs: "작업",
+            backToSite: "사이트로 돌아가기",
+            loadingText: "로딩 중...",
+            dashboardTitle: "대시보드",
+            refresh: "새로고침",
+            totalUsers: "전체 사용자",
+            workers: "작업자",
+            customers: "고객",
+            messages: "메시지",
+            suspendedAccounts: "정지된 계정",
+            unverifiedAccounts: "인증되지 않은 계정",
+            jobsPosted: "게시된 작업",
+            usersManagement: "사용자 관리",
+            searchPlaceholder: "이름 또는 이메일로 검색...",
+            all: "전체",
+            active: "활성",
+            suspended: "정지됨",
+            allStatus: "모든 상태",
+            noUsersFound: "사용자를 찾을 수 없습니다",
+            noMessagesFound: "메시지를 찾을 수 없습니다",
+            noJobsFound: "작업을 찾을 수 없습니다",
+            view: "보기",
+            suspend: "정지",
+            unsuspend: "정지 해제",
+            delete: "삭제",
+            errorLoading: "데이터를 불러오는 중 오류가 발생했습니다. 서버가 실행 중인지 확인하세요.",
+            errorLoadingUsers: "사용자 로딩 오류",
+            errorLoadingMessages: "메시지 로딩 오류",
+            errorLoadingJobs: "작업 로딩 오류",
+            adminAccessRequired: "관리자 권한이 필요합니다",
+            suspendReason: "정지 사유:",
+            suspendSuccess: "사용자가 정지되었습니다",
+            suspendFailed: "사용자 정지에 실패했습니다",
+            unsuspendConfirm: "이 사용자의 정지를 해제하시겠습니까?",
+            unsuspendSuccess: "사용자 정지가 해제되었습니다",
+            unsuspendFailed: "정지 해제에 실패했습니다",
+            deleteConfirm: "⚠️ 경고: 이 사용자와 모든 데이터를 영구적으로 삭제합니다! 계속하시겠습니까?",
+            deleteSuccess: "사용자가 영구적으로 삭제되었습니다",
+            deleteFailed: "사용자 삭제에 실패했습니다",
+            deleteMessageConfirm: "이 메시지를 삭제하시겠습니까?",
+            deleteMessageSuccess: "메시지가 삭제되었습니다",
+            deleteMessageFailed: "메시지 삭제에 실패했습니다",
+            deleteJobConfirm: "이 작업을 삭제하시겠습니까?",
+            deleteJobSuccess: "작업이 삭제되었습니다",
+            deleteJobFailed: "작업 삭제에 실패했습니다"
+        },
+        zh: {
+            adminTitle: "管理面板",
+            navDashboard: "仪表板",
+            navUsers: "用户管理",
+            navMessages: "消息",
+            navJobs: "工作",
+            backToSite: "返回网站",
+            loadingText: "加载中...",
+            dashboardTitle: "仪表板",
+            refresh: "刷新",
+            totalUsers: "总用户",
+            workers: "工人",
+            customers: "客户",
+            messages: "消息",
+            suspendedAccounts: "已停用账户",
+            unverifiedAccounts: "未验证账户",
+            jobsPosted: "已发布工作",
+            usersManagement: "用户管理",
+            searchPlaceholder: "按姓名或邮箱搜索...",
+            all: "全部",
+            active: "活跃",
+            suspended: "已停用",
+            allStatus: "所有状态",
+            noUsersFound: "未找到用户",
+            noMessagesFound: "未找到消息",
+            noJobsFound: "未找到工作",
+            view: "查看",
+            suspend: "停用",
+            unsuspend: "恢复",
+            delete: "删除",
+            errorLoading: "加载数据出错，请确保服务器正在运行。",
+            errorLoadingUsers: "加载用户出错",
+            errorLoadingMessages: "加载消息出错",
+            errorLoadingJobs: "加载工作出错",
+            adminAccessRequired: "需要管理员权限",
+            suspendReason: "停用原因：",
+            suspendSuccess: "用户已停用",
+            suspendFailed: "停用用户失败",
+            unsuspendConfirm: "恢复此用户？",
+            unsuspendSuccess: "用户已恢复",
+            unsuspendFailed: "恢复用户失败",
+            deleteConfirm: "⚠️ 警告：这将永久删除用户及其所有数据！确定吗？",
+            deleteSuccess: "用户已永久删除",
+            deleteFailed: "删除用户失败",
+            deleteMessageConfirm: "删除此消息？",
+            deleteMessageSuccess: "消息已删除",
+            deleteMessageFailed: "删除消息失败",
+            deleteJobConfirm: "删除此工作？",
+            deleteJobSuccess: "工作已删除",
+            deleteJobFailed: "删除工作失败"
+        },
+        fr: {
+            adminTitle: "Panneau d'administration",
+            navDashboard: "Tableau de bord",
+            navUsers: "Utilisateurs",
+            navMessages: "Messages",
+            navJobs: "Emplois",
+            backToSite: "Retour au site",
+            loadingText: "Chargement...",
+            dashboardTitle: "Tableau de bord",
+            refresh: "Actualiser",
+            totalUsers: "Utilisateurs totaux",
+            workers: "Travailleurs",
+            customers: "Clients",
+            messages: "Messages",
+            suspendedAccounts: "Comptes suspendus",
+            unverifiedAccounts: "Comptes non vérifiés",
+            jobsPosted: "Emplois publiés",
+            usersManagement: "Gestion des utilisateurs",
+            searchPlaceholder: "Rechercher par nom ou email...",
+            all: "Tous",
+            active: "Actif",
+            suspended: "Suspendu",
+            allStatus: "Tous les statuts",
+            noUsersFound: "Aucun utilisateur trouvé",
+            noMessagesFound: "Aucun message trouvé",
+            noJobsFound: "Aucun emploi trouvé",
+            view: "Voir",
+            suspend: "Suspendre",
+            unsuspend: "Réactiver",
+            delete: "Supprimer",
+            errorLoading: "Erreur de chargement. Assurez-vous que le serveur fonctionne.",
+            errorLoadingUsers: "Erreur de chargement des utilisateurs",
+            errorLoadingMessages: "Erreur de chargement des messages",
+            errorLoadingJobs: "Erreur de chargement des emplois",
+            adminAccessRequired: "Accès administrateur requis",
+            suspendReason: "Raison de la suspension :",
+            suspendSuccess: "Utilisateur suspendu avec succès",
+            suspendFailed: "Échec de la suspension",
+            unsuspendConfirm: "Réactiver cet utilisateur ?",
+            unsuspendSuccess: "Utilisateur réactivé",
+            unsuspendFailed: "Échec de la réactivation",
+            deleteConfirm: "⚠️ ATTENTION : Cette action supprimera définitivement l'utilisateur et toutes ses données ! Êtes-vous sûr ?",
+            deleteSuccess: "Utilisateur supprimé définitivement",
+            deleteFailed: "Échec de la suppression",
+            deleteMessageConfirm: "Supprimer ce message ?",
+            deleteMessageSuccess: "Message supprimé",
+            deleteMessageFailed: "Échec de la suppression",
+            deleteJobConfirm: "Supprimer cet emploi ?",
+            deleteJobSuccess: "Emploi supprimé",
+            deleteJobFailed: "Échec de la suppression"
+        },
+        ru: {
+            adminTitle: "Панель администратора",
+            navDashboard: "Панель управления",
+            navUsers: "Пользователи",
+            navMessages: "Сообщения",
+            navJobs: "Вакансии",
+            backToSite: "Назад на сайт",
+            loadingText: "Загрузка...",
+            dashboardTitle: "Панель управления",
+            refresh: "Обновить",
+            totalUsers: "Всего пользователей",
+            workers: "Работники",
+            customers: "Клиенты",
+            messages: "Сообщения",
+            suspendedAccounts: "Заблокированные аккаунты",
+            unverifiedAccounts: "Неподтвержденные аккаунты",
+            jobsPosted: "Опубликовано вакансий",
+            usersManagement: "Управление пользователями",
+            searchPlaceholder: "Поиск по имени или email...",
+            all: "Все",
+            active: "Активные",
+            suspended: "Заблокированные",
+            allStatus: "Все статусы",
+            noUsersFound: "Пользователи не найдены",
+            noMessagesFound: "Сообщения не найдены",
+            noJobsFound: "Вакансии не найдены",
+            view: "Просмотр",
+            suspend: "Заблокировать",
+            unsuspend: "Разблокировать",
+            delete: "Удалить",
+            errorLoading: "Ошибка загрузки. Убедитесь, что сервер запущен.",
+            errorLoadingUsers: "Ошибка загрузки пользователей",
+            errorLoadingMessages: "Ошибка загрузки сообщений",
+            errorLoadingJobs: "Ошибка загрузки вакансий",
+            adminAccessRequired: "Требуется доступ администратора",
+            suspendReason: "Причина блокировки:",
+            suspendSuccess: "Пользователь заблокирован",
+            suspendFailed: "Не удалось заблокировать пользователя",
+            unsuspendConfirm: "Разблокировать этого пользователя?",
+            unsuspendSuccess: "Пользователь разблокирован",
+            unsuspendFailed: "Не удалось разблокировать",
+            deleteConfirm: "⚠️ ВНИМАНИЕ: Это действие навсегда удалит пользователя и все его данные! Вы уверены?",
+            deleteSuccess: "Пользователь навсегда удален",
+            deleteFailed: "Не удалось удалить пользователя",
+            deleteMessageConfirm: "Удалить это сообщение?",
+            deleteMessageSuccess: "Сообщение удалено",
+            deleteMessageFailed: "Не удалось удалить сообщение",
+            deleteJobConfirm: "Удалить эту вакансию?",
+            deleteJobSuccess: "Вакансия удалена",
+            deleteJobFailed: "Не удалось удалить вакансию"
+        }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+    let currentLangData = adminTranslations[currentLanguage] || adminTranslations.en;
+
+    function updateAdminLanguage() {
+        currentLangData = adminTranslations[currentLanguage] || adminTranslations.en;
+        
+        document.getElementById('adminTitle').innerHTML = `<i class="fas fa-crown me-2"></i> ${currentLangData.adminTitle}`;
+        document.getElementById('navDashboard').textContent = currentLangData.navDashboard;
+        document.getElementById('navUsers').textContent = currentLangData.navUsers;
+        document.getElementById('navMessages').textContent = currentLangData.navMessages;
+        document.getElementById('navJobs').textContent = currentLangData.navJobs;
+        document.getElementById('backToSite').textContent = currentLangData.backToSite;
+        document.getElementById('loadingText').textContent = currentLangData.loadingText;
+        
+        // Sync loading text translation immediately
+        const loadingEl = document.querySelector('.loading span');
+        if (loadingEl) loadingEl.textContent = currentLangData.loadingText;
+        
+        if (currentPage === 'dashboard') loadDashboard();
+        else if (currentPage === 'users') loadUsers();
+        else if (currentPage === 'messages') loadMessages();
+        else if (currentPage === 'jobs') loadJobs();
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'language') {
+            currentLanguage = e.newValue || 'en';
+            updateAdminLanguage();
+        }
+        if (e.key === DARK_MODE_KEY) {
+            applyDarkMode();
+        }
+    });
+    
+    function checkLanguageChange() {
+        const newLang = localStorage.getItem('language') || 'en';
+        if (newLang !== currentLanguage) {
+            currentLanguage = newLang;
+            updateAdminLanguage();
+        }
+    }
+    setInterval(checkLanguageChange, 500);
+
+    // Dark mode
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    
+    function applyDarkMode() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive) {
+            document.body.classList.add('dark-active');
+        } else {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    
+    function checkDarkModeChange() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        const bodyHasDark = document.body.classList.contains('dark-active');
+        if (isDarkActive && !bodyHasDark) {
+            document.body.classList.add('dark-active');
+        } else if (!isDarkActive && bodyHasDark) {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    setInterval(checkDarkModeChange, 500);
+    
+    applyDarkMode();
+
+    // Admin Functions
+    async function checkAdmin() {
+        if (!currentUser) {
+            window.location.href = 'login.html';
+            return false;
+        }
+        
+        try {
+            const response = await fetch(`${API_URL}/user/${currentUser.id}`);
+            if (!response.ok) throw new Error('Fetch failed');
+            const user = await response.json();
+            if (!user.is_admin) {
+                alert(currentLangData.adminAccessRequired);
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        } catch (err) {
+            window.location.href = 'login.html';
+            return false;
+        }
+    }
+    
+    async function loadDashboard() {
+        try {
+            const response = await fetch(`${API_URL}/admin/stats`, {
+                headers: { 'user-id': currentUser.id }
+            });
+            if (!response.ok) throw new Error('Stats fetch error');
+            const stats = await response.json();
+            
+            document.getElementById('page-content').innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>${currentLangData.dashboardTitle}</h2>
+                    <button class="refresh-btn" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i> ${currentLangData.refresh}</button>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                            <div class="stat-number">${stats.totalUsers || 0}</div>
+                            <div>${currentLangData.totalUsers}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-hard-hat fa-2x text-info mb-2"></i>
+                            <div class="stat-number">${stats.totalWorkers || 0}</div>
+                            <div>${currentLangData.workers}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-user-tie fa-2x text-success mb-2"></i>
+                            <div class="stat-number">${stats.totalCustomers || 0}</div>
+                            <div>${currentLangData.customers}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <i class="fas fa-comment fa-2x text-warning mb-2"></i>
+                            <div class="stat-number">${stats.totalMessages || 0}</div>
+                            <div>${currentLangData.messages}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <i class="fas fa-ban fa-2x text-danger mb-2"></i>
+                            <div class="stat-number">${stats.suspendedUsers || 0}</div>
+                            <div>${currentLangData.suspendedAccounts}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <i class="fas fa-envelope fa-2x text-secondary mb-2"></i>
+                            <div class="stat-number">${stats.unverifiedUsers || 0}</div>
+                            <div>${currentLangData.unverifiedAccounts}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <i class="fas fa-briefcase fa-2x text-primary mb-2"></i>
+                            <div class="stat-number">${stats.totalJobs || 0}</div>
+                            <div>${currentLangData.jobsPosted}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            document.getElementById('page-content').innerHTML = `<div class="empty-state">${currentLangData.errorLoading}</div>`;
+        }
+    }
+    
+    async function loadUsers() {
+        let url = `${API_URL}/admin/users?`;
+        if (currentRole !== 'all') url += `role=${encodeURIComponent(currentRole)}&`;
+        if (currentFilter === 'suspended') url += `status=suspended&`;
+        else if (currentFilter === 'active') url += `status=active&`;
+        const trimmedSearch = searchQuery.trim();
+        if (trimmedSearch) url += `search=${encodeURIComponent(trimmedSearch)}`;
+        
+        try {
+            const response = await fetch(url, { headers: { 'user-id': currentUser.id } });
+            if (!response.ok) throw new Error('Users fetch failed');
+            const users = await response.json();
+            usersData = users;
+            
+            let html = `
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>${currentLangData.usersManagement}</h2>
+                    <button class="refresh-btn" onclick="loadUsers()"><i class="fas fa-sync-alt"></i> ${currentLangData.refresh}</button>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="userSearch" class="form-control" placeholder="${escapeHtml(currentLangData.searchPlaceholder)}" style="width: 100%;" value="${escapeHtml(searchQuery)}">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn ${currentRole === 'all' ? 'active' : ''}" onclick="setRole('all')">${currentLangData.all}</button>
+                    <button class="filter-btn ${currentRole === 'Worker' ? 'active' : ''}" onclick="setRole('Worker')">${currentLangData.workers}</button>
+                    <button class="filter-btn ${currentRole === 'Customer' ? 'active' : ''}" onclick="setRole('Customer')">${currentLangData.customers}</button>
+                    <button class="filter-btn ${currentFilter === 'active' ? 'active' : ''}" onclick="setStatus('active')">${currentLangData.active}</button>
+                    <button class="filter-btn ${currentFilter === 'suspended' ? 'active' : ''}" onclick="setStatus('suspended')">${currentLangData.suspended}</button>
+                    <button class="filter-btn ${currentFilter === 'all' ? 'active' : ''}" onclick="setStatus('all')">${currentLangData.allStatus}</button>
+                </div>
+                <div id="usersList">
+            `;
+            
+            if (users.length === 0) {
+                html += `<div class="empty-state">${currentLangData.noUsersFound}</div>`;
+            } else {
+                users.forEach(user => {
+                    const phoneVal = user.phone ?? 'No phone';
+                    const typeClass = user.usertype === 'Worker' ? 'worker' : 'customer';
+                    html += `
+                        <div class="user-row">
+                            <div>
+                                <strong>${escapeHtml(user.name)}</strong><br>
+                                <small class="text-muted">${escapeHtml(user.email)} | ${escapeHtml(phoneVal)}</small>
+                                <div class="mt-1">
+                                    <span class="user-badge badge-${typeClass}">${escapeHtml(user.usertype)}</span>
+                                    ${user.is_admin ? '<span class="user-badge badge-admin">Admin</span>' : ''}
+                                    ${!user.is_verified ? '<span class="user-badge badge-unverified">Unverified</span>' : ''}
+                                    ${user.is_suspended ? '<span class="user-badge badge-suspended">Suspended</span>' : ''}
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewUser(${user.id})">
+                                    <i class="fas fa-eye"></i> ${currentLangData.view}
+                                </button>
+                                ${!user.is_suspended ? 
+                                    `<button class="btn btn-sm btn-outline-warning me-1" onclick="suspendUser(${user.id})">
+                                        <i class="fas fa-ban"></i> ${currentLangData.suspend}
+                                    </button>` :
+                                    `<button class="btn btn-sm btn-outline-success me-1" onclick="unsuspendUser(${user.id})">
+                                        <i class="fas fa-check"></i> ${currentLangData.unsuspend}
+                                    </button>`
+                                }
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">
+                                    <i class="fas fa-trash"></i> ${currentLangData.delete}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            html += `</div>`;
+            document.getElementById('page-content').innerHTML = html;
+            
+            document.getElementById('userSearch').addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                loadUsers();
+            });
+        } catch (err) {
+            document.getElementById('page-content').innerHTML = `<div class="empty-state">${currentLangData.errorLoadingUsers}</div>`;
+        }
+    }
+    
+    async function loadMessages() {
+        try {
+            const response = await fetch(`${API_URL}/admin/messages`, {
+                headers: { 'user-id': currentUser.id }
+            });
+            if (!response.ok) throw new Error('Messages fetch error');
+            const messages = await response.json();
+            
+            let html = `
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>${currentLangData.messages}</h2>
+                    <button class="refresh-btn" onclick="loadMessages()"><i class="fas fa-sync-alt"></i> ${currentLangData.refresh}</button>
+                </div>
+            `;
+            
+            if (!messages || messages.length === 0) {
+                html += `<div class="empty-state">${currentLangData.noMessagesFound}</div>`;
+            } else {
+                messages.forEach(msg => {
+                    const sender = msg.sender_name ?? 'Unknown';
+                    const receiver = msg.receiver_name ?? 'Unknown';
+                    const text = msg.text ?? 'No content';
+                    const timeStr = msg.time ? new Date(msg.time).toLocaleString() : '';
+                    html += `
+                        <div class="message-row">
+                            <div>
+                                <strong>${escapeHtml(sender)}</strong> 
+                                <i class="fas fa-arrow-right"></i> 
+                                <strong>${escapeHtml(receiver)}</strong>
+                                <div class="message-text mt-1">${escapeHtml(text)}</div>
+                                <small class="text-muted">${escapeHtml(timeStr)}</small>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage(${msg.id})">
+                                    <i class="fas fa-trash"></i> ${currentLangData.delete}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('page-content').innerHTML = html;
+        } catch (err) {
+            document.getElementById('page-content').innerHTML = `<div class="empty-state">${currentLangData.errorLoadingMessages}</div>`;
+        }
+    }
+    
+    async function loadJobs() {
+        try {
+            const response = await fetch(`${API_URL}/jobs`);
+            if (!response.ok) throw new Error('Jobs fetch error');
+            const jobs = await response.json();
+            
+            let html = `
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>${currentLangData.jobsPosted}</h2>
+                    <button class="refresh-btn" onclick="loadJobs()"><i class="fas fa-sync-alt"></i> ${currentLangData.refresh}</button>
+                </div>
+            `;
+            
+            if (!jobs || jobs.length === 0) {
+                html += `<div class="empty-state">${currentLangData.noJobsFound}</div>`;
+            } else {
+                jobs.forEach(job => {
+                    const trade = job.trade ?? '';
+                    const location = job.location ?? '';
+                    const desc = job.description ?? '';
+                    const poster = job.posterName ?? '';
+                    const timeStr = job.time ? new Date(job.time).toLocaleString() : '';
+                    html += `
+                        <div class="job-row">
+                            <div>
+                                <div class="job-title">${escapeHtml(job.title)}</div>
+                                <div><small class="text-muted">Trade: ${escapeHtml(trade)} | Location: ${escapeHtml(location)}</small></div>
+                                <div class="message-text mt-1">${escapeHtml(desc)}</div>
+                                <div><small class="text-muted">Posted by: ${escapeHtml(poster)} | ${escapeHtml(timeStr)}</small></div>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteJob(${job.id})">
+                                    <i class="fas fa-trash"></i> ${currentLangData.delete}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('page-content').innerHTML = html;
+        } catch (err) {
+            document.getElementById('page-content').innerHTML = `<div class="empty-state">${currentLangData.errorLoadingJobs}</div>`;
+        }
+    }
+    
+    async function viewUser(userId) {
+        try {
+            const response = await fetch(`${API_URL}/admin/user/${userId}`, {
+                headers: { 'user-id': currentUser.id }
+            });
+            if (!response.ok) throw new Error('User detail fetch fail');
+            const user = await response.json();
+            const phoneDisp = user.phone ?? 'N/A';
+            const tradeDisp = user.trade ?? 'N/A';
+            const msgCount = user.stats?.messages ?? 0;
+            const jobCount = user.stats?.jobs ?? 0;
+            alert(`📋 ${currentLangData.view.toUpperCase()}\n\nName: ${escapeHtml(user.name)}\nEmail: ${escapeHtml(user.email)}\nPhone: ${escapeHtml(phoneDisp)}\nType: ${escapeHtml(user.userType)}\nTrade: ${escapeHtml(tradeDisp)}\nVerified: ${user.is_verified ? 'Yes' : 'No'}\nSuspended: ${user.is_suspended ? 'Yes' : 'No'}\nMessages: ${msgCount}\nJobs: ${jobCount}`);
+        } catch (err) {
+            alert('Error loading user details');
+        }
+    }
+    
+    async function suspendUser(userId) {
+        const reason = prompt(`${currentLangData.suspendReason}`);
+        if (!reason || reason.trim() === '') return;
+        
+        try {
+            const response = await fetch(`${API_URL}/admin/user/${userId}/suspend`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'user-id': currentUser.id
+                },
+                body: JSON.stringify({ reason: reason.trim() })
+            });
+            
+            if (response.ok) {
+                alert(currentLangData.suspendSuccess);
+                loadUsers();
+            } else {
+                alert(currentLangData.suspendFailed);
+            }
+        } catch (err) {
+            alert(currentLangData.suspendFailed);
+        }
+    }
+    
+    async function unsuspendUser(userId) {
+        if (!confirm(currentLangData.unsuspendConfirm)) return;
+        
+        try {
+            const response = await fetch(`${API_URL}/admin/user/${userId}/unsuspend`, {
+                method: 'POST',
+                headers: { 'user-id': currentUser.id }
+            });
+            
+            if (response.ok) {
+                alert(currentLangData.unsuspendSuccess);
+                loadUsers();
+            } else {
+                alert(currentLangData.unsuspendFailed);
+            }
+        } catch (err) {
+            alert(currentLangData.unsuspendFailed);
+        }
+    }
+    
+    async function deleteUser(userId) {
+        if (!confirm(currentLangData.deleteConfirm)) return;
+        
+        try {
+            const response = await fetch(`${API_URL}/admin/user/${userId}`, {
+                method: 'DELETE',
+                headers: { 'user-id': currentUser.id }
+            });
+            
+            if (response.ok) {
+                alert(currentLangData.deleteSuccess);
+                loadUsers();
+            } else {
+                alert(currentLangData.deleteFailed);
+            }
+        } catch (err) {
+            alert(currentLangData.deleteFailed);
+        }
+    }
+    
+    async function deleteMessage(messageId) {
+        if (!confirm(currentLangData.deleteMessageConfirm)) return;
+        
+        try {
+            const response = await fetch(`${API_URL}/admin/message/${messageId}`, {
+                method: 'DELETE',
+                headers: { 'user-id': currentUser.id }
+            });
+            
+            if (response.ok) {
+                alert(currentLangData.deleteMessageSuccess);
+                loadMessages();
+            } else {
+                alert(currentLangData.deleteMessageFailed);
+            }
+        } catch (err) {
+            alert(currentLangData.deleteMessageFailed);
+        }
+    }
+    
+    async function deleteJob(jobId) {
+        if (!confirm(currentLangData.deleteJobConfirm)) return;
+        
+        try {
+            const response = await fetch(`${API_URL}/admin/job/${jobId}`, {
+                method: 'DELETE',
+                headers: { 'user-id': currentUser.id }
+            });
+            
+            if (response.ok) {
+                alert(currentLangData.deleteJobSuccess);
+                loadJobs();
+            } else {
+                alert(currentLangData.deleteJobFailed);
+            }
+        } catch (err) {
+            alert(currentLangData.deleteJobFailed);
+        }
+    }
+    
+    function setRole(role) {
+        currentRole = role;
+        loadUsers();
+    }
+    
+    function setStatus(status) {
+        currentFilter = status;
+        loadUsers();
+    }
+    
+    // Fix 3: Full XSS sanitization escapeHtml
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    
+    // ==================== NAVIGATION WITH CALL UI CLEANUP ====================
+    document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // REAL FIX: Cleanup any active call UI before switching pages
+            if (typeof destroyCallUI === 'function') {
+                destroyCallUI();
+            }
+            if (typeof endGlobalCall === 'function' && window.isInCall === true) {
+                endGlobalCall();
+            }
+            // Reset the admin call flag
+            isAdminCallActive = false;
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            currentPage = link.dataset.page;
+            
+            // Clear previous page content with translated loading
+            document.getElementById('page-content').innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> <span id="loadingText">${escapeHtml(currentLangData.loadingText)}</span></div>`;
+            
+            if (currentPage === 'dashboard') loadDashboard();
+            else if (currentPage === 'users') loadUsers();
+            else if (currentPage === 'messages') loadMessages();
+            else if (currentPage === 'jobs') loadJobs();
+        });
+    });
+    
+    // Mobile menu
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const menuOverlay = document.getElementById('menuOverlay');
+    
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            menuOverlay.classList.toggle('active');
+        });
+        
+        menuOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            menuOverlay.classList.remove('active');
+        });
+    }
+    
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+                menuOverlay.classList.remove('active');
+            }
+        });
+    });
+    
+    // Make functions global for onclick
+    window.viewUser = viewUser;
+    window.suspendUser = suspendUser;
+    window.unsuspendUser = unsuspendUser;
+    window.deleteUser = deleteUser;
+    window.deleteMessage = deleteMessage;
+    window.deleteJob = deleteJob;
+    window.setRole = setRole;
+    window.setStatus = setStatus;
+    window.loadDashboard = loadDashboard;
+    window.loadUsers = loadUsers;
+    window.loadMessages = loadMessages;
+    window.loadJobs = loadJobs;
+    
+    // Initialize
+    checkAdmin().then(isAdmin => {
+        if (isAdmin) {
+            updateAdminLanguage();
+            loadDashboard();
+        }
+    });
+</script>
+</body>
+</html>
