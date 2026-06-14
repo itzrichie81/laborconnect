@@ -38,6 +38,9 @@ const io = new Server(server, {
 });
 
 console.log('✅ CORS configured to allow all origins for testing');
+app.get('/', (req, res) => {
+    res.json({ message: 'LaborConnect API is running', status: 'ok' });
+});
 
 // Increase payload limit
 app.use(express.json({ limit: '50mb' }));
