@@ -39,12 +39,9 @@
 })();
 
 // ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
-// Check if we're on Render (production) or localhost
-const isBrowser = typeof window !== 'undefined' && typeof window.location !== 'undefined';
-const hostname = isBrowser ? window.location.hostname : '';
-const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-const API_URL = isLocalhost ? 'http://localhost:5000/api' : 'https://laborconnect-api.onrender.com/api';
-const SOCKET_URL = isLocalhost ? 'http://localhost:5000' : 'https://laborconnect-api.onrender.com';
+// HARDCODED FOR VERCELL DEPLOYMENT - Backend on Render
+const API_URL = 'https://laborconnect-api.onrender.com/api';
+const SOCKET_URL = 'https://laborconnect-api.onrender.com';
 
 if (typeof API_URL !== 'undefined') {
     window.API_URL = API_URL;
