@@ -39,18 +39,19 @@
 })();
 
 // ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
+// ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
 // Automatically detect environment - works for both local and production
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// For production, use Render URL. For local, use localhost.
+// CHANGE THIS PART:
 const API_URL = isLocal 
     ? 'http://localhost:5000/api' 
-    : 'https://laborconnect-api.onrender.com/api';
+    : 'https://laborconnect-api.up.railway.app/api';  // ← YOUR ACTUAL URL
 
 const SOCKET_URL = isLocal 
     ? 'http://localhost:5000' 
-    : 'https://laborconnect-api.onrender.com';
-    
+    : 'https://laborconnect-api.up.railway.app';  // ← YOUR ACTUAL URL
+
 if (typeof API_URL !== 'undefined') {
     window.API_URL = API_URL;
 }

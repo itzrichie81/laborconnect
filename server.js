@@ -15,9 +15,10 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Get frontend URL from environment variable
-const frontendUrl = process.env.FRONTEND_URL || 'https://laborconnect-eq1k.onrender.com';
+// TO:
+const frontendUrl = process.env.FRONTEND_URL || 'https://laborconnect-api.up.railway.app';
 
-// ========== SIMPLE CORS - ALLOW EVERYTHING FOR TESTING ==========
+
 // This will 100% fix the CORS issue
 app.use(cors({
     origin: true,  // This allows any origin
