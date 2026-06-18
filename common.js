@@ -45,12 +45,12 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 // For production, use Render URL. For local, use localhost.
 const API_URL = isLocal 
     ? 'http://localhost:5000/api' 
-    : 'https://laborconnect-eq1k.onrender.com/api';
+    : 'https://laborconnect-api.onrender.com/api';
 
 const SOCKET_URL = isLocal 
     ? 'http://localhost:5000' 
-    : 'https://laborconnect-eq1k.onrender.com';
-
+    : 'https://laborconnect-api.onrender.com';
+    
 if (typeof API_URL !== 'undefined') {
     window.API_URL = API_URL;
 }
