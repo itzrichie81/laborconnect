@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Login - LaborConnect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        /* OVERRIDE conflicting styles - keep blue/white theme */
+        
+        /* Force body background to white/blue gradient */
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%) !important;
+        }
+        
+        /* Override navbar to match new design */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .navbar .navbar-brand {
+            background: linear-gradient(135deg, #2563eb 0%, #8b5cf6 100%) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+        }
+        
+        /* Login page specific container */
+        .login-wrapper-custom {
+            min-height: calc(100vh - 200px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .login-card-custom {
+            max-width: 480px;
+            width: 100%;
+            background: #ffffff !important;
+            border-radius: 24px !important;
+            overflow: hidden;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1) !important;
+            border: 1px solid #e5e7eb !important;
+        }
+
+        .login-header-custom {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+            padding: 2rem !important;
+            text-align: center !important;
+            color: white !important;
+        }
+
+        .login-header-custom h3 {
+            font-size: 1.75rem !important;
+            font-weight: 700 !important;
+            margin-bottom: 0.5rem !important;
+            color: white !important;
+        }
+
+        .login-header-custom p {
+            opacity: 0.9 !important;
+            font-size: 0.9rem !important;
+            margin: 0 !important;
+            color: white !important;
+        }
+
+        .login-icon-custom {
+            text-align: center !important;
+            margin-top: -40px !important;
+            margin-bottom: 1.5rem !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        .icon-circle-custom {
+            width: 80px !important;
+            height: 80px !important;
+            background: white !important;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            border: 4px solid white !important;
+        }
+
+        .icon-circle-custom i {
+            font-size: 2.5rem !important;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+        }
+
+        .card-body-custom {
+            padding: 1.5rem 2rem 2rem !important;
+            background: white !important;
+        }
+
+        .form-group-custom {
+            margin-bottom: 1.25rem !important;
+        }
+
+        .form-label-custom {
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+            margin-bottom: 0.5rem !important;
+            display: block !important;
+            color: #374151 !important;
+        }
+
+        .input-group-custom {
+            position: relative !important;
+        }
+
+        .input-icon-custom {
+            position: absolute !important;
+            left: 1rem !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            color: #9ca3af !important;
+            font-size: 1rem !important;
+            pointer-events: none !important;
+            z-index: 1 !important;
+        }
+
+        .form-control-custom {
+            width: 100% !important;
+            padding: 0.85rem 1rem 0.85rem 2.5rem !important;
+            border: 1.5px solid #e5e7eb !important;
+            border-radius: 12px !important;
+            font-size: 0.95rem !important;
+            transition: all 0.2s ease !important;
+            background: white !important;
+            color: #1f2937 !important;
+        }
+
+        .form-control-custom:focus {
+            outline: none !important;
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+        }
+
+        .password-toggle-custom {
+            position: absolute !important;
+            right: 1rem !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            background: none !important;
+            border: none !important;
+            color: #9ca3af !important;
+            cursor: pointer !important;
+            transition: color 0.2s !important;
+            z-index: 1 !important;
+        }
+
+        .password-toggle-custom:hover {
+            color: #2563eb !important;
+        }
+
+        /* Remember Me checkbox */
+        .checkbox-wrapper {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            margin-bottom: 1.5rem !important;
+            flex-wrap: wrap !important;
+            gap: 0.5rem !important;
+        }
+
+        .checkbox-label {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            cursor: pointer !important;
+            font-size: 0.8rem !important;
+            color: #4b5563 !important;
+        }
+
+        .checkbox-label input {
+            width: 16px !important;
+            height: 16px !important;
+            cursor: pointer !important;
+            accent-color: #2563eb !important;
+        }
+
+        .forgot-link-custom {
+            color: #2563eb !important;
+            text-decoration: none !important;
+            font-size: 0.8rem !important;
+            font-weight: 500 !important;
+            transition: color 0.2s !important;
+        }
+
+        .forgot-link-custom:hover {
+            color: #1d4ed8 !important;
+            text-decoration: underline !important;
+        }
+
+        .btn-login-custom {
+            width: 100% !important;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 0.9rem !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            margin-top: 0.5rem !important;
+        }
+
+        .btn-login-custom:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3) !important;
+        }
+
+        .btn-login-custom:disabled {
+            opacity: 0.7 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        .register-link-custom {
+            text-align: center !important;
+            margin-top: 1.5rem !important;
+            padding-top: 1.5rem !important;
+            border-top: 1px solid #e5e7eb !important;
+        }
+
+        .register-link-custom p {
+            color: #6b7280 !important;
+            font-size: 0.9rem !important;
+            margin: 0 !important;
+        }
+
+        .register-link-custom a {
+            color: #2563eb !important;
+            text-decoration: none !important;
+            font-weight: 600 !important;
+        }
+
+        .register-link-custom a:hover {
+            text-decoration: underline !important;
+        }
+
+        .alert-message-custom {
+            padding: 0.75rem 1rem !important;
+            border-radius: 12px !important;
+            margin: 0 1.5rem 1rem !important;
+            font-size: 0.85rem !important;
+            display: none !important;
+        }
+
+        .alert-error-custom {
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+            border: 1px solid #fecaca !important;
+        }
+
+        .alert-success-custom {
+            background: #ecfdf5 !important;
+            color: #10b981 !important;
+            border: 1px solid #a7f3d0 !important;
+        }
+
+        /* Dark mode - responsive to homepage */
+        body.dark-active .login-card-custom {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        body.dark-active .card-body-custom {
+            background: #1e293b !important;
+        }
+
+        body.dark-active .form-control-custom {
+            background: #0f172a !important;
+            border-color: #334155 !important;
+            color: #f1f5f9 !important;
+        }
+
+        body.dark-active .form-label-custom {
+            color: #cbd5e1 !important;
+        }
+
+        body.dark-active .checkbox-label {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-active .register-link-custom {
+            border-top-color: #334155 !important;
+        }
+
+        body.dark-active .register-link-custom p {
+            color: #94a3b8 !important;
+        }
+
+        body.dark-active .icon-circle-custom {
+            background: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        @media (max-width: 640px) {
+            .login-wrapper-custom {
+                padding: 1rem !important;
+            }
+            .login-header-custom {
+                padding: 1.5rem !important;
+            }
+            .login-header-custom h3 {
+                font-size: 1.5rem !important;
+            }
+            .icon-circle-custom {
+                width: 70px !important;
+                height: 70px !important;
+            }
+            .icon-circle-custom i {
+                font-size: 2rem !important;
+            }
+            .card-body-custom {
+                padding: 1.5rem !important;
+            }
+            .checkbox-wrapper {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="register.html">Register</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="login-wrapper-custom">
+    <div class="login-card-custom">
+        <div class="login-header-custom">
+            <h3 id="loginTitle">Welcome Back</h3>
+            <p id="loginSubtitle">Sign in to continue to your account</p>
+        </div>
+
+        <div class="login-icon-custom">
+            <div class="icon-circle-custom">
+                <i class="fas fa-handshake"></i>
+            </div>
+        </div>
+
+        <div id="alertMessage" class="alert-message-custom"></div>
+
+        <div class="card-body-custom">
+            <form id="loginForm">
+                <div class="form-group-custom">
+                    <label class="form-label-custom" id="emailLabel">Email Address</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-envelope input-icon-custom"></i>
+                        <input type="email" class="form-control-custom" id="email" placeholder="you@example.com" required autocomplete="email">
+                    </div>
+                </div>
+                
+                <div class="form-group-custom">
+                    <label class="form-label-custom" id="passwordLabel">Password</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock input-icon-custom"></i>
+                        <input type="password" class="form-control-custom" id="password" placeholder="••••••" required autocomplete="current-password">
+                        <button class="password-toggle-custom" type="button" id="toggleLoginPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Remember Me Checkbox -->
+                <div class="checkbox-wrapper">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe"> 
+                        <span id="rememberMeText">Remember Me</span>
+                    </label>
+                    <div class="text-end">
+                        <a href="forgot-password.html" class="forgot-link-custom" id="forgotText">Forgot Password?</a>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-login-custom" id="submitBtn">
+                    <i class="fas fa-arrow-right-to-bracket me-2"></i> <span id="signInText">Sign In</span>
+                </button>
+            </form>
+            
+            <div class="register-link-custom">
+                <p id="noAccountText">Don't have an account? <a href="register.html" id="signUpLink">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="common.js"></script>
+<script>
+    // ==================== TRANSLATIONS ====================
+    const loginTranslations = {
+        en: {
+            loginTitle: "Welcome Back",
+            loginSubtitle: "Sign in to continue to your account",
+            emailLabel: "Email Address",
+            passwordLabel: "Password",
+            rememberMeText: "Remember Me",
+            forgotText: "Forgot Password?",
+            signInText: "Sign In",
+            noAccountText: "Don't have an account?",
+            signUpLink: "Sign Up"
+        },
+        ko: {
+            loginTitle: "다시 오신 것을 환영합니다",
+            loginSubtitle: "계속하려면 로그인하세요",
+            emailLabel: "이메일 주소",
+            passwordLabel: "비밀번호",
+            rememberMeText: "로그인 상태 유지",
+            forgotText: "비밀번호를 잊으셨나요?",
+            signInText: "로그인",
+            noAccountText: "계정이 없으신가요?",
+            signUpLink: "회원가입"
+        },
+        zh: {
+            loginTitle: "欢迎回来",
+            loginSubtitle: "登录以继续访问您的账户",
+            emailLabel: "电子邮件地址",
+            passwordLabel: "密码",
+            rememberMeText: "记住我",
+            forgotText: "忘记密码？",
+            signInText: "登录",
+            noAccountText: "还没有账户？",
+            signUpLink: "注册"
+        },
+        fr: {
+            loginTitle: "Bon retour",
+            loginSubtitle: "Connectez-vous pour continuer",
+            emailLabel: "Adresse e-mail",
+            passwordLabel: "Mot de passe",
+            rememberMeText: "Se souvenir de moi",
+            forgotText: "Mot de passe oublié ?",
+            signInText: "Se connecter",
+            noAccountText: "Vous n'avez pas de compte ?",
+            signUpLink: "S'inscrire"
+        },
+        ru: {
+            loginTitle: "С возвращением",
+            loginSubtitle: "Войдите, чтобы продолжить",
+            emailLabel: "Электронная почта",
+            passwordLabel: "Пароль",
+            rememberMeText: "Запомнить меня",
+            forgotText: "Забыли пароль?",
+            signInText: "Войти",
+            noAccountText: "Нет аккаунта?",
+            signUpLink: "Регистрация"
+        }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    function updateLoginLanguage() {
+        const t = loginTranslations[currentLanguage] || loginTranslations.en;
+        
+        const titleEl = document.getElementById('loginTitle');
+        const subtitleEl = document.getElementById('loginSubtitle');
+        const emailLabelEl = document.getElementById('emailLabel');
+        const passwordLabelEl = document.getElementById('passwordLabel');
+        const rememberMeTextEl = document.getElementById('rememberMeText');
+        const forgotTextEl = document.getElementById('forgotText');
+        const signInTextEl = document.getElementById('signInText');
+        
+        if (titleEl) titleEl.textContent = t.loginTitle;
+        if (subtitleEl) subtitleEl.textContent = t.loginSubtitle;
+        if (emailLabelEl) emailLabelEl.textContent = t.emailLabel;
+        if (passwordLabelEl) passwordLabelEl.textContent = t.passwordLabel;
+        if (rememberMeTextEl) rememberMeTextEl.textContent = t.rememberMeText;
+        if (forgotTextEl) forgotTextEl.textContent = t.forgotText;
+        if (signInTextEl) signInTextEl.textContent = t.signInText;
+        
+        const noAccountEl = document.getElementById('noAccountText');
+        if (noAccountEl) {
+            noAccountEl.innerHTML = `${t.noAccountText} <a href="register.html" id="signUpLink">${t.signUpLink}</a>`;
+        }
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'language') {
+            currentLanguage = e.newValue || 'en';
+            updateLoginLanguage();
+        }
+    });
+    
+    function checkLanguageChange() {
+        const newLang = localStorage.getItem('language') || 'en';
+        if (newLang !== currentLanguage) {
+            currentLanguage = newLang;
+            updateLoginLanguage();
+        }
+    }
+    setInterval(checkLanguageChange, 500);
+
+    // Dark mode - responsive to homepage
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    
+    function applyDarkMode() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive) {
+            document.body.classList.add('dark-active');
+        } else {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === DARK_MODE_KEY) {
+            applyDarkMode();
+        }
+    });
+    
+    function checkDarkModeChange() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive && !document.body.classList.contains('dark-active')) {
+            document.body.classList.add('dark-active');
+        } else if (!isDarkActive && document.body.classList.contains('dark-active')) {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    setInterval(checkDarkModeChange, 500);
+    
+    applyDarkMode();
+
+    // ==================== REMEMBER ME FUNCTIONS ====================
+    function saveRememberedUser(email, password) {
+        if (document.getElementById('rememberMe').checked) {
+            localStorage.setItem('rememberedEmail', email);
+            localStorage.setItem('rememberedPassword', btoa(password)); // Simple encoding, not secure for production
+            localStorage.setItem('rememberMeChecked', 'true');
+        } else {
+            localStorage.removeItem('rememberedEmail');
+            localStorage.removeItem('rememberedPassword');
+            localStorage.setItem('rememberMeChecked', 'false');
+        }
+    }
+
+    function loadRememberedUser() {
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        const rememberedPassword = localStorage.getItem('rememberedPassword');
+        const rememberMeChecked = localStorage.getItem('rememberMeChecked');
+        
+        if (rememberedEmail && rememberedPassword && rememberMeChecked === 'true') {
+            document.getElementById('email').value = rememberedEmail;
+            document.getElementById('password').value = atob(rememberedPassword);
+            document.getElementById('rememberMe').checked = true;
+        }
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.getElementById("alertMessage");
+        if (alertDiv) {
+            alertDiv.textContent = message;
+            alertDiv.className = `alert-message-custom alert-${type}-custom`;
+            alertDiv.style.display = "block";
+            setTimeout(() => {
+                alertDiv.style.display = "none";
+            }, 5000);
+        }
+    }
+
+    document.getElementById("toggleLoginPassword").addEventListener("click", function() {
+        const passwordInput = document.getElementById("password");
+        const icon = this.querySelector("i");
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            passwordInput.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const submitBtn = document.getElementById("submitBtn");
+        const originalText = submitBtn.innerHTML;
+
+        if (!email || !password) {
+            showAlert("Please enter both email and password", "error");
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Signing in...';
+
+        try {
+            const response = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || "Login failed");
+            }
+
+            // Save user to localStorage
+            localStorage.setItem("user", JSON.stringify(data.user));
+            
+            // Save Remember Me preference
+            saveRememberedUser(email, password);
+            
+            // Get user name for welcome toast
+            const userName = data.user.name || email.split('@')[0];
+            
+            showAlert("Login successful! Redirecting...", "success");
+            
+            // Redirect with welcome parameter for the toast
+            setTimeout(() => {
+                window.location.href = `index.html?welcome=return&name=${encodeURIComponent(userName)}`;
+            }, 1500);
+
+        } catch (err) {
+            showAlert(err.message, "error");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+
+    // Load remembered user on page load
+    loadRememberedUser();
+    updateLoginLanguage();
+</script>
+</body>
+</html>

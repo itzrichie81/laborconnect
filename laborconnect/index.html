@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LaborConnect — Hire Skilled Workers & Find Jobs</title>
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%232563eb'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='800' font-family='Arial, sans-serif'>LC</text></svg>">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-soft: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #8b5cf6;
+            --accent-soft: #f5f3ff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            
+            --radius-sm: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== ACTIVE FLOATING BACKGROUND ANIMATION ===== */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mesh-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.15), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.12), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.1), transparent 50%);
+            animation: slowRotate 30s infinite linear;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fast-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fastFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes fastFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: fastPulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes fastPulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        .dance-shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.06));
+            animation: dance 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes dance {
+            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            25% { border-radius: 58% 42% 75% 25% / 43% 37% 63% 57%; transform: rotate(90deg) scale(1.1) translate(20px, -20px); }
+            50% { border-radius: 84% 16% 58% 42% / 55% 73% 27% 45%; transform: rotate(180deg) scale(1.2) translate(-20px, 20px); }
+            75% { border-radius: 40% 60% 33% 67% / 58% 40% 60% 42%; transform: rotate(270deg) scale(1.05) translate(30px, 30px); }
+            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg) scale(1) translate(0, 0); }
+        }
+
+        .floating-card {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: floatCard 15s infinite ease-in-out;
+        }
+
+        @keyframes floatCard {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .light-ray {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: lightSweep 8s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes lightSweep {
+            0% { transform: translateX(-100%); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.3; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .moving-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(37, 99, 235, 0.03) 50px, rgba(37, 99, 235, 0.03) 100px);
+            animation: slideLines 20s infinite linear;
+        }
+
+        @keyframes slideLines {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        /* ===== WELCOME TOAST NOTIFICATION ===== */
+        .welcome-toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 350px;
+        }
+
+        .welcome-toast.show {
+            transform: translateX(0);
+        }
+
+        .welcome-toast i {
+            font-size: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            padding: 8px;
+        }
+
+        .welcome-toast-content {
+            flex: 1;
+        }
+
+        .welcome-toast-content h4 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+        }
+
+        .welcome-toast-content p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .welcome-toast .close-toast {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        /* Dark mode enhancements */
+        body.dark-active .mesh-gradient {
+            background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.25), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.2), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.15), transparent 50%);
+        }
+
+        body.dark-active .fast-particle {
+            background: #60a5fa;
+            box-shadow: 0 0 4px #60a5fa;
+        }
+
+        body.dark-active .glow-orb {
+            filter: blur(100px);
+        }
+
+        body.dark-active .dance-shape {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+        }
+
+        body.dark-active .light-ray {
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+            opacity: 0.5;
+        }
+
+        body.dark-active .star {
+            background: #a78bfa;
+            box-shadow: 0 0 4px #a78bfa;
+        }
+
+        body.dark-active .moving-line {
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(59, 130, 246, 0.08) 50px, rgba(59, 130, 246, 0.08) 100px);
+        }
+
+        /* Main content wrapper */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== FIXED NAVBAR - NO OVERLAP ===== */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .container {
+            position: relative;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            margin-left: 0;
+        }
+
+        /* Left side buttons container */
+        .navbar-left-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-right: 1rem;
+        }
+
+        .dark-toggle-btn, .language-toggle-btn {
+            background: var(--gray-100);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dark-toggle-btn:hover, .language-toggle-btn:hover {
+            background: var(--gray-200);
+            transform: scale(1.05);
+        }
+
+        .language-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .language-menu {
+            position: absolute;
+            top: 45px;
+            left: 0;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            min-width: 180px;
+            overflow: hidden;
+            z-index: 1001;
+            border: 1px solid var(--gray-100);
+            display: none;
+        }
+
+        .language-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .language-menu a {
+            display: block;
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            color: var(--gray-700);
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .language-menu a:hover {
+            background: var(--gray-50);
+            color: var(--primary);
+        }
+
+        .nav-link {
+            color: var(--gray-600) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        .auth-buttons-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-outline-primary-custom {
+            background: transparent;
+            border: 1px solid var(--gray-300);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-info-custom {
+            background: #0ea5e9;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-success-custom {
+            background: #10b981;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-danger-custom {
+            background: #ef4444;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-danger-custom:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning-custom {
+            background: #f59e0b;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* ===== FIXED MOBILE MENU BUTTON - RIGHT SIDE, NOT COVERED ===== */
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+            margin-left: auto;
+            background: transparent;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1001;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .navbar-toggler-icon-custom {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .navbar-toggler-icon-custom span {
+            display: block;
+            width: 24px;
+            height: 2.5px;
+            background-color: var(--gray-700);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Mobile Navigation Menu - Properly positioned */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 1.5rem;
+                border-radius: 0 0 24px 24px;
+                box-shadow: var(--shadow-lg);
+                z-index: 999;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+            
+            body.dark-active .navbar-collapse {
+                background: #1e293b;
+            }
+            
+            .navbar-nav {
+                margin-bottom: 1rem;
+            }
+            
+            .nav-item {
+                margin: 0.5rem 0;
+            }
+            
+            .auth-buttons-wrapper {
+                justify-content: flex-start;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--gray-200);
+                flex-wrap: wrap;
+            }
+            
+            body.dark-active .auth-buttons-wrapper {
+                border-top-color: #334155;
+            }
+            
+            .welcome-toast {
+                top: 80px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+                padding: 12px 16px;
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 0 4rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1.25rem;
+            max-width: 800px;
+            margin: 0 auto 1.25rem;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--gray-500);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 100px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-outline-gradient {
+            background: transparent;
+            border: 1.5px solid var(--gray-200);
+            padding: 0.875rem 2rem;
+            border-radius: 100px;
+            font-weight: 600;
+            color: var(--gray-700);
+            transition: all 0.3s ease;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-100);
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--primary-soft);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .trade-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-100);
+        }
+
+        .trade-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .trade-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--primary-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .search-wrapper {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+        }
+
+        .cta-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: var(--radius-2xl);
+            padding: 3rem;
+            text-align: center;
+            color: white;
+        }
+
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .search-wrapper {
+                flex-direction: column;
+                margin: 0 1rem;
+            }
+            .search-wrapper button {
+                width: 100%;
+            }
+            .navbar-left-buttons {
+                gap: 0.5rem;
+                margin-right: 0.5rem;
+            }
+            .dark-toggle-btn, .language-toggle-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+            .feature-card {
+                margin: 0 1rem;
+            }
+            .cta-banner {
+                padding: 1.5rem;
+                margin: 0 1rem;
+            }
+            .cta-banner h3 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ACTIVE ANIMATED BACKGROUND -->
+<div class="animated-bg">
+    <div class="mesh-gradient"></div>
+    <div class="moving-line"></div>
+    
+    <div class="fast-particle" style="left: 5%; animation-duration: 5s; animation-delay: 0s;"></div>
+    <div class="fast-particle" style="left: 15%; animation-duration: 6s; animation-delay: 1s;"></div>
+    <div class="fast-particle" style="left: 25%; animation-duration: 4.5s; animation-delay: 2s;"></div>
+    <div class="fast-particle" style="left: 35%; animation-duration: 7s; animation-delay: 0.5s;"></div>
+    <div class="fast-particle" style="left: 45%; animation-duration: 5.5s; animation-delay: 3s;"></div>
+    <div class="fast-particle" style="left: 55%; animation-duration: 6.5s; animation-delay: 1.5s;"></div>
+    <div class="fast-particle" style="left: 65%; animation-duration: 4.8s; animation-delay: 4s;"></div>
+    <div class="fast-particle" style="left: 75%; animation-duration: 7.2s; animation-delay: 2.5s;"></div>
+    <div class="fast-particle" style="left: 85%; animation-duration: 5.2s; animation-delay: 0.8s;"></div>
+    <div class="fast-particle" style="left: 95%; animation-duration: 6.8s; animation-delay: 3.5s;"></div>
+    
+    <div class="glow-orb" style="width: 400px; height: 400px; background: radial-gradient(circle, #2563eb, transparent); top: -150px; left: -150px; animation-duration: 3s;"></div>
+    <div class="glow-orb" style="width: 500px; height: 500px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -200px; right: -200px; animation-duration: 3.5s;"></div>
+    <div class="glow-orb" style="width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent); top: 40%; left: 30%; animation-duration: 4s;"></div>
+    <div class="glow-orb" style="width: 350px; height: 350px; background: radial-gradient(circle, #10b981, transparent); bottom: 30%; right: 25%; animation-duration: 3.2s;"></div>
+    
+    <div class="dance-shape" style="width: 180px; height: 180px; top: 10%; left: -50px; animation-duration: 10s;"></div>
+    <div class="dance-shape" style="width: 140px; height: 140px; bottom: 15%; right: -30px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="dance-shape" style="width: 200px; height: 200px; top: 50%; right: 15%; animation-duration: 14s; animation-delay: 5s;"></div>
+    
+    <div class="floating-card" style="left: 10%; animation-duration: 14s; animation-delay: 0s;"></div>
+    <div class="floating-card" style="left: 30%; animation-duration: 16s; animation-delay: 3s;"></div>
+    <div class="floating-card" style="left: 50%; animation-duration: 12s; animation-delay: 6s;"></div>
+    <div class="floating-card" style="left: 70%; animation-duration: 18s; animation-delay: 2s;"></div>
+    <div class="floating-card" style="left: 90%; animation-duration: 13s; animation-delay: 8s;"></div>
+    
+    <div class="light-ray" style="top: 20%; animation-duration: 7s;"></div>
+    <div class="light-ray" style="top: 50%; animation-duration: 9s; animation-delay: 3s;"></div>
+    <div class="light-ray" style="top: 80%; animation-duration: 6s; animation-delay: 5s;"></div>
+    
+    <div class="star" style="left: 10%; top: 15%; animation-duration: 2.5s;"></div>
+    <div class="star" style="left: 30%; top: 25%; animation-duration: 3s; animation-delay: 1s;"></div>
+    <div class="star" style="left: 50%; top: 10%; animation-duration: 2s; animation-delay: 0.5s;"></div>
+    <div class="star" style="left: 70%; top: 20%; animation-duration: 3.5s; animation-delay: 2s;"></div>
+    <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
+</div>
+
+<!-- Welcome Toast Notification -->
+<div id="welcomeToast" class="welcome-toast">
+    <i class="fas fa-smile-wink"></i>
+    <div class="welcome-toast-content">
+        <h4 id="welcomeTitle">Welcome back!</h4>
+        <p id="welcomeMessage">Great to see you again</p>
+    </div>
+    <button class="close-toast" onclick="closeWelcomeToast()">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<div class="content-wrapper">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg" id="navbar">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <div class="navbar-left-buttons">
+                    <button class="dark-toggle-btn" onclick="switchDarkMode()" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="language-dropdown">
+                        <button class="language-toggle-btn" onclick="toggleLanguageMenu()" aria-label="Change language">
+                            <i class="fas fa-globe"></i>
+                        </button>
+                        <div class="language-menu" id="languageMenu">
+                            <a href="#" onclick="changeLanguage('en'); return false;">🇬🇧 English</a>
+                            <a href="#" onclick="changeLanguage('ko'); return false;">🇰🇷 한국어</a>
+                            <a href="#" onclick="changeLanguage('zh'); return false;">🇨🇳 中文</a>
+                            <a href="#" onclick="changeLanguage('fr'); return false;">🇫🇷 Français</a>
+                            <a href="#" onclick="changeLanguage('ru'); return false;">🇷🇺 Русский</a>
+                        </div>
+                    </div>
+                </div>
+                <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+            </div>
+            
+            <!-- Mobile Menu Button - Right Side, Not Covered -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <div class="navbar-toggler-icon-custom">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+                <div id="authButtons">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status" style="width: 1rem; height: 1rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="text-muted">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Connect with trusted<br>skilled professionals</h1>
+            <p>A refined marketplace connecting verified local tradespeople with customers — secure, reliable, and straightforward.</p>
+            <div class="hero-buttons d-flex gap-3 justify-content-center flex-wrap">
+                <a href="worker-directory.html" class="btn btn-gradient">Find a Worker</a>
+                <a href="customer-directory.html" class="btn btn-outline-gradient">Find Clients</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="section-header">
+                <h2>Find the right professional <span style="color: var(--primary);">instantly</span></h2>
+                <p>Search by trade, skill, or service — connect with top-rated local experts</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 position-relative">
+                    <div class="search-wrapper">
+                        <input type="text" id="searchInput" placeholder="Carpenter, Plumber, Electrician, Cleaner...">
+                        <button onclick="searchService()" class="btn btn-gradient">
+                            <i class="fas fa-search me-2"></i> Search
+                        </button>
+                    </div>
+                    <div id="searchSuggestions" class="search-suggestions mt-2" style="display: none;"></div>
+                    <div class="text-center mt-3">
+                        <span class="text-muted small">Popular: </span>
+                        <a href="#" onclick="searchTrade('Plumber')" class="text-decoration-none small me-2">Plumber</a>
+                        <a href="#" onclick="searchTrade('Electrician')" class="text-decoration-none small me-2">Electrician</a>
+                        <a href="#" onclick="searchTrade('Cleaner')" class="text-decoration-none small me-2">Cleaner</a>
+                        <a href="#" onclick="searchTrade('Carpenter')" class="text-decoration-none small">Carpenter</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why choose <span style="color: var(--primary);">LaborConnect</span></h2>
+                <p>We make hiring and finding work fast, simple, and transparent</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-user-check"></i></div>
+                        <h3>Verified Professionals</h3>
+                        <p>Background checks, ID verification, and customer ratings ensure quality work every time.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <h3>Location-Based Matching</h3>
+                        <p>Find workers near you — get help within 30 minutes in major cities.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3>Safe & Secure</h3>
+                        <p>In-app chat, secure payments, and dispute resolution team for peace of mind.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Trades Section -->
+    <section class="py-5" style="background: rgba(255,255,255,0.4); backdrop-filter: blur(2px);">
+        <div class="container">
+            <div class="section-header">
+                <h2>Popular <span style="color: var(--primary);">trades</span></h2>
+                <p>Browse by category — find exactly what you need</p>
+            </div>
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="trade-card" onclick="searchTrade('Plumber')">
+                        <div class="trade-icon"><i class="fas fa-wrench"></i></div>
+                        <div class="fw-semibold">Plumber</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="trade-card" onclick="searchTrade('Electrician')">
+                        <div class="trade-icon"><i class="fas fa-bolt"></i></div>
+                        <div class="fw-semibold">Electrician</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="trade-card" onclick="searchTrade('Cleaner')">
+                        <div class="trade-icon"><i class="fas fa-broom"></i></div>
+                        <div class="fw-semibold">Cleaner</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="trade-card" onclick="searchTrade('Carpenter')">
+                        <div class="trade-icon"><i class="fas fa-hammer"></i></div>
+                        <div class="fw-semibold">Carpenter</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <section class="py-5">
+        <div class="container">
+            <div class="cta-banner">
+                <h3>Ready to get your task done? 👋</h3>
+                <p>Join thousands who find & hire trusted pros every day</p>
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="worker-directory.html" class="btn btn-light-cta">Find a Worker</a>
+                    <a href="register.html" class="btn" style="background: rgba(255,255,255,0.2); color: white;">Become a Worker →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white mb-3">LaborConnect</h5>
+                    <p class="small">Connecting skilled workers with customers — fast, simple, and transparent.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Platform</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="worker-directory.html">Find Workers</a></li>
+                        <li class="mb-2"><a href="customer-directory.html">Find Customers</a></li>
+                        <li class="mb-2"><a href="nearby-users.html">Nearby Jobs</a></li>
+                        <li class="mb-2"><a href="post-job.html">Post a Job</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Company</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="about.html">About</a></li>
+                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white mb-3">Get the App</h6>
+                    <p class="small">Coming soon to iOS and Android</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary p-2"><i class="fab fa-apple me-1"></i> App Store</span>
+                        <span class="badge bg-secondary p-2"><i class="fab fa-google-play me-1"></i> Google Play</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center small">
+                &copy; 2026 LaborConnect. All rights reserved.
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="common.js"></script>
+<script>
+    //const API_URL = (location.port && location.port === '5000') ? `${location.origin}/api` : 'http://localhost:5000/api';
+
+    // ==================== WELCOME TOAST FUNCTION ====================
+    function showWelcomeToast(userName, isNewUser = false) {
+        const toast = document.getElementById('welcomeToast');
+        const titleEl = document.getElementById('welcomeTitle');
+        const messageEl = document.getElementById('welcomeMessage');
+        
+        if (isNewUser) {
+            titleEl.innerHTML = `🎉 Welcome to LaborConnect, ${userName || 'there'}!`;
+            messageEl.innerHTML = 'We\'re excited to have you on board. Start exploring today!';
+        } else {
+            titleEl.innerHTML = `👋 Welcome back, ${userName || 'there'}!`;
+            messageEl.innerHTML = 'Great to see you again. Ready to connect with professionals?';
+        }
+        
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            closeWelcomeToast();
+        }, 5000);
+    }
+
+    function closeWelcomeToast() {
+        const toast = document.getElementById('welcomeToast');
+        toast.classList.remove('show');
+    }
+
+    function checkForWelcomeMessage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const welcomeType = urlParams.get('welcome');
+        const userName = urlParams.get('name') || '';
+        
+        if (welcomeType === 'new') {
+            showWelcomeToast(decodeURIComponent(userName), true);
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        } else if (welcomeType === 'return') {
+            showWelcomeToast(decodeURIComponent(userName), false);
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+
+    // ==================== LANGUAGE SELECTOR ====================
+    const translations = {
+        en: { find_worker: "Find a Worker", start_earning: "Find Clients", search_btn: "Search" },
+        ko: { find_worker: "작업자 찾기", start_earning: "고객 찾기", search_btn: "검색" },
+        zh: { find_worker: "寻找工人", start_earning: "寻找客户", search_btn: "搜索" },
+        fr: { find_worker: "Trouver un travailleur", start_earning: "Trouver des clients", search_btn: "Rechercher" },
+        ru: { find_worker: "Найти работника", start_earning: "Найти клиентов", search_btn: "Поиск" }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    function toggleLanguageMenu() {
+        document.getElementById('languageMenu').classList.toggle('show');
+    }
+
+    function changeLanguage(lang) {
+        currentLanguage = lang;
+        localStorage.setItem('language', lang);
+        updatePageLanguage();
+        document.getElementById('languageMenu').classList.remove('show');
+    }
+
+    function updatePageLanguage() {
+        const t = translations[currentLanguage] || translations.en;
+        const heroBtns = document.querySelectorAll('.hero-buttons .btn');
+        if (heroBtns[0]) heroBtns[0].innerHTML = t.find_worker;
+        if (heroBtns[1]) heroBtns[1].innerHTML = t.start_earning;
+        const searchBtn = document.querySelector('.search-wrapper button');
+        if (searchBtn) searchBtn.innerHTML = `<i class="fas fa-search me-2"></i> ${t.search_btn}`;
+    }
+
+    document.addEventListener('click', function(e) {
+        const dropdown = document.querySelector('.language-dropdown');
+        const menu = document.getElementById('languageMenu');
+        if (dropdown && !dropdown.contains(e.target)) menu.classList.remove('show');
+    });
+
+    // ==================== DARK MODE SYNC ====================
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    function initDarkMode() {
+        if (localStorage.getItem(DARK_MODE_KEY) === 'true') {
+            document.body.classList.add('dark-active');
+            updateDarkToggle();
+        }
+    }
+    function updateDarkToggle() {
+        const toggle = document.querySelector('.dark-toggle-btn i');
+        if (toggle) {
+            if (document.body.classList.contains('dark-active')) {
+                toggle.classList.remove('fa-moon');
+                toggle.classList.add('fa-sun');
+            } else {
+                toggle.classList.remove('fa-sun');
+                toggle.classList.add('fa-moon');
+            }
+        }
+    }
+    window.switchDarkMode = function() {
+        const isDark = document.body.classList.toggle('dark-active');
+        localStorage.setItem(DARK_MODE_KEY, isDark);
+        updateDarkToggle();
+    };
+    initDarkMode();
+
+    // ==================== AUTHENTICATION ====================
+    async function loadAuthState() {
+        const authButtons = document.getElementById("authButtons");
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        
+        if (!user || !user.id) {
+            authButtons.innerHTML = `<div class="auth-buttons-wrapper"><a href="register.html" class="btn-outline-primary-custom">Register</a><a href="login.html" class="btn-primary-custom">Login</a></div>`;
+            return;
+        }
+        
+        let isAdmin = false;
+        try {
+            const response = await fetch(`${API_URL}/user/${user.id}`);
+            const userData = await response.json();
+            isAdmin = userData.is_admin === true;
+            localStorage.setItem("is_admin", isAdmin);
+        } catch(err) { isAdmin = localStorage.getItem("is_admin") === "true"; }
+        
+        let buttons = [];
+        if (isAdmin) buttons.push(`<a href="admin.html" class="btn-warning-custom"><i class="fas fa-crown"></i> Admin</a>`);
+        buttons.push(`<a href="post-job.html" class="btn-primary-custom"><i class="fas fa-plus"></i> Post Job</a>`);
+        buttons.push(`<a href="profile.html?uid=${user.id}" class="btn-info-custom"><i class="fas fa-user"></i> Profile</a>`);
+        buttons.push(`<a href="nearby-users.html" class="btn-success-custom"><i class="fas fa-map-marker-alt"></i> Near Me</a>`);
+        buttons.push(`<button onclick="logout()" class="btn-danger-custom">Logout</button>`);
+        authButtons.innerHTML = `<div class="auth-buttons-wrapper">${buttons.join('')}</div>`;
+    }
+
+    window.logout = function() {
+        if (confirm('Logout?')) { localStorage.clear(); window.location.href = "index.html"; }
+    };
+
+    // ==================== SEARCH FUNCTIONS ====================
+    const trades = ['Plumber', 'Electrician', 'Cleaner', 'Carpenter', 'Painter', 'Mason', 'Welder', 'Mechanic', 'Gardener', 'Driver'];
+
+    window.searchTrade = function(trade) {
+        document.getElementById('searchInput').value = trade;
+        searchService();
+    };
+
+    window.searchService = function() {
+        const val = document.getElementById('searchInput').value.trim();
+        if (!val) { alert('Enter a search term'); return; }
+        window.location.href = `worker-directory.html?trade=${encodeURIComponent(val)}`;
+    };
+
+    function showSearchSuggestions(q) {
+        const container = document.getElementById('searchSuggestions');
+        if (!q.trim()) { container.style.display = 'none'; return; }
+        const filtered = trades.filter(t => t.toLowerCase().includes(q.toLowerCase()));
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="suggestion-item text-muted">No trades found</div>';
+        } else {
+            container.innerHTML = filtered.map(t => `<div class="suggestion-item" onclick="selectSuggestion('${t}')">${t}</div>`).join('');
+        }
+        container.style.display = 'block';
+    }
+
+    window.selectSuggestion = function(trade) {
+        document.getElementById('searchInput').value = trade;
+        document.getElementById('searchSuggestions').style.display = 'none';
+        searchService();
+    };
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener("DOMContentLoaded", function() {
+        loadAuthState();
+        updatePageLanguage();
+        checkForWelcomeMessage();
+        
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', e => showSearchSuggestions(e.target.value));
+            document.addEventListener('click', e => {
+                if (!e.target.closest('#searchInput') && !e.target.closest('.suggestion-item'))
+                    document.getElementById('searchSuggestions').style.display = 'none';
+            });
+        }
+    });
+
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) navbar.classList.add('scrolled');
+        else navbar.classList.remove('scrolled');
+    });
+</script>
+</body>
+</html>

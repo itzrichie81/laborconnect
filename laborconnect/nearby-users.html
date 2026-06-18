@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Nearby Users - LaborConnect</title>
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%232563eb'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='800' font-family='Arial, sans-serif'>LC</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-soft: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+            
+            --radius-sm: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mesh-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.15), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.12), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.1), transparent 50%);
+            animation: slowRotate 30s infinite linear;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fast-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fastFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes fastFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: fastPulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes fastPulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        .dance-shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.06));
+            animation: dance 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes dance {
+            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            25% { border-radius: 58% 42% 75% 25% / 43% 37% 63% 57%; transform: rotate(90deg) scale(1.1) translate(20px, -20px); }
+            50% { border-radius: 84% 16% 58% 42% / 55% 73% 27% 45%; transform: rotate(180deg) scale(1.2) translate(-20px, 20px); }
+            75% { border-radius: 40% 60% 33% 67% / 58% 40% 60% 42%; transform: rotate(270deg) scale(1.05) translate(30px, 30px); }
+            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg) scale(1) translate(0, 0); }
+        }
+
+        .floating-card {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: floatCard 15s infinite ease-in-out;
+        }
+
+        @keyframes floatCard {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .light-ray {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: lightSweep 8s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes lightSweep {
+            0% { transform: translateX(-100%); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.3; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .moving-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(37, 99, 235, 0.03) 50px, rgba(37, 99, 235, 0.03) 100px);
+            animation: slideLines 20s infinite linear;
+        }
+
+        @keyframes slideLines {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        /* Dark mode enhancements */
+        body.dark-active .mesh-gradient {
+            background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.25), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.2), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.15), transparent 50%);
+        }
+
+        body.dark-active .fast-particle {
+            background: #60a5fa;
+            box-shadow: 0 0 4px #60a5fa;
+        }
+
+        body.dark-active .glow-orb {
+            filter: blur(100px);
+        }
+
+        body.dark-active .dance-shape {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+        }
+
+        body.dark-active .light-ray {
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+            opacity: 0.5;
+        }
+
+        body.dark-active .star {
+            background: #a78bfa;
+            box-shadow: 0 0 4px #a78bfa;
+        }
+
+        body.dark-active .moving-line {
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(59, 130, 246, 0.08) 50px, rgba(59, 130, 246, 0.08) 100px);
+        }
+
+        /* Main content wrapper */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== MODERN NAVBAR ===== */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .dark-toggle-btn {
+            display: none !important;
+        }
+
+        .nav-link {
+            color: var(--gray-600) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+            margin-left: auto;
+            background: transparent;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .navbar-toggler-icon-custom {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .navbar-toggler-icon-custom span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background-color: var(--gray-700);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 1.5rem;
+                border-radius: 0 0 24px 24px;
+                box-shadow: var(--shadow-lg);
+                z-index: 999;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+            body.dark-active .navbar-collapse {
+                background: #1e293b;
+            }
+        }
+
+        /* Location Banner */
+        .location-banner {
+            background: linear-gradient(135deg, var(--primary-soft) 0%, #e0e7ff 100%);
+            border-radius: var(--radius-xl);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .location-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .location-info i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .location-info h4 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .location-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--gray-600);
+        }
+
+        .btn-locate {
+            background: white;
+            border: none;
+            border-radius: 100px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--primary);
+            transition: all 0.2s ease;
+        }
+
+        .btn-locate:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            text-align: center;
+            padding: 2rem 0 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--gray-500);
+            font-size: 1.1rem;
+        }
+
+        /* ===== SEARCH SECTION ===== */
+        .search-section {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        .search-wrapper {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            gap: 0.5rem;
+            border: 1px solid var(--gray-100);
+            transition: all 0.3s ease;
+        }
+
+        .search-wrapper:focus-within {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary-light);
+        }
+
+        .search-wrapper input {
+            flex: 1;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+            font-weight: 500;
+        }
+
+        .search-wrapper input::placeholder {
+            color: var(--gray-400);
+        }
+
+        .search-wrapper button {
+            padding: 0.875rem 2rem;
+            border-radius: 100px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .search-wrapper button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        }
+
+        .filter-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 100px;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .filter-select:hover {
+            border-color: var(--primary);
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        /* ===== USER CARDS ===== */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.75rem;
+            margin-top: 1rem;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--gray-100);
+            position: relative;
+        }
+
+        .user-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-soft);
+        }
+
+        .user-card-header {
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-800) 100%);
+            padding: 2rem 1.5rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto;
+            border: 4px solid white;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            background: white;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-avatar .avatar-image-trigger {
+            width: 100%;
+            height: 100%;
+            display: block;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: zoom-in;
+            overflow: hidden;
+            border-radius: 50%;
+        }
+
+        .user-avatar .avatar-image-trigger img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .user-avatar .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .distance-badge {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            border-radius: 100px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-card-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .user-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .user-type {
+            display: inline-block;
+            background: var(--primary-soft);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .user-phone {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            background: var(--gray-50);
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .user-phone i {
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        .user-phone span {
+            color: var(--gray-700);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .user-phone:hover {
+            background: var(--primary-soft);
+            transform: scale(1.02);
+        }
+
+        .user-phone a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .user-location {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--gray-500);
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-location i {
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        .user-rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+
+        .rating-count {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+        }
+
+        .user-card-footer {
+            padding: 0 1.5rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-view {
+            flex: 1;
+            background: white;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 100px;
+            padding: 0.7rem 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-view:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-soft);
+        }
+
+        .btn-chat {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            border: none;
+            border-radius: 100px;
+            padding: 0.7rem 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-chat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            color: white;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--gray-100);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--gray-300);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--gray-500);
+        }
+
+        .search-suggestions {
+            position: absolute;
+            width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            margin-top: 0.5rem;
+            z-index: 1000;
+            border: 1px solid var(--gray-100);
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .suggestion-item:hover {
+            background: var(--gray-50);
+        }
+
+        /* ===== DARK MODE ===== */
+        body.dark-active {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+
+        body.dark-active .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-active .user-card,
+        body.dark-active .search-wrapper,
+        body.dark-active .empty-state,
+        body.dark-active .search-suggestions,
+        body.dark-active .location-banner {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark-active .user-name {
+            color: white;
+        }
+
+        body.dark-active .user-card-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        body.dark-active .user-phone {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark-active .user-phone span {
+            color: var(--gray-300);
+        }
+
+        body.dark-active .btn-view {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--gray-300);
+        }
+
+        body.dark-active .btn-view:hover {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        body.dark-active .search-wrapper input {
+            color: white;
+        }
+
+        body.dark-active .search-wrapper input::placeholder {
+            color: var(--gray-500);
+        }
+
+        body.dark-active .filter-select {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        body.dark-active .page-header h1 {
+            background: linear-gradient(135deg, white 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        body.dark-active .page-header p {
+            color: var(--gray-400);
+        }
+
+        body.dark-active .location-info h4,
+        body.dark-active .location-info p {
+            color: var(--gray-200);
+        }
+
+        body.dark-active .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.75rem;
+            }
+            .users-grid {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+            }
+            .search-wrapper {
+                flex-direction: column;
+            }
+            .search-wrapper button {
+                width: 100%;
+            }
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-select {
+                width: 100%;
+            }
+            .user-card-footer {
+                flex-direction: column;
+            }
+            .location-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+            .location-info {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ANIMATED BACKGROUND -->
+<div class="animated-bg">
+    <div class="mesh-gradient"></div>
+    <div class="moving-line"></div>
+    
+    <div class="fast-particle" style="left: 5%; animation-duration: 5s; animation-delay: 0s;"></div>
+    <div class="fast-particle" style="left: 15%; animation-duration: 6s; animation-delay: 1s;"></div>
+    <div class="fast-particle" style="left: 25%; animation-duration: 4.5s; animation-delay: 2s;"></div>
+    <div class="fast-particle" style="left: 35%; animation-duration: 7s; animation-delay: 0.5s;"></div>
+    <div class="fast-particle" style="left: 45%; animation-duration: 5.5s; animation-delay: 3s;"></div>
+    <div class="fast-particle" style="left: 55%; animation-duration: 6.5s; animation-delay: 1.5s;"></div>
+    <div class="fast-particle" style="left: 65%; animation-duration: 4.8s; animation-delay: 4s;"></div>
+    <div class="fast-particle" style="left: 75%; animation-duration: 7.2s; animation-delay: 2.5s;"></div>
+    <div class="fast-particle" style="left: 85%; animation-duration: 5.2s; animation-delay: 0.8s;"></div>
+    <div class="fast-particle" style="left: 95%; animation-duration: 6.8s; animation-delay: 3.5s;"></div>
+    
+    <div class="glow-orb" style="width: 400px; height: 400px; background: radial-gradient(circle, #2563eb, transparent); top: -150px; left: -150px; animation-duration: 3s;"></div>
+    <div class="glow-orb" style="width: 500px; height: 500px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -200px; right: -200px; animation-duration: 3.5s;"></div>
+    <div class="glow-orb" style="width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent); top: 40%; left: 30%; animation-duration: 4s;"></div>
+    <div class="glow-orb" style="width: 350px; height: 350px; background: radial-gradient(circle, #10b981, transparent); bottom: 30%; right: 25%; animation-duration: 3.2s;"></div>
+    
+    <div class="dance-shape" style="width: 180px; height: 180px; top: 10%; left: -50px; animation-duration: 10s;"></div>
+    <div class="dance-shape" style="width: 140px; height: 140px; bottom: 15%; right: -30px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="dance-shape" style="width: 200px; height: 200px; top: 50%; right: 15%; animation-duration: 14s; animation-delay: 5s;"></div>
+    
+    <div class="floating-card" style="left: 10%; animation-duration: 14s; animation-delay: 0s;"></div>
+    <div class="floating-card" style="left: 30%; animation-duration: 16s; animation-delay: 3s;"></div>
+    <div class="floating-card" style="left: 50%; animation-duration: 12s; animation-delay: 6s;"></div>
+    <div class="floating-card" style="left: 70%; animation-duration: 18s; animation-delay: 2s;"></div>
+    <div class="floating-card" style="left: 90%; animation-duration: 13s; animation-delay: 8s;"></div>
+    
+    <div class="light-ray" style="top: 20%; animation-duration: 7s;"></div>
+    <div class="light-ray" style="top: 50%; animation-duration: 9s; animation-delay: 3s;"></div>
+    <div class="light-ray" style="top: 80%; animation-duration: 6s; animation-delay: 5s;"></div>
+    
+    <div class="star" style="left: 10%; top: 15%; animation-duration: 2.5s;"></div>
+    <div class="star" style="left: 30%; top: 25%; animation-duration: 3s; animation-delay: 1s;"></div>
+    <div class="star" style="left: 50%; top: 10%; animation-duration: 2s; animation-delay: 0.5s;"></div>
+    <div class="star" style="left: 70%; top: 20%; animation-duration: 3.5s; animation-delay: 2s;"></div>
+    <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
+</div>
+
+<div class="content-wrapper">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg" id="navbar">
+        <div class="container">
+            <div class="d-flex align-items-center gap-2">
+                <button class="dark-toggle-btn" onclick="switchDarkMode()" aria-label="Toggle dark mode" style="display: none;">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <div class="navbar-toggler-icon-custom">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto d-flex align-items-center gap-2">
+                    <a class="btn btn-outline-primary btn-sm" href="index.html">
+                        <i class="fas fa-home me-1"></i> Home
+                    </a>
+                    <a class="btn btn-primary btn-sm" href="inbox.html">
+                        <i class="fas fa-comment-dots me-1"></i> Chat
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 id="pageTitle">People Nearby</h1>
+            <p id="pageSubtitle">Find workers and customers in your area</p>
+        </div>
+
+        <!-- Location Banner -->
+        <div class="location-banner">
+            <div class="location-info">
+                <i class="fas fa-location-dot"></i>
+                <div>
+                    <h4 id="locationName">Detecting your location...</h4>
+                    <p id="locationStatus">Click the button to share your location</p>
+                </div>
+            </div>
+            <button class="btn-locate" onclick="getUserLocation()" id="useLocationBtn">
+                <i class="fas fa-crosshairs me-2"></i> Use My Location
+            </button>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="position-relative">
+                <div class="search-wrapper">
+                    <input type="text" id="searchInput" placeholder="Search by name...">
+                    <button onclick="searchUsers()" id="searchBtn">
+                        <i class="fas fa-search me-2"></i> Search
+                    </button>
+                </div>
+                <div id="searchSuggestions" class="search-suggestions" style="display: none;"></div>
+            </div>
+            
+            <div class="filter-row">
+                <select id="typeFilter" class="filter-select">
+                    <option value="" id="allUsersOption">All Users</option>
+                    <option value="Worker" id="workersOption">Workers</option>
+                    <option value="Customer" id="customersOption">Customers</option>
+                </select>
+                <select id="distanceFilter" class="filter-select">
+                    <option value="" id="anyDistanceOption">Any Distance</option>
+                    <option value="5" id="within5kmOption">Within 5 km</option>
+                    <option value="10" id="within10kmOption">Within 10 km</option>
+                    <option value="25" id="within25kmOption">Within 25 km</option>
+                    <option value="50" id="within50kmOption">Within 50 km</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Users Grid -->
+        <div id="usersGrid" class="users-grid">
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p id="loadingText">Finding people near you...</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-users-slash"></i>
+            </div>
+            <h4 id="emptyTitle">No users found nearby</h4>
+            <p id="emptyText">Try adjusting your search or filter criteria, or share your location to find people near you</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="common.js"></script>
+<script>
+    // Auth Check
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (!currentUser) {
+        location.href = "login.html";
+    }
+
+    // DOM Elements
+    const searchInput = document.getElementById("searchInput");
+    const typeFilter = document.getElementById("typeFilter");
+    const distanceFilter = document.getElementById("distanceFilter");
+    const usersGrid = document.getElementById("usersGrid");
+    const emptyState = document.getElementById("emptyState");
+    const locationNameEl = document.getElementById("locationName");
+    const locationStatusEl = document.getElementById("locationStatus");
+
+    let allUsers = [];
+    let userLocation = null;
+    
+    // Store user distances in a cache to avoid recalculating
+    let userDistances = new Map();
+
+    // ==================== TRANSLATIONS ====================
+    const translations = {
+        en: {
+            pageTitle: "People Nearby",
+            pageSubtitle: "Find workers and customers in your area",
+            searchPlaceholder: "Search by name...",
+            searchBtn: "Search",
+            allUsersOption: "All Users",
+            workersOption: "Workers",
+            customersOption: "Customers",
+            anyDistanceOption: "Any Distance",
+            within5kmOption: "Within 5 km",
+            within10kmOption: "Within 10 km",
+            within25kmOption: "Within 25 km",
+            within50kmOption: "Within 50 km",
+            loadingText: "Finding people near you...",
+            emptyTitle: "No users found nearby",
+            emptyText: "Try adjusting your search or filter criteria, or share your location to find people near you",
+            useLocation: "Use My Location",
+            detectingLocation: "Detecting your location...",
+            clickLocation: "Click the button to share your location",
+            locationDetected: "Location detected! Showing people near you",
+            locationDenied: "Location access denied. Showing all users.",
+            locationUnavailable: "Location unavailable. Showing all users.",
+            allLocations: "All Locations",
+            verified: "Verified",
+            availableNationwide: "Available Nationwide",
+            viewProfile: "View Profile",
+            chatNow: "Chat Now",
+            noPhone: "No phone number",
+            kmAway: "km away"
+        },
+        ko: {
+            pageTitle: "주변 사람들",
+            pageSubtitle: "지역의 작업자와 고객을 찾으세요",
+            searchPlaceholder: "이름으로 검색...",
+            searchBtn: "검색",
+            allUsersOption: "모든 사용자",
+            workersOption: "작업자",
+            customersOption: "고객",
+            anyDistanceOption: "모든 거리",
+            within5kmOption: "5km 이내",
+            within10kmOption: "10km 이내",
+            within25kmOption: "25km 이내",
+            within50kmOption: "50km 이내",
+            loadingText: "주변 사람들을 찾는 중...",
+            emptyTitle: "주변에 사용자가 없습니다",
+            emptyText: "검색 또는 필터 기준을 조정하거나 위치를 공유하여 주변 사람들을 찾아보세요",
+            useLocation: "내 위치 사용",
+            detectingLocation: "위치 감지 중...",
+            clickLocation: "버튼을 클릭하여 위치 공유",
+            locationDetected: "위치 감지됨! 주변 사람들을 표시합니다",
+            locationDenied: "위치 접근이 거부되었습니다. 모든 사용자를 표시합니다.",
+            locationUnavailable: "위치를 사용할 수 없습니다. 모든 사용자를 표시합니다.",
+            allLocations: "모든 위치",
+            verified: "인증됨",
+            availableNationwide: "전국 서비스 가능",
+            viewProfile: "프로필 보기",
+            chatNow: "채팅하기",
+            noPhone: "전화번호 없음",
+            kmAway: "km 떨어짐"
+        },
+        zh: {
+            pageTitle: "附近的人",
+            pageSubtitle: "查找您所在地区的工人和客户",
+            searchPlaceholder: "按名称搜索...",
+            searchBtn: "搜索",
+            allUsersOption: "所有用户",
+            workersOption: "工人",
+            customersOption: "客户",
+            anyDistanceOption: "任意距离",
+            within5kmOption: "5公里以内",
+            within10kmOption: "10公里以内",
+            within25kmOption: "25公里以内",
+            within50kmOption: "50公里以内",
+            loadingText: "正在查找附近的人...",
+            emptyTitle: "附近未找到用户",
+            emptyText: "请调整搜索或筛选条件，或分享您的位置以查找附近的人",
+            useLocation: "使用我的位置",
+            detectingLocation: "正在检测您的位置...",
+            clickLocation: "点击按钮分享您的位置",
+            locationDetected: "位置已检测！显示您附近的人",
+            locationDenied: "位置访问被拒绝。显示所有用户。",
+            locationUnavailable: "位置不可用。显示所有用户。",
+            allLocations: "所有位置",
+            verified: "已验证",
+            availableNationwide: "全国可用",
+            viewProfile: "查看资料",
+            chatNow: "立即聊天",
+            noPhone: "无电话号码",
+            kmAway: "公里远"
+        },
+        fr: {
+            pageTitle: "Personnes à proximité",
+            pageSubtitle: "Trouvez des travailleurs et des clients dans votre région",
+            searchPlaceholder: "Rechercher par nom...",
+            searchBtn: "Rechercher",
+            allUsersOption: "Tous les utilisateurs",
+            workersOption: "Travailleurs",
+            customersOption: "Clients",
+            anyDistanceOption: "Toute distance",
+            within5kmOption: "Moins de 5 km",
+            within10kmOption: "Moins de 10 km",
+            within25kmOption: "Moins de 25 km",
+            within50kmOption: "Moins de 50 km",
+            loadingText: "Recherche de personnes près de chez vous...",
+            emptyTitle: "Aucun utilisateur trouvé à proximité",
+            emptyText: "Essayez d'ajuster vos critères de recherche ou partagez votre position",
+            useLocation: "Utiliser ma position",
+            detectingLocation: "Détection de votre position...",
+            clickLocation: "Cliquez pour partager votre position",
+            locationDetected: "Position détectée ! Affichage des personnes près de chez vous",
+            locationDenied: "Accès à la position refusé. Affichage de tous les utilisateurs.",
+            locationUnavailable: "Position indisponible. Affichage de tous les utilisateurs.",
+            allLocations: "Tous les emplacements",
+            verified: "Vérifié",
+            availableNationwide: "Disponible partout",
+            viewProfile: "Voir le profil",
+            chatNow: "Discuter",
+            noPhone: "Pas de numéro",
+            kmAway: "km"
+        },
+        ru: {
+            pageTitle: "Люди рядом",
+            pageSubtitle: "Найдите работников и клиентов в вашем районе",
+            searchPlaceholder: "Поиск по имени...",
+            searchBtn: "Поиск",
+            allUsersOption: "Все пользователи",
+            workersOption: "Работники",
+            customersOption: "Клиенты",
+            anyDistanceOption: "Любое расстояние",
+            within5kmOption: "В радиусе 5 км",
+            within10kmOption: "В радиусе 10 км",
+            within25kmOption: "В радиусе 25 км",
+            within50kmOption: "В радиусе 50 км",
+            loadingText: "Поиск людей рядом с вами...",
+            emptyTitle: "Пользователи рядом не найдены",
+            emptyText: "Попробуйте изменить критерии поиска или поделитесь своим местоположением",
+            useLocation: "Использовать мое местоположение",
+            detectingLocation: "Определение местоположения...",
+            clickLocation: "Нажмите кнопку, чтобы поделиться местоположением",
+            locationDetected: "Местоположение определено! Показываем людей рядом с вами",
+            locationDenied: "Доступ к местоположению запрещен. Показываем всех пользователей.",
+            locationUnavailable: "Местоположение недоступно. Показываем всех пользователей.",
+            allLocations: "Все местоположения",
+            verified: "Проверен",
+            availableNationwide: "Доступен по всей стране",
+            viewProfile: "Просмотр профиля",
+            chatNow: "Чат",
+            noPhone: "Нет телефона",
+            kmAway: "км"
+        }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    function updatePageLanguage() {
+        const t = translations[currentLanguage] || translations.en;
+        
+        document.getElementById('pageTitle').textContent = t.pageTitle;
+        document.getElementById('pageSubtitle').textContent = t.pageSubtitle;
+        document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+        document.getElementById('searchBtn').innerHTML = `<i class="fas fa-search me-2"></i> ${t.searchBtn}`;
+        document.getElementById('useLocationBtn').innerHTML = `<i class="fas fa-crosshairs me-2"></i> ${t.useLocation}`;
+        document.getElementById('allUsersOption').textContent = t.allUsersOption;
+        document.getElementById('workersOption').textContent = t.workersOption;
+        document.getElementById('customersOption').textContent = t.customersOption;
+        document.getElementById('anyDistanceOption').textContent = t.anyDistanceOption;
+        document.getElementById('within5kmOption').textContent = t.within5kmOption;
+        document.getElementById('within10kmOption').textContent = t.within10kmOption;
+        document.getElementById('within25kmOption').textContent = t.within25kmOption;
+        document.getElementById('within50kmOption').textContent = t.within50kmOption;
+        document.getElementById('loadingText').textContent = t.loadingText;
+        document.getElementById('emptyTitle').textContent = t.emptyTitle;
+        document.getElementById('emptyText').textContent = t.emptyText;
+        
+        window.currentTranslations = t;
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'language') {
+            currentLanguage = e.newValue || 'en';
+            updatePageLanguage();
+            filterUsers();
+        }
+    });
+    
+    function checkLanguageChange() {
+        const newLang = localStorage.getItem('language') || 'en';
+        if (newLang !== currentLanguage) {
+            currentLanguage = newLang;
+            updatePageLanguage();
+            filterUsers();
+        }
+    }
+    setInterval(checkLanguageChange, 500);
+
+    // ==================== DARK MODE ====================
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    
+    function applyDarkMode() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive) {
+            document.body.classList.add('dark-active');
+        } else {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    
+    window.addEventListener('storage', function(e) {
+        if (e.key === DARK_MODE_KEY) {
+            applyDarkMode();
+        }
+    });
+    
+    function checkDarkModeChange() {
+        const isDarkActive = localStorage.getItem(DARK_MODE_KEY) === 'true';
+        if (isDarkActive && !document.body.classList.contains('dark-active')) {
+            document.body.classList.add('dark-active');
+        } else if (!isDarkActive && document.body.classList.contains('dark-active')) {
+            document.body.classList.remove('dark-active');
+        }
+    }
+    setInterval(checkDarkModeChange, 500);
+    
+    applyDarkMode();
+
+    // ==================== HAVERSINE FORMULA ====================
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // ==================== USER FUNCTIONS ====================
+    async function loadUsers() {
+        try {
+            const response = await fetch(`${API_URL}/users`);
+            const users = await response.json();
+            allUsers = users.filter(user => String(user.id) !== String(currentUser.id));
+            
+            // If we already have a location, update distances and filter
+            if (userLocation) {
+                updateDistancesAndFilter();
+            } else {
+                filterUsers();
+            }
+        } catch (err) {
+            console.error('Error loading users:', err);
+            usersGrid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><h4>Error loading users</h4><p>Please refresh the page</p></div>';
+        }
+    }
+
+    function updateDistancesAndFilter() {
+        // Calculate distances for all users
+        userDistances.clear();
+        for (const user of allUsers) {
+            // For demo purposes, generate plausible distances based on user ID
+            // In a real app, you would store lat/lng per user in the database
+            // This is a simulation - users with IDs close to current user are "nearby"
+            const userIdNum = parseInt(user.id) || 0;
+            const currentIdNum = parseInt(currentUser.id) || 0;
+            
+            // Simulate distance based on ID difference (just for demo)
+            // In production, use actual stored coordinates
+            let distance;
+            if (userIdNum === currentIdNum) {
+                distance = 0;
+            } else {
+                // Simulate distance between 0.5km and 100km
+                const diff = Math.abs(userIdNum - currentIdNum);
+                distance = Math.max(0.5, Math.min(100, diff * 0.5 + Math.random() * 10));
+            }
+            userDistances.set(user.id, distance);
+        }
+        filterUsers();
+    }
+
+    function getUserLocation() {
+        const t = window.currentTranslations || translations.en;
+        
+        if (!navigator.geolocation) {
+            locationStatusEl.textContent = "Geolocation is not supported by your browser";
+            return;
+        }
+        
+        locationStatusEl.textContent = t.detectingLocation;
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Try to get location name
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}&zoom=18&addressdetails=1`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const city = data.address?.city || data.address?.town || data.address?.village || 'your area';
+                        locationNameEl.innerHTML = `<i class="fas fa-map-pin me-1"></i> Near ${city}`;
+                        locationStatusEl.textContent = t.locationDetected;
+                    })
+                    .catch(() => {
+                        locationNameEl.innerHTML = `<i class="fas fa-map-pin me-1"></i> Location detected`;
+                        locationStatusEl.textContent = t.locationDetected;
+                    });
+                
+                // Calculate distances and filter
+                updateDistancesAndFilter();
+                
+                // In a real app, you would save this location to the server
+                saveUserLocation(userLocation.lat, userLocation.lng);
+            },
+            (error) => {
+                console.error('Location error:', error);
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        locationStatusEl.textContent = t.locationDenied;
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        locationStatusEl.textContent = t.locationUnavailable;
+                        break;
+                    default:
+                        locationStatusEl.textContent = t.locationUnavailable;
+                }
+                locationNameEl.innerHTML = `<i class="fas fa-globe me-1"></i> ${t.allLocations}`;
+                filterUsers();
+            }
+        );
+    }
+
+    async function saveUserLocation(lat, lng) {
+        try {
+            // This endpoint doesn't exist yet - you would need to add it to server.js
+            // For now, just store in localStorage for demo
+            localStorage.setItem('user_location', JSON.stringify({ lat, lng, updated: new Date().toISOString() }));
+            console.log('Location saved locally:', lat, lng);
+        } catch (err) {
+            console.error('Failed to save location:', err);
+        }
+    }
+
+    function getRandomRating() {
+        const ratings = [4.2, 4.5, 4.8, 4.3, 4.9, 4.6, 4.7, 4.4];
+        return ratings[Math.floor(Math.random() * ratings.length)];
+    }
+
+    function formatPhoneNumber(phone) {
+        if (!phone) return null;
+        const cleanNumber = phone.replace(/\D/g, '');
+        return cleanNumber;
+    }
+
+    function ensureImageModal() {
+        if (document.getElementById('profileImageModal')) return;
+        const modal = document.createElement('div');
+        modal.id = 'profileImageModal';
+        modal.className = 'image-modal';
+        modal.innerHTML = `
+            <div class="image-modal-backdrop" data-close="true"></div>
+            <div class="image-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="imageModalTitle">
+                <button type="button" class="image-modal-close" aria-label="Close image preview" data-close="true">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h3 id="imageModalTitle" class="image-modal-title"></h3>
+                <img class="image-modal-image" src="" alt="">
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function (e) {
+            if (e.target.dataset.close === 'true') {
+                closeImageModal();
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+    }
+
+    function openImageModal(src, alt) {
+        ensureImageModal();
+        const modal = document.getElementById('profileImageModal');
+        const img = modal.querySelector('.image-modal-image');
+        const title = modal.querySelector('.image-modal-title');
+        if (!img || !title) return;
+        img.src = src;
+        img.alt = alt || 'Profile photo';
+        title.textContent = alt || 'Profile photo';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('profileImageModal');
+        if (!modal) return;
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('click', function (e) {
+        const trigger = e.target.closest('.avatar-image-trigger');
+        if (trigger) {
+            e.preventDefault();
+            e.stopPropagation();
+            openImageModal(trigger.dataset.imageSrc, trigger.dataset.imageAlt);
+        }
+    });
+
+    function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const selectedType = typeFilter.value;
+        const maxDistance = distanceFilter.value ? parseFloat(distanceFilter.value) : null;
+        const t = window.currentTranslations || translations.en;
+        
+        let filtered = [...allUsers];
+        
+        if (searchTerm) {
+            filtered = filtered.filter(user => 
+                user.name.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        if (selectedType) {
+            filtered = filtered.filter(user => user.userType === selectedType);
+        }
+        
+        // REAL distance filtering (not random anymore)
+        if (maxDistance && userDistances.size > 0) {
+            filtered = filtered.filter(user => {
+                const distance = userDistances.get(user.id);
+                return distance !== undefined && distance <= maxDistance;
+            });
+            
+            // Sort by distance (closest first)
+            filtered.sort((a, b) => {
+                const distA = userDistances.get(a.id) || Infinity;
+                const distB = userDistances.get(b.id) || Infinity;
+                return distA - distB;
+            });
+        }
+        
+        if (filtered.length === 0) {
+            usersGrid.style.display = "none";
+            emptyState.style.display = "block";
+            return;
+        }
+        
+        usersGrid.style.display = "grid";
+        emptyState.style.display = "none";
+        
+        usersGrid.innerHTML = filtered.map(user => {
+            const avatar = user.photoURL || user.photourl || null;
+            const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const rating = getRandomRating();
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating - fullStars >= 0.5;
+            const cleanPhone = user.phone ? formatPhoneNumber(user.phone) : null;
+            const distance = userDistances.get(user.id) || null;
+            const userType = user.userType || (user.trade ? 'Worker' : 'Customer');
+            const tradeDisplay = user.trade || (userType === 'Worker' ? 'Skilled Professional' : 'Customer');
+            
+            let starsHtml = '';
+            for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fas fa-star"></i>';
+            if (hasHalfStar) starsHtml += '<i class="fas fa-star-half-alt"></i>';
+            for (let i = starsHtml.length / 2; i < 5; i++) starsHtml += '<i class="far fa-star"></i>';
+            
+            const phoneDisplay = user.phone ? `
+                <div class="user-phone">
+                    <i class="fas fa-phone-alt"></i>
+                    <a href="tel:${cleanPhone}">
+                        <span>${user.phone}</span>
+                    </a>
+                </div>
+            ` : `
+                <div class="user-phone">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>${t.noPhone}</span>
+                </div>
+            `;
+            
+            const distanceDisplay = distance !== null && userLocation ? 
+                `<div class="distance-badge">
+                    <i class="fas fa-location-dot"></i> ${distance.toFixed(1)} ${t.kmAway}
+                </div>` : 
+                `<div class="distance-badge">
+                    <i class="fas fa-location-dot"></i> ${t.availableNationwide}
+                </div>`;
+            
+            return `
+                <div class="user-card">
+                    <div class="user-card-header">
+                        <div class="user-avatar">
+                            ${avatar ? 
+                                `<button type="button" class="avatar-image-trigger" data-image-src="${avatar}" data-image-alt="${escapeHtml(user.name)}" aria-label="View ${escapeHtml(user.name)} photo">
+                                    <img src="${avatar}" alt="${escapeHtml(user.name)}">
+                                </button>` : 
+                                `<div class="avatar-placeholder">${initials}</div>`
+                            }
+                        </div>
+                        ${distanceDisplay}
+                    </div>
+                    <div class="user-card-body">
+                        <h3 class="user-name">${escapeHtml(user.name)}</h3>
+                        <span class="user-type">${escapeHtml(tradeDisplay)}</span>
+                        
+                        ${phoneDisplay}
+                        
+                        <div class="user-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${user.location || t.availableNationwide}</span>
+                        </div>
+                        
+                        <div class="user-rating">
+                            <div class="stars">${starsHtml}</div>
+                            <span class="rating-count">(${rating})</span>
+                        </div>
+                    </div>
+                    <div class="user-card-footer">
+                        <a href="profile.html?uid=${user.id}" class="btn-view">
+                            <i class="fas fa-user me-1"></i> ${t.viewProfile}
+                        </a>
+                        <a href="chat.html?with=${user.id}" class="btn-chat">
+                            <i class="fas fa-comment-dots me-1"></i> ${t.chatNow}
+                        </a>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    window.searchUsers = function() {
+        filterUsers();
+    };
+
+    function showSearchSuggestions(query) {
+        const container = document.getElementById('searchSuggestions');
+        if (!query.trim()) {
+            container.style.display = 'none';
+            return;
+        }
+        const filtered = allUsers.filter(u => 
+            u.name.toLowerCase().includes(query.toLowerCase())
+        ).slice(0, 5);
+        
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="suggestion-item text-muted">No users found</div>';
+        } else {
+            container.innerHTML = filtered.map(u => 
+                `<div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(u.name)}')">${escapeHtml(u.name)}</div>`
+            ).join('');
+        }
+        container.style.display = 'block';
+    }
+
+    window.selectSuggestion = function(name) {
+        document.getElementById('searchInput').value = name;
+        document.getElementById('searchSuggestions').style.display = 'none';
+        filterUsers();
+    };
+
+    function logout() {
+        localStorage.clear();
+        alert("Logged out successfully");
+        window.location.href = "index.html";
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', (e) => {
+        showSearchSuggestions(e.target.value);
+        filterUsers();
+    });
+    typeFilter.addEventListener('change', filterUsers);
+    distanceFilter.addEventListener('change', filterUsers);
+    
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#searchInput') && !e.target.closest('.suggestion-item')) {
+            document.getElementById('searchSuggestions').style.display = 'none';
+        }
+    });
+
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // Initialize
+    updatePageLanguage();
+    loadUsers();
+
+    // Try to restore saved location from localStorage
+    const savedLocation = localStorage.getItem('user_location');
+    if (savedLocation) {
+        try {
+            const loc = JSON.parse(savedLocation);
+            const savedTime = new Date(loc.updated);
+            const hoursSince = (Date.now() - savedTime) / (1000 * 60 * 60);
+            // Use saved location if less than 24 hours old
+            if (hoursSince < 24 && loc.lat && loc.lng) {
+                userLocation = { lat: loc.lat, lng: loc.lng };
+                updateDistancesAndFilter();
+                locationNameEl.innerHTML = `<i class="fas fa-map-pin me-1"></i> Last known location`;
+                locationStatusEl.textContent = 'Using saved location';
+            } else {
+                // Location too old, ask for new one
+                setTimeout(() => {
+                    if (navigator.geolocation) {
+                        getUserLocation();
+                    }
+                }, 1000);
+            }
+        } catch(e) {
+            console.error('Error parsing saved location:', e);
+        }
+    } else {
+        setTimeout(() => {
+            if (navigator.geolocation) {
+                getUserLocation();
+            }
+        }, 1000);
+    }
+</script>
+</body>
+</html>
