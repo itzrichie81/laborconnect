@@ -82,15 +82,31 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// ========== DATABASE CONNECTION ==========
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASS,
-    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-});
+// ========== DATABASE CONNECTION - SUPPORTS BOTH DATABASE_URL AND INDIVIDUAL VARIABLES ==========
+const databaseUrl = process.env.DATABASE_URL;
+
+let poolConfig;
+if (databaseUrl) {
+    // Use DATABASE_URL (for Supabase / Render with DATABASE_URL)
+    poolConfig = {
+        connectionString: databaseUrl,
+        ssl: { rejectUnauthorized: false }
+    };
+    console.log('✅ Using DATABASE_URL for database connection');
+} else {
+    // Fallback to individual variables (for Render PostgreSQL or local development)
+    poolConfig = {
+        user: process.env.DB_USER,
+        host: process.env.DB_HOST,
+        database: process.env.DB_NAME,
+        password: process.env.DB_PASS,
+        port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    };
+    console.log('✅ Using individual DB variables for database connection');
+}
+
+const pool = new Pool(poolConfig);
 
 const nodemailer = require('nodemailer');
 
