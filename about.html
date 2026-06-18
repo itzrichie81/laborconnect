@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>About Us - LaborConnect</title>
+ <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%232563eb'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='800' font-family='Arial, sans-serif'>LC</text></svg>">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #3b82f6;
+            --primary-soft: #eff6ff;
+            --secondary: #0f172a;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            color: var(--gray-800);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .mesh-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.15), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.12), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.1), transparent 50%);
+            animation: slowRotate 30s infinite linear;
+        }
+
+        @keyframes slowRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .fast-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fastFloat 6s infinite ease-in-out;
+        }
+
+        @keyframes fastFloat {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: fastPulse 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes fastPulse {
+            0% { transform: scale(0.8); opacity: 0.3; }
+            100% { transform: scale(1.4); opacity: 0.7; }
+        }
+
+        .dance-shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(139, 92, 246, 0.06));
+            animation: dance 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes dance {
+            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(0deg) scale(1) translate(0, 0); }
+            25% { border-radius: 58% 42% 75% 25% / 43% 37% 63% 57%; transform: rotate(90deg) scale(1.1) translate(20px, -20px); }
+            50% { border-radius: 84% 16% 58% 42% / 55% 73% 27% 45%; transform: rotate(180deg) scale(1.2) translate(-20px, 20px); }
+            75% { border-radius: 40% 60% 33% 67% / 58% 40% 60% 42%; transform: rotate(270deg) scale(1.05) translate(30px, 30px); }
+            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; transform: rotate(360deg) scale(1) translate(0, 0); }
+        }
+
+        .floating-card {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: floatCard 15s infinite ease-in-out;
+        }
+
+        @keyframes floatCard {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .light-ray {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            animation: lightSweep 8s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes lightSweep {
+            0% { transform: translateX(-100%); opacity: 0; }
+            10% { opacity: 0.5; }
+            90% { opacity: 0.3; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .moving-line {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(37, 99, 235, 0.03) 50px, rgba(37, 99, 235, 0.03) 100px);
+            animation: slideLines 20s infinite linear;
+        }
+
+        @keyframes slideLines {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        body.dark-active .mesh-gradient {
+            background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.25), transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.2), transparent 50%),
+                        radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.15), transparent 50%);
+        }
+
+        body.dark-active .fast-particle {
+            background: #60a5fa;
+            box-shadow: 0 0 4px #60a5fa;
+        }
+
+        body.dark-active .glow-orb {
+            filter: blur(100px);
+        }
+
+        body.dark-active .dance-shape {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+        }
+
+        body.dark-active .light-ray {
+            background: linear-gradient(90deg, transparent, #60a5fa, transparent);
+            opacity: 0.5;
+        }
+
+        body.dark-active .star {
+            background: #a78bfa;
+            box-shadow: 0 0 4px #a78bfa;
+        }
+
+        body.dark-active .moving-line {
+            background: repeating-linear-gradient(45deg, transparent, transparent 50px, rgba(59, 130, 246, 0.08) 50px, rgba(59, 130, 246, 0.08) 100px);
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 0.875rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #1f2937 !important;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        body.dark-active .navbar-brand {
+            color: #ffffff !important;
+        }
+
+        .dark-toggle-btn {
+            display: none !important;
+        }
+
+        .nav-link {
+            color: var(--gray-600) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        body.dark-active .nav-link {
+            color: var(--gray-300) !important;
+        }
+
+        .navbar-toggler {
+            border: none;
+            padding: 0.5rem;
+            margin-left: auto;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-active .navbar-toggler {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .navbar-toggler-icon-custom {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .navbar-toggler-icon-custom span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background-color: #374151;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-active .navbar-toggler-icon-custom span {
+            background-color: #e5e7eb;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon-custom span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 1.5rem;
+                border-radius: 0 0 24px 24px;
+                box-shadow: var(--shadow-lg);
+                z-index: 999;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+            }
+            body.dark-active .navbar-collapse {
+                background: #1e293b;
+            }
+        }
+
+        .about-hero {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            padding: 4rem 0;
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .about-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .about-hero p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .mission-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 24px;
+            padding: 2rem;
+            height: 100%;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mission-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .mission-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .mission-icon i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .mission-card h3 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+        .mission-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .stats-section {
+            background: rgba(248, 250, 252, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 4rem 0;
+            margin: 3rem 0;
+            border-radius: 30px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .values-section {
+            padding: 3rem 0;
+        }
+
+        .value-card {
+            text-align: center;
+            padding: 2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .value-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .value-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+
+        .value-icon i {
+            font-size: 2rem;
+            color: #2563eb;
+        }
+
+        .value-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+
+        .value-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .team-section {
+            padding: 3rem 0;
+        }
+
+        .team-card {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.98);
+        }
+
+        .team-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .team-avatar i {
+            font-size: 3rem;
+            color: white;
+        }
+
+        .team-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: #1f2937;
+        }
+
+        .team-card p {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+            border-radius: 24px;
+            margin: 3rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 40%, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+        }
+
+        .cta-section h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-light-cta {
+            background: white;
+            color: #2563eb;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
+        .btn-light-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
+            color: #2563eb;
+        }
+
+        .footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        body.dark-active .mission-card,
+        body.dark-active .value-card,
+        body.dark-active .team-card {
+            background: rgba(30, 41, 59, 0.95);
+            border-color: rgba(51, 65, 85, 0.5);
+        }
+
+        body.dark-active .mission-card:hover,
+        body.dark-active .value-card:hover,
+        body.dark-active .team-card:hover {
+            background: rgba(30, 41, 59, 0.98);
+        }
+
+        body.dark-active .mission-card h3,
+        body.dark-active .value-card h4,
+        body.dark-active .team-card h4 {
+            color: #f1f5f9;
+        }
+
+        body.dark-active .mission-card p,
+        body.dark-active .value-card p,
+        body.dark-active .team-card p,
+        body.dark-active .stat-label {
+            color: #94a3b8;
+        }
+
+        body.dark-active .stats-section {
+            background: rgba(15, 23, 42, 0.7);
+        }
+
+        body.dark-active .value-icon {
+            background: rgba(37, 99, 235, 0.2);
+        }
+
+        body.dark-active .value-icon i {
+            color: #60a5fa;
+        }
+
+        body.dark-active .team-avatar {
+            background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+        }
+
+        body.dark-active .navbar {
+            background: rgba(15, 23, 42, 0.95) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .about-hero h1 {
+                font-size: 1.75rem;
+            }
+            .about-hero {
+                padding: 2rem 0;
+            }
+            .stat-number {
+                font-size: 1.75rem;
+            }
+            .cta-section {
+                margin: 2rem 1rem;
+                padding: 2rem 1rem;
+            }
+            .cta-section h3 {
+                font-size: 1.35rem;
+            }
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            .btn-light-cta {
+                text-align: center;
+                width: 100%;
+            }
+            .stats-section {
+                margin: 2rem 1rem;
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="animated-bg">
+    <div class="mesh-gradient"></div>
+    <div class="moving-line"></div>
+    
+    <div class="fast-particle" style="left: 5%; animation-duration: 5s; animation-delay: 0s;"></div>
+    <div class="fast-particle" style="left: 15%; animation-duration: 6s; animation-delay: 1s;"></div>
+    <div class="fast-particle" style="left: 25%; animation-duration: 4.5s; animation-delay: 2s;"></div>
+    <div class="fast-particle" style="left: 35%; animation-duration: 7s; animation-delay: 0.5s;"></div>
+    <div class="fast-particle" style="left: 45%; animation-duration: 5.5s; animation-delay: 3s;"></div>
+    <div class="fast-particle" style="left: 55%; animation-duration: 6.5s; animation-delay: 1.5s;"></div>
+    <div class="fast-particle" style="left: 65%; animation-duration: 4.8s; animation-delay: 4s;"></div>
+    <div class="fast-particle" style="left: 75%; animation-duration: 7.2s; animation-delay: 2.5s;"></div>
+    <div class="fast-particle" style="left: 85%; animation-duration: 5.2s; animation-delay: 0.8s;"></div>
+    <div class="fast-particle" style="left: 95%; animation-duration: 6.8s; animation-delay: 3.5s;"></div>
+    
+    <div class="glow-orb" style="width: 400px; height: 400px; background: radial-gradient(circle, #2563eb, transparent); top: -150px; left: -150px; animation-duration: 3s;"></div>
+    <div class="glow-orb" style="width: 500px; height: 500px; background: radial-gradient(circle, #8b5cf6, transparent); bottom: -200px; right: -200px; animation-duration: 3.5s;"></div>
+    <div class="glow-orb" style="width: 300px; height: 300px; background: radial-gradient(circle, #06b6d4, transparent); top: 40%; left: 30%; animation-duration: 4s;"></div>
+    <div class="glow-orb" style="width: 350px; height: 350px; background: radial-gradient(circle, #10b981, transparent); bottom: 30%; right: 25%; animation-duration: 3.2s;"></div>
+    
+    <div class="dance-shape" style="width: 180px; height: 180px; top: 10%; left: -50px; animation-duration: 10s;"></div>
+    <div class="dance-shape" style="width: 140px; height: 140px; bottom: 15%; right: -30px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="dance-shape" style="width: 200px; height: 200px; top: 50%; right: 15%; animation-duration: 14s; animation-delay: 5s;"></div>
+    
+    <div class="floating-card" style="left: 10%; animation-duration: 14s; animation-delay: 0s;"></div>
+    <div class="floating-card" style="left: 30%; animation-duration: 16s; animation-delay: 3s;"></div>
+    <div class="floating-card" style="left: 50%; animation-duration: 12s; animation-delay: 6s;"></div>
+    <div class="floating-card" style="left: 70%; animation-duration: 18s; animation-delay: 2s;"></div>
+    <div class="floating-card" style="left: 90%; animation-duration: 13s; animation-delay: 8s;"></div>
+    
+    <div class="light-ray" style="top: 20%; animation-duration: 7s;"></div>
+    <div class="light-ray" style="top: 50%; animation-duration: 9s; animation-delay: 3s;"></div>
+    <div class="light-ray" style="top: 80%; animation-duration: 6s; animation-delay: 5s;"></div>
+    
+    <div class="star" style="left: 10%; top: 15%; animation-duration: 2.5s;"></div>
+    <div class="star" style="left: 30%; top: 25%; animation-duration: 3s; animation-delay: 1s;"></div>
+    <div class="star" style="left: 50%; top: 10%; animation-duration: 2s; animation-delay: 0.5s;"></div>
+    <div class="star" style="left: 70%; top: 20%; animation-duration: 3.5s; animation-delay: 2s;"></div>
+    <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
+</div>
+
+<div class="content-wrapper">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">LaborConnect</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <div class="navbar-toggler-icon-custom">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="faq.html">FAQ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="about-hero">
+        <div class="container">
+            <h1 id="aboutTitle">About LaborConnect</h1>
+            <p id="aboutSubtitle">Connecting skilled workers with customers — fast, simple, and transparent.</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="mission-card">
+                    <div class="mission-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3 id="missionTitle">Our Mission</h3>
+                    <p id="missionText">LaborConnect bridges the gap between skilled professionals and customers seeking reliable services. We're committed to creating a transparent, trustworthy marketplace where quality work is recognized and rewarded.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mission-card">
+                    <div class="mission-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 id="trustTitle">Verified Trust</h3>
+                    <p id="trustText">Every professional on our platform is verified and rated by real customers. We maintain the highest standards of quality and professionalism to ensure your peace of mind with every transaction.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="stats-section">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat1">10,000+</div>
+                        <div class="stat-label" id="stat1Label">Verified Workers</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat2">50,000+</div>
+                        <div class="stat-label" id="stat2Label">Active Users</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat3">100%</div>
+                        <div class="stat-label" id="stat3Label">Satisfaction Guaranteed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="values-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 id="valuesTitle" style="font-size: 2rem; font-weight: 700;">Our Core Values</h2>
+                <p id="valuesSubtitle" style="color: #6b7280;">What makes us different</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h4 id="value1Title">Trust & Transparency</h4>
+                        <p id="value1Text">We believe in honest communication and clear processes. Every worker is verified, and every transaction is transparent.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h4 id="value2Title">Speed & Efficiency</h4>
+                        <p id="value2Text">Get connected with skilled professionals in minutes. We streamline the hiring process to save you time.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h4 id="value3Title">Community First</h4>
+                        <p id="value3Text">We're building a community where workers and customers thrive together. Your success is our success.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="team-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 id="teamTitle" style="font-size: 2rem; font-weight: 700;">Meet Our Team</h2>
+                <p id="teamSubtitle" style="color: #6b7280;">The people behind LaborConnect</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h4 id="team1Name">Olayiwola</h4>
+                        <p id="team1Role">CEO & Founder</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h4 id="team2Name">Helin</h4>
+                        <p id="team2Role">Head of Operations</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="team-card">
+                        <div class="team-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h4 id="team3Name">Salusi Bulama</h4>
+                        <p id="team3Role">Community Manager</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="cta-section">
+            <h3 id="ctaTitle">Ready to get started?</h3>
+            <p id="ctaText">Join thousands of satisfied users on LaborConnect today</p>
+            <div class="cta-buttons">
+                <a href="register.html" class="btn-light-cta" id="ctaWorkerBtn">Join as Worker</a>
+                <a href="register.html" class="btn-light-cta" id="ctaCustomerBtn">Join as Customer</a>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="text-white mb-3">LaborConnect</h5>
+                    <p class="small">Connecting skilled workers with customers — fast, simple, and transparent.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Platform</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="worker-directory.html">Find Workers</a></li>
+                        <li class="mb-2"><a href="customer-directory.html">Find Customers</a></li>
+                        <li class="mb-2"><a href="nearby-users.html">Nearby Jobs</a></li>
+                        <li class="mb-2"><a href="post-job.html">Post a Job</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="text-white mb-3">Company</h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><a href="about.html">About</a></li>
+                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="text-white mb-3">Get the App</h6>
+                    <p class="small">Coming soon to iOS and Android</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-secondary p-2"><i class="fab fa-apple me-1"></i> App Store</span>
+                        <span class="badge bg-secondary p-2"><i class="fab fa-google-play me-1"></i> Google Play</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center small">
+                <p class="mb-0" id="copyright">&copy; 2026 LaborConnect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const aboutTranslations = {
+        en: {
+            aboutTitle: "About LaborConnect",
+            aboutSubtitle: "Connecting skilled workers with customers — fast, simple, and transparent.",
+            missionTitle: "Our Mission",
+            missionText: "LaborConnect bridges the gap between skilled professionals and customers seeking reliable services. We're committed to creating a transparent, trustworthy marketplace where quality work is recognized and rewarded.",
+            trustTitle: "Verified Trust",
+            trustText: "Every professional on our platform is verified and rated by real customers. We maintain the highest standards of quality and professionalism to ensure your peace of mind with every transaction.",
+            stat1: "10,000+",
+            stat1Label: "Verified Workers",
+            stat2: "50,000+",
+            stat2Label: "Active Users",
+            stat3: "100%",
+            stat3Label: "Satisfaction Guaranteed",
+            valuesTitle: "Our Core Values",
+            valuesSubtitle: "What makes us different",
+            value1Title: "Trust & Transparency",
+            value1Text: "We believe in honest communication and clear processes. Every worker is verified, and every transaction is transparent.",
+            value2Title: "Speed & Efficiency",
+            value2Text: "Get connected with skilled professionals in minutes. We streamline the hiring process to save you time.",
+            value3Title: "Community First",
+            value3Text: "We're building a community where workers and customers thrive together. Your success is our success.",
+            teamTitle: "Meet Our Team",
+            teamSubtitle: "The people behind LaborConnect",
+            team1Name: "Olayiwola",
+            team1Role: "CEO & Founder",
+            team2Name: "Helin",
+            team2Role: "Head of Operations",
+            team3Name: "Salusi Bulama",
+            team3Role: "Community Manager",
+            ctaTitle: "Ready to get started?",
+            ctaText: "Join thousands of satisfied users on LaborConnect today",
+            ctaWorkerBtn: "Join as Worker",
+            ctaCustomerBtn: "Join as Customer",
+            copyright: "© 2026 LaborConnect. All rights reserved."
+        }
+    };
+
+    let currentLanguage = localStorage.getItem('language') || 'en';
+
+    function updateAboutLanguage() {
+        const t = aboutTranslations[currentLanguage] || aboutTranslations.en;
+        document.getElementById('aboutTitle').textContent = t.aboutTitle;
+        document.getElementById('aboutSubtitle').textContent = t.aboutSubtitle;
+        document.getElementById('missionTitle').textContent = t.missionTitle;
+        document.getElementById('missionText').textContent = t.missionText;
+        document.getElementById('trustTitle').textContent = t.trustTitle;
+        document.getElementById('trustText').textContent = t.trustText;
+        document.getElementById('stat1').textContent = t.stat1;
+        document.getElementById('stat1Label').textContent = t.stat1Label;
+        document.getElementById('stat2').textContent = t.stat2;
+        document.getElementById('stat2Label').textContent = t.stat2Label;
+        document.getElementById('stat3').textContent = t.stat3;
+        document.getElementById('stat3Label').textContent = t.stat3Label;
+        document.getElementById('valuesTitle').textContent = t.valuesTitle;
+        document.getElementById('valuesSubtitle').textContent = t.valuesSubtitle;
+        document.getElementById('value1Title').textContent = t.value1Title;
+        document.getElementById('value1Text').textContent = t.value1Text;
+        document.getElementById('value2Title').textContent = t.value2Title;
+        document.getElementById('value2Text').textContent = t.value2Text;
+        document.getElementById('value3Title').textContent = t.value3Title;
+        document.getElementById('value3Text').textContent = t.value3Text;
+        document.getElementById('teamTitle').textContent = t.teamTitle;
+        document.getElementById('teamSubtitle').textContent = t.teamSubtitle;
+        document.getElementById('team1Name').textContent = t.team1Name;
+        document.getElementById('team1Role').textContent = t.team1Role;
+        document.getElementById('team2Name').textContent = t.team2Name;
+        document.getElementById('team2Role').textContent = t.team2Role;
+        document.getElementById('team3Name').textContent = t.team3Name;
+        document.getElementById('team3Role').textContent = t.team3Role;
+        document.getElementById('ctaTitle').textContent = t.ctaTitle;
+        document.getElementById('ctaText').textContent = t.ctaText;
+        document.getElementById('ctaWorkerBtn').textContent = t.ctaWorkerBtn;
+        document.getElementById('ctaCustomerBtn').textContent = t.ctaCustomerBtn;
+        document.getElementById('copyright').textContent = t.copyright;
+    }
+
+    const DARK_MODE_KEY = 'laborconnect-dark-mode';
+    function applyDarkMode() {
+        if (localStorage.getItem(DARK_MODE_KEY) === 'true') {
+            document.body.classList.add('dark-active');
+        } else {
+            document.body.classList.remove('dark-active');
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        updateAboutLanguage();
+        applyDarkMode();
+    });
+</script>
+</body>
+</html>
