@@ -46,11 +46,11 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 // CHANGE THIS PART:
 const API_URL = isLocal 
     ? 'http://localhost:5000/api' 
-    : 'https://laborconnect-api.up.railway.app/api';  // ← YOUR ACTUAL URL
+    : 'https://laborconnect-production.up.railway.app/api';
 
 const SOCKET_URL = isLocal 
     ? 'http://localhost:5000' 
-    : 'https://laborconnect-api.up.railway.app';  // ← YOUR ACTUAL URL
+    : 'https://laborconnect-production.up.railway.app';
 
 if (typeof API_URL !== 'undefined') {
     window.API_URL = API_URL;

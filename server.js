@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 5000;
 
 // Get frontend URL from environment variable
 // TO:
-const frontendUrl = process.env.FRONTEND_URL || 'https://laborconnect-api.up.railway.app';
+const frontendUrl = process.env.FRONTEND_URL || 'https://laborconnect-production.up.railway.app';
 
 
 // This will 100% fix the CORS issue
