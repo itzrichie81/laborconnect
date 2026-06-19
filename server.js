@@ -127,7 +127,7 @@ async function processEmailQueue() {
         const request = await mailjet.post('send', { version: 'v3.1' }).request({
             Messages: [{
                 From: {
-                    Email: 'noreply@laborconnect-production.up.railway.app',
+                    Email: 'dija6370@gmail.com',
                     Name: 'LaborConnect'
                 },
                 To: [{
