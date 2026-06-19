@@ -15,19 +15,16 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Get frontend URL from environment variable
-// TO:
 const frontendUrl = process.env.FRONTEND_URL || 'https://laborconnect-production.up.railway.app';
 
-
-// This will 100% fix the CORS issue
+// ========== CORS ==========
 app.use(cors({
-    origin: true,  // This allows any origin
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'user-id']
 }));
 
-// Handle preflight requests
 app.options('*', cors());
 
 const io = new Server(server, {
@@ -39,7 +36,6 @@ const io = new Server(server, {
 });
 
 console.log('✅ CORS configured to allow all origins for testing');
-
 
 // Increase payload limit
 app.use(express.json({ limit: '50mb' }));
@@ -83,19 +79,17 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// ========== DATABASE CONNECTION - SUPPORTS BOTH DATABASE_URL AND INDIVIDUAL VARIABLES ==========
+// ========== DATABASE CONNECTION ==========
 const databaseUrl = process.env.DATABASE_URL;
 
 let poolConfig;
 if (databaseUrl) {
-    // Use DATABASE_URL (for Supabase / Render with DATABASE_URL)
     poolConfig = {
         connectionString: databaseUrl,
         ssl: { rejectUnauthorized: false }
     };
     console.log('✅ Using DATABASE_URL for database connection');
 } else {
-    // Fallback to individual variables (for Render PostgreSQL or local development)
     poolConfig = {
         user: process.env.DB_USER,
         host: process.env.DB_HOST,
@@ -109,17 +103,13 @@ if (databaseUrl) {
 
 const pool = new Pool(poolConfig);
 
-const nodemailer = require('nodemailer');
+// ========== EMAIL CONFIGURATION - MAILJET API ==========
+const Mailjet = require('node-mailjet');
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || 587),
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-    }
-});
+const mailjet = Mailjet.apiConnect(
+    process.env.MAILJET_API_KEY,
+    process.env.MAILJET_SECRET_KEY
+);
 
 // ========== EMAIL QUEUE ==========
 const emailQueue = [];
@@ -134,7 +124,19 @@ async function processEmailQueue() {
     activeProcesses++;
 
     try {
-        await transporter.sendMail({ to, subject, html });
+        const request = await mailjet.post('send', { version: 'v3.1' }).request({
+            Messages: [{
+                From: {
+                    Email: 'noreply@laborconnect-production.up.railway.app',
+                    Name: 'LaborConnect'
+                },
+                To: [{
+                    Email: to
+                }],
+                Subject: subject,
+                HTMLPart: html
+            }]
+        });
         console.log(`✅ Email sent to: ${to}`);
         resolve();
     } catch (err) {
