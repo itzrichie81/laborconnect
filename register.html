@@ -779,7 +779,7 @@
         }, 5000);
     }
 
-    // ==================== REGISTER FORM SUBMIT (FIXED - NO IMGBB) ====================
+    // ==================== REGISTER FORM SUBMIT (FIXED) ====================
     document.getElementById("registerForm").addEventListener("submit", async function(e) {
         e.preventDefault();
 
@@ -824,7 +824,6 @@
             return;
         }
 
-        // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             showAlert("Please enter a valid email address", "error");
@@ -833,7 +832,6 @@
             return;
         }
 
-        // Phone validation (basic)
         const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,5}[-\s\.]?[0-9]{1,5}$/;
         if (!phoneRegex.test(phone)) {
             showAlert("Please enter a valid phone number", "error");
@@ -851,10 +849,8 @@
 
         let photoURL = "https://ui-avatars.com/api/?name=" + encodeURIComponent(firstName + "+" + lastName) + "&background=2563eb&color=fff&size=120&bold=true";
         
-        // Upload profile picture if selected (using your server, not ImgBB)
         if (profileFile) {
             try {
-                // Validate file size (max 5MB for profile picture)
                 const maxSize = 5 * 1024 * 1024;
                 if (profileFile.size > maxSize) {
                     showAlert("Profile picture too large. Max 5MB allowed.", "error");
@@ -863,7 +859,6 @@
                     return;
                 }
                 
-                // Validate file type
                 const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
                 if (!allowedTypes.includes(profileFile.type)) {
                     showAlert("Invalid file type. Only JPG, PNG, GIF, WEBP images are allowed.", "error");
@@ -901,9 +896,8 @@
             }
         }
 
-        let response;
         try {
-            response = await fetch(`${API_URL}/register`, {
+            const response = await fetch(`${API_URL}/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -917,21 +911,21 @@
                 sessionStorage.setItem('pendingVerificationEmail', email);
                 showAlert("Account created! A verification code has been sent to your email.", "success");
                 
-                // Get user's full name for welcome toast
                 const userName = `${firstName} ${lastName}`;
                 
-                // Redirect to verify page with welcome flag
                 setTimeout(() => {
                     window.location.href = `verify.html?email=${encodeURIComponent(email)}&welcome=new&name=${encodeURIComponent(userName)}`;
                 }, 1500);
             } else {
-                showAlert(data.message || "Registration failed. Please try again.", "error");
+                // Show the actual error message from the server
+                const errorMessage = data.message || "Registration failed. Please try again.";
+                showAlert(errorMessage, "error");
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             }
         } catch (error) {
             console.error('Registration error:', error);
-            showAlert(error.message || "Registration failed. Please check your connection.", "error");
+            showAlert("Network error. Please check your connection and try again.", "error");
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }

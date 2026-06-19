@@ -1830,3 +1830,35 @@ body.dark-active .back-btn {
     opacity: 1 !important;
     visibility: visible !important;
 }
+/* ===== FIX FOR ALERT MESSAGES ===== */
+.alert-error {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+    border: 1px solid #fecaca !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 1rem !important;
+    display: block !important;
+}
+
+.alert-success {
+    background: #ecfdf5 !important;
+    color: #10b981 !important;
+    border: 1px solid #a7f3d0 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 1rem !important;
+    display: block !important;
+}
+
+.alert-message {
+    padding: 0.75rem 1rem !important;
+    border-radius: 12px !important;
+    margin-bottom: 1rem !important;
+    font-size: 0.85rem !important;
+    display: none !important;
+}
+
+.alert-message.show {
+    display: block !important;
+}

@@ -551,7 +551,7 @@
     function saveRememberedUser(email, password) {
         if (document.getElementById('rememberMe').checked) {
             localStorage.setItem('rememberedEmail', email);
-            localStorage.setItem('rememberedPassword', btoa(password)); // Simple encoding, not secure for production
+            localStorage.setItem('rememberedPassword', btoa(password));
             localStorage.setItem('rememberMeChecked', 'true');
         } else {
             localStorage.removeItem('rememberedEmail');
@@ -601,7 +601,7 @@
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        const email = document.getElementById("email").value;
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
         const submitBtn = document.getElementById("submitBtn");
         const originalText = submitBtn.innerHTML;
@@ -624,27 +624,44 @@
             const data = await response.json();
             
             if (!response.ok) {
-                throw new Error(data.message || "Login failed");
+                // Show the actual error message from server
+                showAlert(data.message || "Login failed", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                
+                // If account is not verified, automatically send a new verification code
+                if (data.message && data.message.includes("verify")) {
+                    try {
+                        const resendRes = await fetch(`${API_URL}/resend-verification`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email })
+                        });
+                        const resendData = await resendRes.json();
+                        if (resendRes.ok) {
+                            setTimeout(() => {
+                                showAlert("New verification code sent to your email! Please check your inbox.", "success");
+                            }, 3000);
+                        }
+                    } catch (resendErr) {
+                        console.error('Resend error:', resendErr);
+                    }
+                }
+                return;
             }
 
-            // Save user to localStorage
+            // Login successful
             localStorage.setItem("user", JSON.stringify(data.user));
-            
-            // Save Remember Me preference
             saveRememberedUser(email, password);
-            
-            // Get user name for welcome toast
             const userName = data.user.name || email.split('@')[0];
-            
             showAlert("Login successful! Redirecting...", "success");
             
-            // Redirect with welcome parameter for the toast
             setTimeout(() => {
                 window.location.href = `index.html?welcome=return&name=${encodeURIComponent(userName)}`;
             }, 1500);
 
         } catch (err) {
-            showAlert(err.message, "error");
+            showAlert(err.message || "Network error. Please try again.", "error");
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         }
