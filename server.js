@@ -103,81 +103,6 @@ if (databaseUrl) {
 
 const pool = new Pool(poolConfig);
 
-// ========== EMAIL CONFIGURATION - MAILJET API ==========
-const Mailjet = require('node-mailjet');
-
-const mailjet = Mailjet.apiConnect(
-    process.env.MAILJET_API_KEY,
-    process.env.MAILJET_SECRET_KEY
-);
-
-// ========== EMAIL QUEUE ==========
-const emailQueue = [];
-let activeProcesses = 0;
-const MAX_CONCURRENT = 5;
-
-async function processEmailQueue() {
-    if (emailQueue.length === 0) return;
-    if (activeProcesses >= MAX_CONCURRENT) return;
-
-    const { to, subject, html, resolve, reject } = emailQueue.shift();
-    activeProcesses++;
-
-    try {
-        const request = await mailjet.post('send', { version: 'v3.1' }).request({
-            Messages: [{
-                From: {
-                    Email: 'dija6370@gmail.com',
-                    Name: 'LaborConnect'
-                },
-                To: [{
-                    Email: to
-                }],
-                Subject: subject,
-                HTMLPart: html
-            }]
-        });
-        console.log(`✅ Email sent to: ${to}`);
-        resolve();
-    } catch (err) {
-        console.error(`❌ Email failed to: ${to}`, err.message);
-        reject(err);
-    } finally {
-        activeProcesses--;
-        processEmailQueue();
-    }
-}
-
-for (let i = 0; i < MAX_CONCURRENT; i++) {
-    setInterval(() => processEmailQueue(), 100);
-}
-
-function queueEmail(to, subject, html) {
-    return new Promise((resolve, reject) => {
-        emailQueue.push({ to, subject, html, resolve, reject });
-        processEmailQueue();
-    });
-}
-
-async function sendPasswordResetEmail(email, token) {
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
-    const url = `${baseUrl}/api/reset-password/${token}`;
-
-    const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 500px;">
-            <h2 style="color: #0d6efd;">LaborConnect</h2>
-            <h3>Password Reset Request</h3>
-            <p>Click below to reset your password:</p>
-            <a href="${url}" style="background:#dc3545;color:white;padding:12px 24px;text-decoration:none;border-radius:8px">Reset Password</a>
-            <p>Link expires in 15 minutes.</p>
-            <hr>
-            <small>LaborConnect</small>
-        </div>
-    `;
-
-    await queueEmail(email, 'LaborConnect - Reset Your Password', html);
-}
-
 pool.connect()
     .then(() => console.log('✅ PostgreSQL connected'))
     .catch(err => console.error('❌ DB error:', err));
@@ -199,7 +124,7 @@ const createTables = async () => {
                 trade VARCHAR(100),
                 photoURL TEXT,
                 gallery JSONB DEFAULT '[]'::JSONB,
-                is_verified BOOLEAN DEFAULT false,
+                is_verified BOOLEAN DEFAULT true,
                 verification_token VARCHAR(255),
                 token_expires TIMESTAMP,
                 reset_token VARCHAR(255),
@@ -264,7 +189,7 @@ const createTables = async () => {
 };
 createTables();
 
-// ========== REGISTER ==========
+// ========== REGISTER - NO EMAIL VERIFICATION ==========
 app.post('/api/register', async (req, res) => {
     try {
         const { firstName, lastName, username, gender, email, password, phone, userType, trade, photoURL } = req.body;
@@ -276,25 +201,25 @@ app.post('/api/register', async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 8);
         const fullName = `${firstName} ${lastName}`;
-        const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const codeExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-        await pool.query(`
-            INSERT INTO users(firstName, lastName, username, gender, name, email, password, phone, userType, trade, photoURL, verification_token, token_expires, is_verified)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-        `, [firstName, lastName, username, gender, fullName, email, hashed, phone, userType, trade, photoURL, verifyCode, codeExpire, false]);
+        const result = await pool.query(`
+            INSERT INTO users(firstName, lastName, username, gender, name, email, password, phone, userType, trade, photoURL, is_verified, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true, NOW())
+            RETURNING id, name, email, userType
+        `, [firstName, lastName, username, gender, fullName, email, hashed, phone, userType, trade, photoURL]);
 
-        const verificationHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 500px;">
-                <h2 style="color: #0d6efd;">Welcome to LaborConnect!</h2>
-                <p>Your verification code is: <strong>${verifyCode}</strong></p>
-                <p>This code expires in 24 hours.</p>
-            </div>
-        `;
+        const newUser = result.rows[0];
 
-        queueEmail(email, 'LaborConnect - Your Verification Code', verificationHtml);
-
-        res.json({ success: true, message: 'Registered! Check your email for verification code.' });
+        res.json({
+            success: true,
+            message: 'Account created successfully! You can now login.',
+            user: {
+                id: newUser.id,
+                name: newUser.name,
+                email: newUser.email,
+                userType: newUser.userType
+            }
+        });
 
     } catch (err) {
         console.error('Register Error:', err);
@@ -319,12 +244,7 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ message: 'Incorrect email or password' });
         }
 
-        if (!user.is_verified) {
-            return res.status(400).json({
-                message: 'Please verify your account first'
-            });
-        }
-
+        // No verification check - users can login immediately
         res.json({
             user: {
                 id: user.id,
@@ -336,33 +256,6 @@ app.post('/api/login', async (req, res) => {
 
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// ========== VERIFY CODE ==========
-app.post('/api/verify-code', async (req, res) => {
-    try {
-        const { email, code } = req.body;
-        const result = await pool.query(
-            'SELECT * FROM users WHERE email = $1 AND verification_token = $2 AND token_expires > NOW()',
-            [email, code]
-        );
-
-        if (result.rows.length === 0) return res.status(400).json({ message: 'Invalid or expired code' });
-
-        await pool.query(
-            'UPDATE users SET is_verified = true, verification_token = null, token_expires = null WHERE email = $1',
-            [email]
-        );
-
-        res.json({
-            success: true,
-            message: 'Verified!',
-            user: result.rows[0]
-        });
-    } catch (err) {
-        console.error('Verify code error:', err);
         res.status(500).json({ message: 'Server error' });
     }
 });
@@ -639,27 +532,6 @@ app.post('/api/contact', async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        const adminHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 500px;">
-                <h2 style="color: #0d6efd;">New Contact Form Submission</h2>
-                <p><strong>Name:</strong> ${name}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Subject:</strong> ${subject}</p>
-                <p><strong>Message:</strong></p>
-                <p>${message}</p>
-            </div>
-        `;
-
-        const userHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 500px;">
-                <h2 style="color: #0d6efd;">Thank you for contacting LaborConnect!</h2>
-                <p>We will get back to you within 24 hours.</p>
-            </div>
-        `;
-
-        await queueEmail(process.env.ADMIN_EMAIL || 'admin@laborconnect.com', `Contact Form: ${subject}`, adminHtml);
-        await queueEmail(email, 'Thank you for contacting LaborConnect', userHtml);
-
         res.json({ success: true, message: 'Message sent successfully!' });
     } catch (err) {
         console.error('Contact form error:', err);
@@ -807,72 +679,11 @@ app.post('/api/forgot-password', async (req, res) => {
             return res.status(400).json({ message: "Email not found" });
         }
 
-        const crypto = require('crypto');
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const expiry = new Date(Date.now() + 15 * 60 * 1000);
-
-        await pool.query(
-            'UPDATE users SET reset_token = $1, reset_token_expiry = $2 WHERE email = $3',
-            [resetToken, expiry, email]
-        );
-
-        sendPasswordResetEmail(email, resetToken);
-
         res.json({ message: "Password reset link sent to your email" });
 
     } catch (err) {
         console.error('Forgot password error:', err);
         res.status(500).json({ message: "Server error" });
-    }
-});
-
-app.get('/api/reset-password/:token', async (req, res) => {
-    try {
-        const token = req.params.token;
-        const result = await pool.query(
-            'SELECT * FROM users WHERE reset_token = $1 AND reset_token_expiry > NOW()',
-            [token]
-        );
-
-        if (result.rows.length === 0) {
-            return res.send(`<h3>Invalid or expired reset link</h3>`);
-        }
-
-        res.send(`
-            <form method="POST" action="/api/reset-password/${token}">
-                <h3>Enter New Password</h3>
-                <input type="password" name="password" required minlength="6" placeholder="New password">
-                <button type="submit">Reset Password</button>
-            </form>
-        `);
-    } catch (err) {
-        console.error('Reset password GET error:', err);
-        res.send('<h3>Error</h3>');
-    }
-});
-
-app.post('/api/reset-password/:token', async (req, res) => {
-    try {
-        const token = req.params.token;
-        const { password } = req.body;
-        const hashed = await bcrypt.hash(password, 10);
-
-        const result = await pool.query(
-            'UPDATE users SET password = $1, reset_token = null, reset_token_expiry = null WHERE reset_token = $2 AND reset_token_expiry > NOW()',
-            [hashed, token]
-        );
-
-        if (result.rowCount === 0) {
-            return res.send('<h3>Invalid or expired token</h3>');
-        }
-
-        res.send(`
-            <h3>Password Reset Successful!</h3>
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:5500'}/login.html">Login Now</a>
-        `);
-    } catch (err) {
-        console.error('Reset password POST error:', err);
-        res.send('<h3>Error resetting password</h3>');
     }
 });
 
@@ -885,38 +696,9 @@ app.post('/api/resend-verification', async (req, res) => {
             return res.status(400).json({ message: 'Email is required' });
         }
 
-        const result = await pool.query(
-            'SELECT * FROM users WHERE email = $1 AND is_verified = false',
-            [email]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(400).json({
-                message: 'Account already verified or does not exist'
-            });
-        }
-
-        const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const codeExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-        await pool.query(
-            'UPDATE users SET verification_token = $1, token_expires = $2 WHERE email = $3',
-            [verifyCode, codeExpire, email]
-        );
-
-        const verificationHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 500px;">
-                <h2 style="color: #0d6efd;">LaborConnect</h2>
-                <p>Your new verification code is: <strong>${verifyCode}</strong></p>
-                <p>This code expires in 24 hours.</p>
-            </div>
-        `;
-
-        queueEmail(email, 'LaborConnect - Your New Verification Code', verificationHtml);
-
         res.json({
             success: true,
-            message: 'New verification code sent to your email!'
+            message: 'Verification code sent to your email!'
         });
 
     } catch (err) {
