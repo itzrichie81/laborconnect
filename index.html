@@ -1062,11 +1062,17 @@
     //const API_URL = (location.port && location.port === '5000') ? `${location.origin}/api` : 'http://localhost:5000/api';
 
     // ==================== WELCOME TOAST FUNCTION ====================
+    const WELCOME_DISMISSED_KEY = 'laborconnect-welcome-toast-dismissed';
+
     function showWelcomeToast(userName, isNewUser = false) {
         const toast = document.getElementById('welcomeToast');
         const titleEl = document.getElementById('welcomeTitle');
         const messageEl = document.getElementById('welcomeMessage');
-        
+
+        if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
+            return;
+        }
+
         if (isNewUser) {
             titleEl.innerHTML = `🎉 Welcome to LaborConnect, ${userName || 'there'}!`;
             messageEl.innerHTML = 'We\'re excited to have you on board. Start exploring today!';
@@ -1074,16 +1080,19 @@
             titleEl.innerHTML = `👋 Welcome back, ${userName || 'there'}!`;
             messageEl.innerHTML = 'Great to see you again. Ready to connect with professionals?';
         }
-        
+
         toast.classList.add('show');
-        
+
         setTimeout(() => {
-            closeWelcomeToast();
+            if (localStorage.getItem(WELCOME_DISMISSED_KEY) !== 'true') {
+                closeWelcomeToast();
+            }
         }, 5000);
     }
 
     function closeWelcomeToast() {
         const toast = document.getElementById('welcomeToast');
+        localStorage.setItem(WELCOME_DISMISSED_KEY, 'true');
         toast.classList.remove('show');
     }
 
@@ -1091,7 +1100,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const welcomeType = urlParams.get('welcome');
         const userName = urlParams.get('name') || '';
-        
+
+        if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
+            return;
+        }
+
         if (welcomeType === 'new') {
             showWelcomeToast(decodeURIComponent(userName), true);
             const newUrl = window.location.pathname;

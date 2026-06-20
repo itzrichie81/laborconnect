@@ -756,6 +756,54 @@
             color: white;
         }
 
+        .tips-section {
+            margin-top: 1.5rem;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tips-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #0f172a;
+        }
+
+        .tips-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tips-list li {
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-active .tips-section {
+            background: #0f172a;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+
+        body.dark-active .tips-title {
+            color: #f8fafc;
+        }
+
+        body.dark-active .tips-list li {
+            color: #cbd5e1;
+        }
+
+        body.dark-active .tips-list li i {
+            color: #34d399;
+        }
+
         body.dark-active .page-header h1 {
             background: linear-gradient(135deg, white 0%, #60a5fa 100%);
             -webkit-background-clip: text;
@@ -937,14 +985,14 @@
                 </button>
             </form>
             
-            <div class="tips-section" style="margin-top: 1.5rem; background: #f8fafc; border-radius: 16px; padding: 1rem;">
-                <div class="tips-title" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">
+            <div class="tips-section">
+                <div class="tips-title">
                     <i class="fas fa-lightbulb"></i> Tips for a great job post
                 </div>
-                <ul class="tips-list" style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 0.5rem; font-size: 0.75rem;"><i class="fas fa-check-circle" style="color: #10b981;"></i> Be specific about what you need done</li>
-                    <li style="margin-bottom: 0.5rem; font-size: 0.75rem;"><i class="fas fa-check-circle" style="color: #10b981;"></i> Include your location for accurate matching</li>
-                    <li style="margin-bottom: 0.5rem; font-size: 0.75rem;"><i class="fas fa-check-circle" style="color: #10b981;"></i> Set a realistic budget range</li>
+                <ul class="tips-list">
+                    <li><i class="fas fa-check-circle"></i> Be specific about what you need done</li>
+                    <li><i class="fas fa-check-circle"></i> Include your location for accurate matching</li>
+                    <li><i class="fas fa-check-circle"></i> Set a realistic budget range</li>
                 </ul>
             </div>
         </div>

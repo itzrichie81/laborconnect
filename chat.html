@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Chat - LaborConnect</title>
  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%232563eb'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='800' font-family='Arial, sans-serif'>LC</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -16,13 +16,22 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
             background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             min-height: 100dvh;
             min-height: -webkit-fill-available;
-            overflow: hidden;
+            touch-action: manipulation;
         }
 
         /* Navbar hidden on chat page */
@@ -42,6 +51,7 @@
             flex-direction: column;
             background: white;
             box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            position: relative;
         }
 
         /* Chat Header - Compact */
@@ -138,13 +148,16 @@
 
         /* Chat Messages - Compact & No Extra Space */
         .chat-messages {
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 1rem;
             background: #f8fafc;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Individual Message - Minimal Margin */
@@ -334,8 +347,18 @@
             background: white;
             border-top: 1px solid #e5e7eb;
             flex-shrink: 0;
-            position: relative;
-            z-index: 2;
+            position: sticky;
+            bottom: 0;
+            z-index: 5;
+            transition: padding-bottom 0.18s ease;
+        }
+
+        .chat-input.recording {
+            background: #fff7f7;
+        }
+
+        .chat-input.recording #recordToggle {
+            color: #dc2626;
         }
 
         .input-with-icons {
@@ -595,6 +618,11 @@
                 min-height: -webkit-fill-available;
                 border-radius: 0;
             }
+
+            .chat-input {
+                padding-left: 0.65rem;
+                padding-right: 0.65rem;
+            }
             
             .message-bubble {
                 max-width: 85%;
@@ -748,6 +776,8 @@
     let isRecording = false;
     let mediaRecorder = null;
     let recordedChunks = [];
+    let pendingVoiceBlob = null;
+    let pendingVoiceFileName = '';
     let otherUserName = '';
     let otherUserPhoto = null;
     let isSelectionMode = false;
@@ -763,6 +793,27 @@
     function scrollChatToBottom() {
         if (!chatMessages) return;
         chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function syncChatLayout() {
+        const viewport = window.visualViewport;
+        const viewportHeight = viewport ? viewport.height : window.innerHeight;
+        const chatContainer = document.querySelector('.chat-container');
+        const chatInput = document.querySelector('.chat-input');
+
+        if (chatContainer) {
+            chatContainer.style.height = `${viewportHeight}px`;
+            chatContainer.style.maxHeight = `${viewportHeight}px`;
+        }
+
+        if (chatInput) {
+            chatInput.style.paddingBottom = 'calc(0.75rem + env(safe-area-inset-bottom, 0px))';
+        }
+
+        if (viewport) {
+            const keyboardHeight = Math.max(0, window.innerHeight - viewportHeight - viewport.offsetTop);
+            document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+        }
     }
 
     function formatTime(dateString) {
@@ -980,6 +1031,33 @@
     // ==================== SEND MESSAGE ====================
     async function sendMessage() {
         const text = messageInput.value.trim();
+
+        if (pendingVoiceBlob) {
+            try {
+                const uploadUrl = await uploadFile(pendingVoiceFileName ? new File([pendingVoiceBlob], pendingVoiceFileName, { type: pendingVoiceBlob.type || 'audio/webm' }) : new File([pendingVoiceBlob], 'voice-note.webm', { type: pendingVoiceBlob.type || 'audio/webm' }));
+                const payload = {
+                    chatId,
+                    from: currentUser.id,
+                    to: otherUserId,
+                    text: 'Voice note',
+                    type: 'voice',
+                    payload: uploadUrl,
+                    replyTo: replyToMessage?.id || null
+                };
+                socket.emit('send-message', payload);
+                pendingVoiceBlob = null;
+                pendingVoiceFileName = '';
+                replyToMessage = null;
+                updateReplyPreview();
+                if (messageInput) messageInput.value = '';
+                return;
+            } catch (error) {
+                console.error('Voice message upload failed', error);
+                alert('Voice upload failed. Please try again.');
+                return;
+            }
+        }
+
         if (!text) return;
         
         const payload = {
@@ -1024,11 +1102,39 @@
     }
 
     // ==================== VOICE RECORDING ====================
-    async function toggleRecord() {
-        if (isRecording) {
+    function setRecordingState(recording) {
+        const recordToggle = document.getElementById('recordToggle');
+        const chatInput = document.querySelector('.chat-input');
+        if (recordToggle) {
+            recordToggle.innerHTML = recording ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-microphone"></i>';
+            recordToggle.setAttribute('aria-pressed', String(recording));
+        }
+        if (chatInput) {
+            chatInput.classList.toggle('recording', recording);
+        }
+        if (messageInput) {
+            messageInput.placeholder = recording ? 'Recording voice...' : 'Type a message...';
+        }
+    }
+
+    async function stopRecording() {
+        if (!mediaRecorder || !isRecording) return;
+
+        try {
             mediaRecorder.stop();
-            if (recordToggle) recordToggle.innerHTML = '<i class="fas fa-microphone"></i>';
-            isRecording = false;
+        } catch (error) {
+            console.error('Error stopping recorder:', error);
+        }
+
+        isRecording = false;
+        setRecordingState(false);
+    }
+
+    async function toggleRecord() {
+        const recordToggle = document.getElementById('recordToggle');
+
+        if (isRecording) {
+            await stopRecording();
             return;
         }
         
@@ -1041,39 +1147,34 @@
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(localStream);
             recordedChunks = [];
+            pendingVoiceBlob = null;
+            pendingVoiceFileName = '';
             
             mediaRecorder.addEventListener('dataavailable', event => {
                 if (event.data.size > 0) recordedChunks.push(event.data);
             });
             
             mediaRecorder.addEventListener('stop', async () => {
-                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                try {
-                    const url = await uploadFile(new File([blob], 'voice-note.webm', { type: 'audio/webm' }));
-                    const payload = {
-                        chatId,
-                        from: currentUser.id,
-                        to: otherUserId,
-                        text: 'Voice note',
-                        type: 'voice',
-                        payload: url,
-                        replyTo: replyToMessage?.id || null
-                    };
-                    socket.emit('send-message', payload);
-                    replyToMessage = null;
-                    updateReplyPreview();
-                } catch (uploadError) {
-                    console.error('Voice upload failed', uploadError);
-                    alert('Voice upload failed. Please try again.');
+                const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                pendingVoiceBlob = blob;
+                pendingVoiceFileName = `voice-note-${Date.now()}.webm`;
+                if (messageInput) {
+                    messageInput.value = '';
                 }
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
+                }
+                const sendButton = document.getElementById('sendButton');
+                if (sendButton) {
+                    sendButton.title = 'Send voice message';
+                }
             });
             
             mediaRecorder.start();
             isRecording = true;
-            const recordToggle = document.getElementById('recordToggle');
-            if (recordToggle) recordToggle.innerHTML = '<i class="fas fa-stop"></i>';
+            setRecordingState(true);
+            if (recordToggle) recordToggle.title = 'Stop recording';
         } catch (err) {
             console.error('Recording failed', err);
             alert('Unable to start voice recording.');
@@ -1365,6 +1466,15 @@
             sendMessage();
         }
     });
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', syncChatLayout);
+        window.visualViewport.addEventListener('scroll', syncChatLayout);
+    }
+    window.addEventListener('resize', syncChatLayout);
+    window.addEventListener('orientationchange', syncChatLayout);
+    document.addEventListener('focusin', syncChatLayout);
+    document.addEventListener('focusout', syncChatLayout);
     
     document.getElementById('mediaInput')?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
@@ -1416,6 +1526,7 @@
     });
 
     // Initialize
+    syncChatLayout();
     loadChatUser();
     loadMessages();
 </script>

@@ -91,6 +91,7 @@ let currentCallPeerPhoto = null;
 let currentCallPeerId = null;
 let currentCallLocalProfileName = null;
 let currentCallLocalProfilePhoto = null;
+let isPageHidden = false;
 
 // ===== CONNECTION STATUS MONITORING =====
 /*let isOnline = navigator.onLine;
@@ -158,6 +159,36 @@ function stopRingtone() {
         clearInterval(ringInterval);
         ringInterval = null;
     }
+}
+
+function stopStreamTracks(stream) {
+  if (!stream) return;
+  stream.getTracks().forEach(track => {
+    try {
+      track.stop();
+    } catch (err) {
+      console.warn('Unable to stop track:', err);
+    }
+  });
+}
+
+function getOptimizedAudioConstraints() {
+  return {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+    channelCount: 1,
+    sampleRate: 48000
+  };
+}
+
+function getOptimizedVideoConstraints() {
+  return {
+    facingMode: isFrontCamera ? 'user' : 'environment',
+    width: { ideal: 640, max: 720 },
+    height: { ideal: 480, max: 540 },
+    frameRate: { ideal: 15, max: 20 }
+  };
 }
 
 function formatDuration(seconds) {
@@ -1119,17 +1150,30 @@ async function endGlobalCall(emitEndSignal = true) {
   }
   
   if (activePeerConnection) {
+    activePeerConnection.ontrack = null;
+    activePeerConnection.onicecandidate = null;
+    activePeerConnection.onconnectionstatechange = null;
     activePeerConnection.close();
     activePeerConnection = null;
   }
   if (activeLocalStream) {
-    activeLocalStream.getTracks().forEach(track => track.stop());
+    stopStreamTracks(activeLocalStream);
     activeLocalStream = null;
   }
   
-  // REAL FIX: Completely destroy the call UI
-  destroyCallUI();
+  const remoteVideo = document.getElementById('remoteVideo');
+  const localVideo = document.getElementById('localVideo');
+  if (remoteVideo) {
+    remoteVideo.pause();
+    remoteVideo.srcObject = null;
+  }
+  if (localVideo) {
+    localVideo.pause();
+    localVideo.srcObject = null;
+  }
   
+  destroyCallUI();
+  stopRingtone();
   hideCallBanner();
   hideIncomingCallModal();
   isCallPeekMode = false;
@@ -1143,8 +1187,11 @@ async function endGlobalCall(emitEndSignal = true) {
   currentOtherUserId = null;
   
   if (controlsTimeout) clearTimeout(controlsTimeout);
+  if (callTimerInterval) {
+    clearInterval(callTimerInterval);
+    callTimerInterval = null;
+  }
   
-  // Reset flags
   isCreatingCallUI = false;
 }
 
@@ -1211,14 +1258,18 @@ async function startCall(toUserId, callType) {
   callStartTime = Date.now();
   
   try {
-    const mediaConstraints = { audio: true, video: callType === 'video' };
+    const mediaConstraints = {
+      audio: getOptimizedAudioConstraints(),
+      video: callType === 'video' ? getOptimizedVideoConstraints() : false
+    };
     activeLocalStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     if (callType === 'video' && mediaElements.localVideo) {
       mediaElements.localVideo.srcObject = activeLocalStream;
     }
     
     activePeerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }]
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }],
+      iceCandidatePoolSize: 0
     });
     
     activeLocalStream.getTracks().forEach(track => {
@@ -1337,14 +1388,18 @@ async function acceptGlobalCall() {
   }
   
   try {
-    const mediaConstraints = { audio: true, video: currentCallType === 'video' };
+    const mediaConstraints = {
+      audio: getOptimizedAudioConstraints(),
+      video: currentCallType === 'video' ? getOptimizedVideoConstraints() : false
+    };
     activeLocalStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     if (currentCallType === 'video' && mediaElements.localVideo) {
       mediaElements.localVideo.srcObject = activeLocalStream;
     }
     
     activePeerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }]
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }],
+      iceCandidatePoolSize: 0
     });
     
     activeLocalStream.getTracks().forEach(track => {
@@ -1443,13 +1498,16 @@ async function initGlobalSocket() {
   currentCallLocalProfilePhoto = getUserPhoto(currentUser);
   if (globalSocket && globalSocket.connected) return;
   
-  globalSocket = io(SOCKET_URL, { 
-    transports: ['websocket', 'polling'], 
+  globalSocket = io(SOCKET_URL, {
+    transports: ['websocket'],
+    upgrade: true,
     reconnection: true,
-    reconnectionAttempts: 10,
+    reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000
+    reconnectionDelayMax: 3000,
+    timeout: 15000,
+    pingInterval: 25000,
+    pingTimeout: 10000
   });
   
   globalSocket.on('connect_error', (error) => {
@@ -1665,7 +1723,8 @@ window.getAuthHeaders = function() {
 
 // ==================== WELCOME TOAST NOTIFICATION ====================
 window.showWelcomeToast = function(userName, isNewUser = false) {
-    if (sessionStorage.getItem('welcomeToastShown') === 'true') {
+    const dismissedKey = 'laborconnect-welcome-toast-dismissed';
+    if (sessionStorage.getItem('welcomeToastShown') === 'true' || localStorage.getItem(dismissedKey) === 'true') {
         return;
     }
     
@@ -1729,6 +1788,7 @@ window.showWelcomeToast = function(userName, isNewUser = false) {
     const closeBtn = toast.querySelector('.close-toast');
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        localStorage.setItem('laborconnect-welcome-toast-dismissed', 'true');
         closeToast(toast);
     });
     
@@ -1738,7 +1798,9 @@ window.showWelcomeToast = function(userName, isNewUser = false) {
     });
     
     setTimeout(() => {
-        closeToast(toast);
+        if (localStorage.getItem('laborconnect-welcome-toast-dismissed') !== 'true') {
+            closeToast(toast);
+        }
     }, 6000);
     
     function closeToast(toastElement) {
@@ -1757,7 +1819,12 @@ window.checkAndShowWelcome = function() {
     const urlParams = new URLSearchParams(window.location.search);
     const welcomeType = urlParams.get('welcome');
     const userName = urlParams.get('name') || '';
+    const dismissedKey = 'laborconnect-welcome-toast-dismissed';
     
+    if (localStorage.getItem(dismissedKey) === 'true') {
+        return;
+    }
+
     if (welcomeType === 'new' || welcomeType === 'return') {
         window.showWelcomeToast(decodeURIComponent(userName), welcomeType === 'new');
         const newUrl = window.location.pathname;
@@ -1779,6 +1846,42 @@ if (document.readyState === 'loading') {
 window.addEventListener('pageshow', () => {
     restorePersistedCallUI();
     window.checkAndShowWelcome();
+});
+window.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    isPageHidden = true;
+    stopRingtone();
+    if (callTimerInterval) {
+      clearInterval(callTimerInterval);
+      callTimerInterval = null;
+    }
+    if (activeLocalStream && activeLocalStream.getVideoTracks().length) {
+      activeLocalStream.getVideoTracks().forEach(track => {
+        if (track.readyState === 'live') {
+          track.enabled = false;
+        }
+      });
+    }
+  } else {
+    isPageHidden = false;
+    if (activeLocalStream && currentCallType === 'video' && activeLocalStream.getVideoTracks().length) {
+      activeLocalStream.getVideoTracks().forEach(track => {
+        if (track.readyState === 'live') {
+          track.enabled = true;
+        }
+      });
+    }
+    if (isInCall && callStartTime) {
+      if (callTimerInterval) clearInterval(callTimerInterval);
+      callTimerInterval = setInterval(() => {
+        if (callStartTime) {
+          const duration = Math.floor((Date.now() - callStartTime) / 1000);
+          const timerSpan = document.getElementById('callTimerText');
+          if (timerSpan) timerSpan.textContent = formatDuration(duration);
+        }
+      }, 1000);
+    }
+  }
 });
 
 window.stopRingtone = stopRingtone;
