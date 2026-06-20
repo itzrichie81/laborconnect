@@ -598,10 +598,11 @@
         }
     });
 
+    // ==================== LOGIN - NO VERIFICATION REQUIRED ====================
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        const email = document.getElementById("email").value.trim();
+        const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
         const submitBtn = document.getElementById("submitBtn");
         const originalText = submitBtn.innerHTML;
@@ -628,29 +629,10 @@
                 showAlert(data.message || "Login failed", "error");
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
-                
-                // If account is not verified, automatically send a new verification code
-                if (data.message && data.message.includes("verify")) {
-                    try {
-                        const resendRes = await fetch(`${API_URL}/resend-verification`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ email })
-                        });
-                        const resendData = await resendRes.json();
-                        if (resendRes.ok) {
-                            setTimeout(() => {
-                                showAlert("New verification code sent to your email! Please check your inbox.", "success");
-                            }, 3000);
-                        }
-                    } catch (resendErr) {
-                        console.error('Resend error:', resendErr);
-                    }
-                }
                 return;
             }
 
-            // Login successful
+            // Login successful - no verification check needed!
             localStorage.setItem("user", JSON.stringify(data.user));
             saveRememberedUser(email, password);
             const userName = data.user.name || email.split('@')[0];
