@@ -38,7 +38,7 @@
   }
 })();
 
-// ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
+
 // ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
 // Automatically detect environment - works for both local and production
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -93,7 +93,7 @@ let currentCallLocalProfileName = null;
 let currentCallLocalProfilePhoto = null;
 
 // ===== CONNECTION STATUS MONITORING =====
-let isOnline = navigator.onLine;
+/*let isOnline = navigator.onLine;
 window.addEventListener('online', () => {
     isOnline = true;
     console.log('🌐 Connection restored');
@@ -110,7 +110,7 @@ window.addEventListener('offline', () => {
         statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> No internet connection';
         statusDiv.style.display = 'flex';
     }
-});
+});*/
 
 // Audio beep for ringtone
 let audioContext = null;
