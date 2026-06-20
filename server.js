@@ -250,7 +250,8 @@ app.post('/api/login', async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                userType: user.userType
+                userType: user.userType,
+                is_admin: user.is_admin || false  // ✅ ADD THIS!
             }
         });
 
