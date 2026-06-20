@@ -926,11 +926,11 @@
             const conversationMap = new Map();
             
             allMessages.forEach(msg => {
-                const otherId = String(msg.fromuser || msg.fromUser || msg.from) === String(currentUser.id) 
-                    ? (msg.touser || msg.toUser || msg.to) 
-                    : (msg.fromuser || msg.fromUser || msg.from);
+                const senderId = String(msg.fromuser || msg.fromUser || msg.from || '');
+                const receiverId = String(msg.touser || msg.toUser || msg.to || '');
+                const otherId = senderId === String(currentUser.id) ? receiverId : senderId;
                 
-                if (!otherId || otherId === 'undefined') return;
+                if (!otherId || otherId === 'undefined' || otherId === '') return;
                 
                 if (!conversationMap.has(otherId)) {
                     conversationMap.set(otherId, {
@@ -945,14 +945,13 @@
                 const conv = conversationMap.get(otherId);
                 conv.messages.push(msg);
                 
-                const msgTime = new Date(msg.time);
+                const msgTime = new Date(msg.time || Date.now());
                 if (!conv.lastMessageTime || msgTime > conv.lastMessageTime) {
                     conv.lastMessage = msg;
                     conv.lastMessageTime = msgTime;
                 }
                 
-                const msgFrom = String(msg.fromuser || msg.fromUser || msg.from);
-                if (msgFrom !== String(currentUser.id) && !msg.read) {
+                if (senderId !== String(currentUser.id) && !(msg.read === true || msg.read === 'true')) {
                     conv.unreadCount++;
                 }
             });
@@ -960,14 +959,15 @@
             allConversations = Array.from(conversationMap.values())
                 .map(conv => {
                     const user = userMap.get(String(conv.userId));
+                    const lastMessage = conv.lastMessage;
                     return {
                         userId: conv.userId,
                         userName: user?.name || `User ${conv.userId}`,
-                        userType: user?.usertype || 'User',
-                        photoURL: user?.photourl || null,
-                        lastMessage: conv.lastMessage?.text || 'No messages yet',
+                        userType: user?.userType || user?.usertype || 'User',
+                        photoURL: user?.photoURL || user?.photourl || null,
+                        lastMessage: lastMessage?.text || lastMessage?.payload || 'No messages yet',
                         lastMessageTime: conv.lastMessageTime,
-                        lastMessageType: conv.lastMessage?.type || 'text',
+                        lastMessageType: lastMessage?.type || 'text',
                         unreadCount: conv.unreadCount
                     };
                 })

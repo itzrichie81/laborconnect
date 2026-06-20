@@ -103,9 +103,16 @@ if (databaseUrl) {
 
 const pool = new Pool(poolConfig);
 
+let dbReady = false;
 pool.connect()
-    .then(() => console.log('✅ PostgreSQL connected'))
-    .catch(err => console.error('❌ DB error:', err));
+    .then(() => {
+        dbReady = true;
+        console.log('✅ PostgreSQL connected');
+    })
+    .catch(err => {
+        dbReady = false;
+        console.error('❌ DB error:', err.message);
+    });
 
 const createTables = async () => {
     try {
@@ -954,4 +961,29 @@ io.on('connection', (socket) => {
 });
 
 // ========== START SERVER ==========
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+let fallbackAttempted = false;
+let serverStarted = false;
+
+const startServer = (port) => {
+    if (serverStarted) return;
+    server.listen(port, () => {
+        serverStarted = true;
+        console.log(`🚀 Server running on port ${port}`);
+    });
+};
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && !fallbackAttempted) {
+        fallbackAttempted = true;
+        const fallbackPort = Number(PORT) + 1;
+        console.warn(`⚠️ Port ${PORT} is busy. Trying ${fallbackPort} instead...`);
+        startServer(fallbackPort);
+    } else if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} and fallback port are both busy. Please stop the other server.`);
+    } else {
+        console.error('❌ Server error:', err);
+        process.exit(1);
+    }
+});
+
+startServer(PORT);
