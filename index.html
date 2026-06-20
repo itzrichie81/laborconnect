@@ -820,8 +820,8 @@
     <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
 </div>
 
-<!-- Welcome Toast - Hidden by default, shown only on login/register -->
-<div id="welcomeToast" class="welcome-toast" style="display: none; transform: translateX(400px);">
+<!-- Welcome Toast Notification -->
+<div id="welcomeToast" class="welcome-toast">
     <i class="fas fa-smile-wink"></i>
     <div class="welcome-toast-content">
         <h4 id="welcomeTitle">Welcome back!</h4>
@@ -1061,84 +1061,60 @@
 <script>
     //const API_URL = (location.port && location.port === '5000') ? `${location.origin}/api` : 'http://localhost:5000/api';
 
-// ==================== WELCOME TOAST FUNCTION ====================
-const WELCOME_DISMISSED_KEY = 'laborconnect-welcome-toast-dismissed';
+    // ==================== WELCOME TOAST FUNCTION ====================
+    const WELCOME_DISMISSED_KEY = 'laborconnect-welcome-toast-dismissed';
 
-function showWelcomeToast(userName, isNewUser = false) {
-    const toast = document.getElementById('welcomeToast');
-    const titleEl = document.getElementById('welcomeTitle');
-    const messageEl = document.getElementById('welcomeMessage');
+    function showWelcomeToast(userName, isNewUser = false) {
+        const toast = document.getElementById('welcomeToast');
+        const titleEl = document.getElementById('welcomeTitle');
+        const messageEl = document.getElementById('welcomeMessage');
 
-    // Check if already dismissed
-    if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
-        return;
-    }
-
-    // Check if already shown this session
-    if (sessionStorage.getItem('welcomeToastShown') === 'true') {
-        return;
-    }
-
-    // Set content
-    if (isNewUser) {
-        titleEl.innerHTML = `🎉 Welcome to LaborConnect, ${userName || 'there'}!`;
-        messageEl.innerHTML = 'We\'re excited to have you on board. Start exploring today!';
-    } else {
-        titleEl.innerHTML = `👋 Welcome back, ${userName || 'there'}!`;
-        messageEl.innerHTML = 'Great to see you again. Ready to connect with professionals?';
-    }
-
-    // Show the toast
-    toast.style.display = 'flex';
-    toast.classList.add('show');
-    toast.style.transform = 'translateX(0)';
-    
-    // Mark as shown this session
-    sessionStorage.setItem('welcomeToastShown', 'true');
-
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        if (localStorage.getItem(WELCOME_DISMISSED_KEY) !== 'true') {
-            closeWelcomeToast();
+        if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
+            return;
         }
-    }, 5000);
-}
 
-function closeWelcomeToast() {
-    const toast = document.getElementById('welcomeToast');
-    localStorage.setItem(WELCOME_DISMISSED_KEY, 'true');
-    toast.classList.remove('show');
-    toast.style.transform = 'translateX(400px)';
-    setTimeout(() => {
-        toast.style.display = 'none';
-    }, 300);
-}
+        if (isNewUser) {
+            titleEl.innerHTML = `🎉 Welcome to LaborConnect, ${userName || 'there'}!`;
+            messageEl.innerHTML = 'We\'re excited to have you on board. Start exploring today!';
+        } else {
+            titleEl.innerHTML = `👋 Welcome back, ${userName || 'there'}!`;
+            messageEl.innerHTML = 'Great to see you again. Ready to connect with professionals?';
+        }
 
-function checkForWelcomeMessage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const welcomeType = urlParams.get('welcome');
-    const userName = urlParams.get('name') || '';
+        toast.classList.add('show');
 
-    // Don't show if already dismissed
-    if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
-        return;
+        setTimeout(() => {
+            if (localStorage.getItem(WELCOME_DISMISSED_KEY) !== 'true') {
+                closeWelcomeToast();
+            }
+        }, 5000);
     }
 
-    // Don't show if already shown this session
-    if (sessionStorage.getItem('welcomeToastShown') === 'true') {
-        return;
+    function closeWelcomeToast() {
+        const toast = document.getElementById('welcomeToast');
+        localStorage.setItem(WELCOME_DISMISSED_KEY, 'true');
+        toast.classList.remove('show');
     }
 
-    if (welcomeType === 'new') {
-        showWelcomeToast(decodeURIComponent(userName), true);
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
-    } else if (welcomeType === 'return') {
-        showWelcomeToast(decodeURIComponent(userName), false);
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
+    function checkForWelcomeMessage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const welcomeType = urlParams.get('welcome');
+        const userName = urlParams.get('name') || '';
+
+        if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
+            return;
+        }
+
+        if (welcomeType === 'new') {
+            showWelcomeToast(decodeURIComponent(userName), true);
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        } else if (welcomeType === 'return') {
+            showWelcomeToast(decodeURIComponent(userName), false);
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
     }
-}
 
     // ==================== LANGUAGE SELECTOR ====================
     const translations = {

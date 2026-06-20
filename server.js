@@ -189,53 +189,6 @@ const createTables = async () => {
 };
 createTables();
 
-// ========== AUTH MIDDLEWARE ==========
-// This function checks if the user exists and attaches userId to req
-const authMiddleware = async (req, res, next) => {
-    // Get userId from header (sent by frontend in all requests)
-    const userId = req.headers['user-id'];
-    
-    // If no userId provided, return 401 (Unauthorized)
-    if (!userId) {
-        return res.status(401).json({ message: 'Authentication required. Please log in.' });
-    }
-    
-    try {
-        // Check if user exists in database
-        const result = await pool.query('SELECT id FROM users WHERE id = $1', [userId]);
-        if (result.rows.length === 0) {
-            return res.status(401).json({ message: 'User not found. Please log in again.' });
-        }
-        
-        // Attach userId to request so routes can use it
-        req.userId = userId;
-        next();
-    } catch (err) {
-        console.error('Auth middleware error:', err);
-        return res.status(500).json({ message: 'Server error during authentication' });
-    }
-};
-
-// ========== ADMIN MIDDLEWARE ==========
-// Checks if user is an admin (extends authMiddleware)
-const adminMiddleware = async (req, res, next) => {
-    // First verify the user exists
-    await authMiddleware(req, res, async () => {
-        try {
-            const result = await pool.query('SELECT is_admin FROM users WHERE id = $1', [req.userId]);
-            if (result.rows.length === 0 || result.rows[0].is_admin !== true) {
-                return res.status(403).json({ message: 'Admin access required' });
-            }
-            next();
-        } catch (err) {
-            console.error('Admin middleware error:', err);
-            return res.status(500).json({ message: 'Server error' });
-        }
-    });
-};
-
-// ========== PUBLIC ROUTES - NO AUTH NEEDED ==========
-
 // ========== REGISTER - NO EMAIL VERIFICATION ==========
 app.post('/api/register', async (req, res) => {
     try {
@@ -298,7 +251,7 @@ app.post('/api/login', async (req, res) => {
                 name: user.name,
                 email: user.email,
                 userType: user.userType,
-                is_admin: user.is_admin || false
+                is_admin: user.is_admin || false  // ✅ ADD THIS!
             }
         });
 
@@ -308,7 +261,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ========== GET ALL USERS (Public - no auth needed for browsing) ==========
+// ========== GET ALL USERS ==========
 app.get('/api/users', async (req, res) => {
     try {
         const { type } = req.query;
@@ -328,85 +281,8 @@ app.get('/api/users', async (req, res) => {
     }
 });
 
-// ========== FORGOT PASSWORD (Public) ==========
-app.post('/api/forgot-password', async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: "Email is required" });
-        }
-
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-
-        if (result.rows.length === 0) {
-            return res.status(400).json({ message: "Email not found" });
-        }
-
-        res.json({ message: "Password reset link sent to your email" });
-
-    } catch (err) {
-        console.error('Forgot password error:', err);
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-// ========== RESEND VERIFICATION (Public) ==========
-app.post('/api/resend-verification', async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        if (!email) {
-            return res.status(400).json({ message: 'Email is required' });
-        }
-
-        res.json({
-            success: true,
-            message: 'Verification code sent to your email!'
-        });
-
-    } catch (err) {
-        console.error('Resend error:', err);
-        res.status(500).json({ message: 'Failed to resend code. Please try again.' });
-    }
-});
-
-// ========== CONTACT FORM (Public) ==========
-app.post('/api/contact', async (req, res) => {
-    try {
-        const { name, email, subject, message } = req.body;
-
-        if (!name || !email || !subject || !message) {
-            return res.status(400).json({ message: 'All fields are required' });
-        }
-
-        res.json({ success: true, message: 'Message sent successfully!' });
-    } catch (err) {
-        console.error('Contact form error:', err);
-        res.status(500).json({ message: 'Failed to send message' });
-    }
-});
-
-// ========== UPLOAD FILE (Public - called with auth but no user check needed) ==========
-app.post('/api/upload', upload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-        const host = req.get('host');
-        const protocol = req.protocol;
-        const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
-        res.json({ url: fileUrl, name: req.file.originalname, type: req.file.mimetype });
-    } catch (err) {
-        console.error('Upload error:', err);
-        res.status(500).json({ message: 'Upload failed' });
-    }
-});
-
-// ============================================================================
-// ========== PROTECTED ROUTES - AUTH REQUIRED ==========
-// ============================================================================
-
 // ========== GET USER BY ID ==========
-app.get('/api/user/:id', authMiddleware, async (req, res) => {
+app.get('/api/user/:id', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
         res.json(result.rows[0] || null);
@@ -417,11 +293,7 @@ app.get('/api/user/:id', authMiddleware, async (req, res) => {
 });
 
 // ========== UPDATE USER PHOTO ==========
-app.patch('/api/user/:id/photo', authMiddleware, async (req, res) => {
-    // Check if user is updating their own profile
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only update your own profile' });
-    }
+app.patch('/api/user/:id/photo', async (req, res) => {
     try {
         await pool.query('UPDATE users SET photoURL = $1 WHERE id = $2', [req.body.photoURL, req.params.id]);
         res.sendStatus(200);
@@ -432,11 +304,7 @@ app.patch('/api/user/:id/photo', authMiddleware, async (req, res) => {
 });
 
 // ========== GALLERY ENDPOINTS ==========
-app.post('/api/user/:id/gallery', authMiddleware, async (req, res) => {
-    // Check if user is modifying their own gallery
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only modify your own gallery' });
-    }
+app.post('/api/user/:id/gallery', async (req, res) => {
     try {
         if (Array.isArray(req.body)) {
             await pool.query('UPDATE users SET gallery = $1 WHERE id = $2', [JSON.stringify(req.body), req.params.id]);
@@ -450,7 +318,7 @@ app.post('/api/user/:id/gallery', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/user/:id/gallery', authMiddleware, async (req, res) => {
+app.get('/api/user/:id/gallery', async (req, res) => {
     try {
         const result = await pool.query('SELECT gallery FROM users WHERE id = $1', [req.params.id]);
         res.json(result.rows[0]?.gallery || []);
@@ -460,11 +328,7 @@ app.get('/api/user/:id/gallery', authMiddleware, async (req, res) => {
     }
 });
 
-app.delete('/api/user/:id/gallery/:mediaId', authMiddleware, async (req, res) => {
-    // Check if user is deleting their own gallery items
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only delete your own gallery items' });
-    }
+app.delete('/api/user/:id/gallery/:mediaId', async (req, res) => {
     try {
         const userId = req.params.id;
         const idx = parseInt(req.params.mediaId, 10);
@@ -489,10 +353,7 @@ app.delete('/api/user/:id/gallery/:mediaId', authMiddleware, async (req, res) =>
 });
 
 // ========== UPDATE USER NAME ==========
-app.patch('/api/user/:id/name', authMiddleware, async (req, res) => {
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only update your own profile' });
-    }
+app.patch('/api/user/:id/name', async (req, res) => {
     try {
         await pool.query('UPDATE users SET name = $1 WHERE id = $2', [req.body.name, req.params.id]);
         res.sendStatus(200);
@@ -503,10 +364,7 @@ app.patch('/api/user/:id/name', authMiddleware, async (req, res) => {
 });
 
 // ========== UPDATE USER EMAIL ==========
-app.patch('/api/user/:id/email', authMiddleware, async (req, res) => {
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only update your own profile' });
-    }
+app.patch('/api/user/:id/email', async (req, res) => {
     try {
         await pool.query('UPDATE users SET email = $1 WHERE id = $2', [req.body.email, req.params.id]);
         res.sendStatus(200);
@@ -517,10 +375,7 @@ app.patch('/api/user/:id/email', authMiddleware, async (req, res) => {
 });
 
 // ========== UPDATE USER PASSWORD ==========
-app.patch('/api/user/:id/password', authMiddleware, async (req, res) => {
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only update your own password' });
-    }
+app.patch('/api/user/:id/password', async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const userId = req.params.id;
@@ -547,10 +402,7 @@ app.patch('/api/user/:id/password', authMiddleware, async (req, res) => {
 });
 
 // ========== DELETE USER ==========
-app.delete('/api/user/:id', authMiddleware, async (req, res) => {
-    if (String(req.params.id) !== String(req.userId)) {
-        return res.status(403).json({ message: 'You can only delete your own account' });
-    }
+app.delete('/api/user/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
         res.sendStatus(200);
@@ -561,7 +413,7 @@ app.delete('/api/user/:id', authMiddleware, async (req, res) => {
 });
 
 // ========== JOB ENDPOINTS ==========
-app.post('/api/jobs', authMiddleware, async (req, res) => {
+app.post('/api/jobs', async (req, res) => {
     try {
         const { title, trade, description, location, postedBy, posterName } = req.body;
         const result = await pool.query(
@@ -578,7 +430,6 @@ app.post('/api/jobs', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/jobs', async (req, res) => {
-    // Public - no auth needed to browse jobs
     try {
         const result = await pool.query('SELECT * FROM jobs ORDER BY time DESC');
         res.json(result.rows);
@@ -589,7 +440,6 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 app.get('/api/jobs/:id', async (req, res) => {
-    // Public - no auth needed to view a job
     try {
         const result = await pool.query('SELECT * FROM jobs WHERE id = $1', [req.params.id]);
         if (result.rows.length === 0) {
@@ -602,11 +452,11 @@ app.get('/api/jobs/:id', async (req, res) => {
     }
 });
 
-app.patch('/api/jobs/:id', authMiddleware, async (req, res) => {
+app.patch('/api/jobs/:id', async (req, res) => {
     try {
         const jobId = req.params.id;
         const { title, trade, description, location } = req.body;
-        const userId = req.userId; // Use authenticated userId
+        const userId = req.headers['user-id'];
 
         const jobCheck = await pool.query('SELECT postedBy FROM jobs WHERE id = $1', [jobId]);
         if (jobCheck.rows.length === 0) {
@@ -634,10 +484,10 @@ app.patch('/api/jobs/:id', authMiddleware, async (req, res) => {
     }
 });
 
-app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
+app.delete('/api/jobs/:id', async (req, res) => {
     try {
         const jobId = req.params.id;
-        const userId = req.userId; // Use authenticated userId
+        const userId = req.headers['user-id'];
 
         const userCheck = await pool.query('SELECT is_admin FROM users WHERE id = $1', [userId]);
         const isAdmin = userCheck.rows[0]?.is_admin === true;
@@ -660,8 +510,38 @@ app.delete('/api/jobs/:id', authMiddleware, async (req, res) => {
     }
 });
 
+// ========== UPLOAD FILE ==========
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+        const host = req.get('host');
+        const protocol = req.protocol;
+        const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+        res.json({ url: fileUrl, name: req.file.originalname, type: req.file.mimetype });
+    } catch (err) {
+        console.error('Upload error:', err);
+        res.status(500).json({ message: 'Upload failed' });
+    }
+});
+
+// ========== CONTACT FORM ==========
+app.post('/api/contact', async (req, res) => {
+    try {
+        const { name, email, subject, message } = req.body;
+
+        if (!name || !email || !subject || !message) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        res.json({ success: true, message: 'Message sent successfully!' });
+    } catch (err) {
+        console.error('Contact form error:', err);
+        res.status(500).json({ message: 'Failed to send message' });
+    }
+});
+
 // ========== MESSAGES ENDPOINTS ==========
-app.get('/api/messages/:chatId', authMiddleware, async (req, res) => {
+app.get('/api/messages/:chatId', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM messages WHERE chatId = $1 ORDER BY time ASC', [req.params.chatId]);
         res.json(result.rows);
@@ -671,7 +551,7 @@ app.get('/api/messages/:chatId', authMiddleware, async (req, res) => {
     }
 });
 
-app.patch('/api/messages/:id', authMiddleware, async (req, res) => {
+app.patch('/api/messages/:id', async (req, res) => {
     try {
         const { text, payload } = req.body;
         await pool.query('UPDATE messages SET text = $1, payload = $2 WHERE id = $3', [text, payload || null, req.params.id]);
@@ -682,7 +562,7 @@ app.patch('/api/messages/:id', authMiddleware, async (req, res) => {
     }
 });
 
-app.delete('/api/messages/:id', authMiddleware, async (req, res) => {
+app.delete('/api/messages/:id', async (req, res) => {
     try {
         await pool.query('DELETE FROM messages WHERE id = $1', [req.params.id]);
         res.sendStatus(200);
@@ -693,7 +573,7 @@ app.delete('/api/messages/:id', authMiddleware, async (req, res) => {
 });
 
 // ========== CONVERSATIONS ==========
-app.get('/api/conversations/:userId', authMiddleware, async (req, res) => {
+app.get('/api/conversations/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -757,7 +637,7 @@ app.get('/api/conversations/:userId', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/messages/user/:userId', authMiddleware, async (req, res) => {
+app.get('/api/messages/user/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
         const result = await pool.query(
@@ -771,7 +651,7 @@ app.get('/api/messages/user/:userId', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('/api/messages/read', authMiddleware, async (req, res) => {
+app.post('/api/messages/read', async (req, res) => {
     try {
         const { userId, otherUserId } = req.body;
         await pool.query(
@@ -785,8 +665,51 @@ app.post('/api/messages/read', authMiddleware, async (req, res) => {
     }
 });
 
+// ========== FORGOT PASSWORD ==========
+app.post('/api/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ message: "Email not found" });
+        }
+
+        res.json({ message: "Password reset link sent to your email" });
+
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// ========== RESEND VERIFICATION ==========
+app.post('/api/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Verification code sent to your email!'
+        });
+
+    } catch (err) {
+        console.error('Resend error:', err);
+        res.status(500).json({ message: 'Failed to resend code. Please try again.' });
+    }
+});
+
 // ========== CALL LOGS ==========
-app.post('/api/calls', authMiddleware, async (req, res) => {
+app.post('/api/calls', async (req, res) => {
     try {
         const { callerId, receiverId, callType, callStatus, duration, chatId } = req.body;
 
@@ -804,7 +727,7 @@ app.post('/api/calls', authMiddleware, async (req, res) => {
     }
 });
 
-app.put('/api/calls/:id', authMiddleware, async (req, res) => {
+app.put('/api/calls/:id', async (req, res) => {
     try {
         const { duration, endedAt, callStatus } = req.body;
         const callId = req.params.id;
@@ -842,7 +765,7 @@ app.put('/api/calls/:id', authMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/calls/user/:userId', authMiddleware, async (req, res) => {
+app.get('/api/calls/user/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
 
@@ -862,148 +785,6 @@ app.get('/api/calls/user/:userId', authMiddleware, async (req, res) => {
     } catch (err) {
         console.error('Get calls error:', err);
         res.status(500).json([]);
-    }
-});
-
-// ========== ADMIN ROUTES (require admin) ==========
-app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
-    try {
-        const totalUsers = await pool.query('SELECT COUNT(*) FROM users');
-        const totalWorkers = await pool.query("SELECT COUNT(*) FROM users WHERE userType = 'Worker'");
-        const totalCustomers = await pool.query("SELECT COUNT(*) FROM users WHERE userType = 'Customer'");
-        const totalMessages = await pool.query('SELECT COUNT(*) FROM messages');
-        const suspendedUsers = await pool.query('SELECT COUNT(*) FROM users WHERE is_suspended = true');
-        const unverifiedUsers = await pool.query('SELECT COUNT(*) FROM users WHERE is_verified = false');
-        const totalJobs = await pool.query('SELECT COUNT(*) FROM jobs');
-
-        res.json({
-            totalUsers: parseInt(totalUsers.rows[0].count),
-            totalWorkers: parseInt(totalWorkers.rows[0].count),
-            totalCustomers: parseInt(totalCustomers.rows[0].count),
-            totalMessages: parseInt(totalMessages.rows[0].count),
-            suspendedUsers: parseInt(suspendedUsers.rows[0].count),
-            unverifiedUsers: parseInt(unverifiedUsers.rows[0].count),
-            totalJobs: parseInt(totalJobs.rows[0].count)
-        });
-    } catch (err) {
-        console.error('Stats error:', err);
-        res.status(500).json({ error: 'Failed to get stats' });
-    }
-});
-
-app.get('/api/admin/users', adminMiddleware, async (req, res) => {
-    try {
-        const { role, status, search } = req.query;
-        let query = 'SELECT * FROM users WHERE 1=1';
-        const params = [];
-        let paramCount = 1;
-
-        if (role && role !== 'all') {
-            query += ` AND userType = $${paramCount++}`;
-            params.push(role);
-        }
-
-        if (status === 'suspended') {
-            query += ` AND is_suspended = true`;
-        } else if (status === 'active') {
-            query += ` AND is_suspended = false`;
-        }
-
-        if (search) {
-            query += ` AND (name ILIKE $${paramCount++} OR email ILIKE $${paramCount++})`;
-            params.push(`%${search}%`, `%${search}%`);
-        }
-
-        query += ' ORDER BY id DESC';
-        const result = await pool.query(query, params);
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Admin users error:', err);
-        res.status(500).json([]);
-    }
-});
-
-app.get('/api/admin/user/:id', adminMiddleware, async (req, res) => {
-    try {
-        const userId = req.params.id;
-        const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [userId]);
-        if (userResult.rows.length === 0) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const user = userResult.rows[0];
-        
-        const msgCount = await pool.query('SELECT COUNT(*) FROM messages WHERE fromUser = $1 OR toUser = $1', [userId]);
-        const jobCount = await pool.query('SELECT COUNT(*) FROM jobs WHERE postedBy = $1', [userId]);
-        
-        res.json({
-            ...user,
-            stats: {
-                messages: parseInt(msgCount.rows[0].count),
-                jobs: parseInt(jobCount.rows[0].count)
-            }
-        });
-    } catch (err) {
-        console.error('Admin user detail error:', err);
-        res.status(500).json({ message: 'Failed to get user details' });
-    }
-});
-
-app.post('/api/admin/user/:id/suspend', adminMiddleware, async (req, res) => {
-    try {
-        const userId = req.params.id;
-        const { reason } = req.body;
-        await pool.query(
-            'UPDATE users SET is_suspended = true, suspension_reason = $1 WHERE id = $2',
-            [reason || 'No reason provided', userId]
-        );
-        res.json({ success: true, message: 'User suspended' });
-    } catch (err) {
-        console.error('Suspend error:', err);
-        res.status(500).json({ message: 'Failed to suspend user' });
-    }
-});
-
-app.post('/api/admin/user/:id/unsuspend', adminMiddleware, async (req, res) => {
-    try {
-        const userId = req.params.id;
-        await pool.query('UPDATE users SET is_suspended = false, suspension_reason = NULL WHERE id = $1', [userId]);
-        res.json({ success: true, message: 'User unsuspended' });
-    } catch (err) {
-        console.error('Unsuspend error:', err);
-        res.status(500).json({ message: 'Failed to unsuspend user' });
-    }
-});
-
-app.delete('/api/admin/user/:id', adminMiddleware, async (req, res) => {
-    try {
-        const userId = req.params.id;
-        await pool.query('DELETE FROM users WHERE id = $1', [userId]);
-        res.json({ success: true, message: 'User deleted' });
-    } catch (err) {
-        console.error('Admin delete user error:', err);
-        res.status(500).json({ message: 'Failed to delete user' });
-    }
-});
-
-app.delete('/api/admin/message/:id', adminMiddleware, async (req, res) => {
-    try {
-        const messageId = req.params.id;
-        await pool.query('DELETE FROM messages WHERE id = $1', [messageId]);
-        res.json({ success: true, message: 'Message deleted' });
-    } catch (err) {
-        console.error('Admin delete message error:', err);
-        res.status(500).json({ message: 'Failed to delete message' });
-    }
-});
-
-app.delete('/api/admin/job/:id', adminMiddleware, async (req, res) => {
-    try {
-        const jobId = req.params.id;
-        await pool.query('DELETE FROM jobs WHERE id = $1', [jobId]);
-        res.json({ success: true, message: 'Job deleted' });
-    } catch (err) {
-        console.error('Admin delete job error:', err);
-        res.status(500).json({ message: 'Failed to delete job' });
     }
 });
 

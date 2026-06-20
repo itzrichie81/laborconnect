@@ -96,7 +96,6 @@
             justify-content: center;
             cursor: pointer;
             transition: transform 0.2s;
-            flex-shrink: 0;
         }
 
         .chat-avatar:hover {
@@ -111,22 +110,13 @@
         .chat-user-info {
             flex: 1;
             cursor: pointer;
-            min-width: 0; /* Allows text truncation */
         }
 
-        /* ===== FIX 4: LONG NAME WRAPPING LIKE WHATSAPP ===== */
         .chat-user-name {
             font-size: 1rem;
             font-weight: 600;
             margin: 0;
             line-height: 1.3;
-            word-break: break-word;
-            max-width: 180px;
-            overflow-wrap: break-word;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .chat-user-status {
@@ -142,7 +132,6 @@
         .chat-actions {
             display: flex;
             gap: 0.5rem;
-            flex-shrink: 0;
         }
 
         .chat-actions .btn {
@@ -594,61 +583,6 @@
             justify-content: center;
         }
 
-        /* ===== FIX 5: VOICE OPTIONS BAR ===== */
-        .voice-options-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            background: #f3f4f6;
-            border-radius: 30px;
-            margin: 0 10px 10px 10px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .voice-options-bar .voice-cancel-btn {
-            background: transparent;
-            border: none;
-            color: #6b7280;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        .voice-options-bar .voice-cancel-btn:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .voice-options-bar .voice-send-btn {
-            background: #2563eb;
-            border: none;
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-
-        .voice-options-bar .voice-send-btn:hover {
-            background: #1d4ed8;
-        }
-
-        /* Voice recording indicator on the record button */
-        #recordToggle.recording-active {
-            color: #dc2626 !important;
-            background: rgba(220, 38, 38, 0.15) !important;
-            animation: pulse-record 1.2s infinite;
-        }
-
-        @keyframes pulse-record {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
         /* Dark Mode */
         body.dark-active .chat-container {
             background: #1e293b;
@@ -674,23 +608,6 @@
 
         body.dark-active .input-with-icons input {
             color: white;
-        }
-
-        body.dark-active .voice-options-bar {
-            background: #1e293b;
-            border-color: #334155;
-        }
-
-        body.dark-active .voice-options-bar span {
-            color: #f1f5f9;
-        }
-
-        body.dark-active .voice-options-bar .voice-cancel-btn {
-            color: #94a3b8;
-        }
-
-        body.dark-active .voice-options-bar .voice-cancel-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
         }
 
         /* Responsive */
@@ -741,25 +658,6 @@
                 max-width: 200px;
                 max-height: 160px;
             }
-
-            .chat-user-name {
-                max-width: 120px;
-                font-size: 0.9rem;
-            }
-
-            .voice-options-bar {
-                margin: 0 5px 8px 5px;
-                padding: 8px 12px;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .chat-user-name {
-                max-width: 90px;
-                font-size: 0.85rem;
-            }
         }
     </style>
 </head>
@@ -807,8 +705,7 @@
             <button class="icon-btn" id="cameraBtn" title="Camera">
                 <i class="fas fa-camera"></i>
             </button>
-            <!-- ===== FIX 5: Voice record button - Hold to record ===== -->
-            <button class="icon-btn" id="recordToggle" title="Hold to record voice">
+            <button class="icon-btn" id="recordToggle" title="Record voice">
                 <i class="fas fa-microphone"></i>
             </button>
             <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
@@ -887,9 +784,6 @@
     let selectedMessages = new Set();
     let contextMenu = null;
     let localStream = null;
-    let recordingTimer = null;
-    let recordingSeconds = 0;
-    let voiceStream = null;
 
     // Socket events
     socket.emit('register-user', currentUser.id);
@@ -965,8 +859,7 @@
             if (user && user.name) {
                 otherUserName = user.name;
                 otherUserPhoto = user.photourl || user.photoURL;
-                // ===== FIX 4: Display full name with proper wrapping =====
-                chatTitle.textContent = user.name;
+                chatTitle.innerHTML = user.name;
                 
                 if (otherUserPhoto && otherUserPhoto !== 'null') {
                     chatAvatar.innerHTML = `<img src="${otherUserPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
@@ -1208,176 +1101,83 @@
         updateReplyPreview();
     }
 
-    // ==================== FIX 5: VOICE RECORDING - HOLD TO RECORD ====================
-    const recordToggle = document.getElementById('recordToggle');
+    // ==================== VOICE RECORDING ====================
+    function setRecordingState(recording) {
+        const recordToggle = document.getElementById('recordToggle');
+        const chatInput = document.querySelector('.chat-input');
+        if (recordToggle) {
+            recordToggle.innerHTML = recording ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-microphone"></i>';
+            recordToggle.setAttribute('aria-pressed', String(recording));
+        }
+        if (chatInput) {
+            chatInput.classList.toggle('recording', recording);
+        }
+        if (messageInput) {
+            messageInput.placeholder = recording ? 'Recording voice...' : 'Type a message...';
+        }
+    }
 
-    // Hold to record - start on mousedown/touchstart
-    recordToggle.addEventListener('mousedown', startVoiceRecording);
-    recordToggle.addEventListener('touchstart', startVoiceRecording, { passive: true });
+    async function stopRecording() {
+        if (!mediaRecorder || !isRecording) return;
 
-    // Stop on mouseup/touchend
-    recordToggle.addEventListener('mouseup', stopVoiceRecording);
-    recordToggle.addEventListener('touchend', stopVoiceRecording, { passive: true });
-    recordToggle.addEventListener('mouseleave', stopVoiceRecording);
+        try {
+            mediaRecorder.stop();
+        } catch (error) {
+            console.error('Error stopping recorder:', error);
+        }
 
-    async function startVoiceRecording(e) {
-        e.preventDefault();
-        if (isRecording) return;
+        isRecording = false;
+        setRecordingState(false);
+    }
+
+    async function toggleRecord() {
+        const recordToggle = document.getElementById('recordToggle');
+
+        if (isRecording) {
+            await stopRecording();
+            return;
+        }
+        
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Audio recording is not supported in this browser.');
+            return;
+        }
         
         try {
-            // Request microphone permission
-            voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(voiceStream);
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(localStream);
             recordedChunks = [];
-            recordingSeconds = 0;
+            pendingVoiceBlob = null;
+            pendingVoiceFileName = '';
             
-            mediaRecorder.ondataavailable = (event) => {
+            mediaRecorder.addEventListener('dataavailable', event => {
                 if (event.data.size > 0) recordedChunks.push(event.data);
-            };
+            });
             
-            mediaRecorder.onstop = async () => {
-                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                if (blob.size > 0) {
-                    // Show send/cancel options
-                    showVoiceOptions(blob);
+            mediaRecorder.addEventListener('stop', async () => {
+                const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                pendingVoiceBlob = blob;
+                pendingVoiceFileName = `voice-note-${Date.now()}.webm`;
+                if (messageInput) {
+                    messageInput.value = '';
                 }
-                // Clean up stream
-                if (voiceStream) {
-                    voiceStream.getTracks().forEach(track => track.stop());
-                    voiceStream = null;
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
                 }
-                // Reset recording state
-                isRecording = false;
-                clearInterval(recordingTimer);
-                recordToggle.classList.remove('recording-active');
-                recordToggle.innerHTML = '<i class="fas fa-microphone"></i>';
-                messageInput.placeholder = 'Type a message...';
-                messageInput.disabled = false;
-            };
+                const sendButton = document.getElementById('sendButton');
+                if (sendButton) {
+                    sendButton.title = 'Send voice message';
+                }
+            });
             
             mediaRecorder.start();
             isRecording = true;
-            
-            // Update UI - show recording state
-            recordToggle.innerHTML = '<i class="fas fa-stop" style="color: #dc2626;"></i>';
-            recordToggle.classList.add('recording-active');
-            messageInput.placeholder = '🔴 Recording... Release to send';
-            messageInput.disabled = true;
-            
-            // Start timer
-            recordingTimer = setInterval(() => {
-                recordingSeconds++;
-            }, 1000);
-            
+            setRecordingState(true);
+            if (recordToggle) recordToggle.title = 'Stop recording';
         } catch (err) {
-            console.error('Recording error:', err);
-            alert('Please allow microphone access to record voice notes.');
-        }
-    }
-
-    function stopVoiceRecording(e) {
-        if (e) e.preventDefault();
-        if (!isRecording || !mediaRecorder) return;
-        
-        try {
-            mediaRecorder.stop();
-        } catch (err) {
-            console.error('Error stopping recorder:', err);
-            // Reset state
-            isRecording = false;
-            clearInterval(recordingTimer);
-            recordToggle.classList.remove('recording-active');
-            recordToggle.innerHTML = '<i class="fas fa-microphone"></i>';
-            messageInput.placeholder = 'Type a message...';
-            messageInput.disabled = false;
-        }
-    }
-
-    function showVoiceOptions(blob) {
-        // Remove any existing voice options bar
-        const existing = document.querySelector('.voice-options-bar');
-        if (existing) existing.remove();
-        
-        const bar = document.createElement('div');
-        bar.className = 'voice-options-bar';
-        bar.innerHTML = `
-            <i class="fas fa-microphone" style="color: #2563eb;"></i>
-            <span style="flex:1; font-size:14px; color:#1f2937;">Voice note (${recordingSeconds}s)</span>
-            <button class="voice-cancel-btn">✕ Cancel</button>
-            <button class="voice-send-btn">Send</button>
-        `;
-        
-        // Insert before chat input
-        const chatInput = document.querySelector('.chat-input');
-        chatInput.parentNode.insertBefore(bar, chatInput);
-        
-        // Cancel button - discard recording
-        bar.querySelector('.voice-cancel-btn').onclick = () => {
-            bar.remove();
-            messageInput.focus();
-            recordedChunks = [];
-            pendingVoiceBlob = null;
-        };
-        
-        // Send button - upload and send voice note
-        bar.querySelector('.voice-send-btn').onclick = async () => {
-            try {
-                // Show sending state
-                const sendBtn = bar.querySelector('.voice-send-btn');
-                const originalText = sendBtn.textContent;
-                sendBtn.textContent = 'Sending...';
-                sendBtn.disabled = true;
-                
-                // Upload the voice file
-                const formData = new FormData();
-                const fileName = `voice-note-${Date.now()}.webm`;
-                const file = new File([blob], fileName, { type: 'audio/webm' });
-                formData.append('file', file);
-                
-                const uploadRes = await fetch(`${API_URL}/upload`, { 
-                    method: 'POST', 
-                    body: formData 
-                });
-                const uploadData = await uploadRes.json();
-                
-                if (!uploadData.url) {
-                    throw new Error('Upload failed');
-                }
-                
-                // Send the voice message
-                const payload = {
-                    chatId: chatId,
-                    from: currentUser.id,
-                    to: otherUserId,
-                    text: 'Voice note',
-                    type: 'voice',
-                    payload: uploadData.url,
-                    replyTo: replyToMessage?.id || null
-                };
-                socket.emit('send-message', payload);
-                
-                // Clean up
-                bar.remove();
-                messageInput.focus();
-                pendingVoiceBlob = null;
-                recordedChunks = [];
-                
-            } catch (err) {
-                console.error('Voice upload failed:', err);
-                alert('Failed to send voice note. Please try again.');
-                // Reset button
-                const sendBtn = bar.querySelector('.voice-send-btn');
-                sendBtn.textContent = 'Send';
-                sendBtn.disabled = false;
-            }
-        };
-        
-        // Dark mode support
-        if (document.body.classList.contains('dark-active')) {
-            bar.style.background = '#1e293b';
-            bar.style.borderColor = '#334155';
-            bar.querySelector('span').style.color = '#f1f5f9';
-            bar.querySelector('.voice-cancel-btn').style.color = '#94a3b8';
+            console.error('Recording failed', err);
+            alert('Unable to start voice recording.');
         }
     }
 
@@ -1658,6 +1458,7 @@
     // ==================== EVENT LISTENERS ====================
     document.getElementById('attachBtn')?.addEventListener('click', () => document.getElementById('mediaInput').click());
     document.getElementById('cameraBtn')?.addEventListener('click', () => document.getElementById('cameraInput').click());
+    document.getElementById('recordToggle')?.addEventListener('click', toggleRecord);
     document.getElementById('sendButton')?.addEventListener('click', sendMessage);
     document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
