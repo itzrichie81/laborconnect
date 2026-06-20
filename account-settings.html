@@ -690,7 +690,7 @@
                             <label class="form-label" id="inviteLinkLabel">Your Referral Link</label>
                             <div class="input-group-custom">
                                 <i class="fas fa-link input-icon"></i>
-                                <input type="text" class="form-control-custom" id="inviteLink" readonly value="https://laborconnect.com/ref/">
+                                <input type="text" class="form-control-custom" id="inviteLink" readonly>
                             </div>
                         </div>
                         <button class="btn-save" onclick="copyInviteLink()" id="copyInviteBtn">
@@ -1124,18 +1124,18 @@
     // ==================== LOAD USER DATA ====================
     async function loadUser() {
         try {
-            const res = await fetch(`${API_URL}/user/${userId}`);
+            const res = await fetch(`${API_URL}/user/${userId}`, {
+                headers: { 'user-id': currentUser.id }
+            });
             const user = await res.json();
             if (user) {
                 document.getElementById('userNameField').value = user.name || '';
                 document.getElementById('userEmailField').value = user.email || '';
                 document.getElementById('userPhoneField').value = user.phone || '';
-                
-                // Set invite link
-                document.getElementById('inviteLink').value = `${window.location.origin}/register.html?ref=${userId}`;
             }
         } catch (err) {
             console.error('Error loading user:', err);
+            showAlert('Failed to load user data', 'error');
         }
     }
     
@@ -1161,6 +1161,7 @@
     // ==================== SHOW ALERT ====================
     function showAlert(message, type) {
         const alertDiv = document.getElementById('alertMessage');
+        if (!alertDiv) return;
         alertDiv.textContent = message;
         alertDiv.className = `alert-message alert-${type}`;
         alertDiv.style.display = 'block';
@@ -1175,6 +1176,7 @@
             const name = document.getElementById('userNameField').value.trim();
             const email = document.getElementById('userEmailField').value.trim();
             const phone = document.getElementById('userPhoneField').value.trim();
+            const t = window.settingsTrans || settingsTranslations.en;
             
             if (!name || !email) {
                 showAlert('Name and email are required', 'error');
@@ -1183,13 +1185,19 @@
             
             await fetch(`${API_URL}/user/${userId}/name`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'user-id': currentUser.id
+                },
                 body: JSON.stringify({ name })
             });
             
             await fetch(`${API_URL}/user/${userId}/email`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'user-id': currentUser.id
+                },
                 body: JSON.stringify({ email })
             });
             
@@ -1199,7 +1207,6 @@
             user.email = email;
             localStorage.setItem('user', JSON.stringify(user));
             
-            const t = window.settingsTrans || settingsTranslations.en;
             showAlert(t.successProfile, 'success');
         } catch (err) {
             const t = window.settingsTrans || settingsTranslations.en;
@@ -1207,7 +1214,7 @@
         }
     };
     
-    // ==================== PASSWORD FUNCTIONS ====================
+    // ==================== FIX 2: PASSWORD FUNCTIONS - SHOW ERRORS ON SCREEN ====================
     window.savePassword = async function() {
         try {
             const currentPass = document.getElementById('currentPassword').value;
@@ -1230,11 +1237,25 @@
                 return;
             }
             
-            await fetch(`${API_URL}/user/${userId}/password`, {
+            const response = await fetch(`${API_URL}/user/${userId}/password`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: newPass })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'user-id': currentUser.id
+                },
+                body: JSON.stringify({ 
+                    currentPassword: currentPass,
+                    newPassword: newPass 
+                })
             });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                // Show error from server on screen
+                showAlert(data.message || t.errorPassword, 'error');
+                return;
+            }
             
             showAlert(t.successPassword, 'success');
             document.getElementById('currentPassword').value = '';
@@ -1242,16 +1263,24 @@
             document.getElementById('confirmPassword').value = '';
         } catch (err) {
             const t = window.settingsTrans || settingsTranslations.en;
-            showAlert(t.errorPassword, 'error');
+            // Show error on screen instead of just console
+            showAlert(err.message || t.errorPassword, 'error');
         }
     };
     
-    // ==================== PRIVACY FUNCTIONS ====================
+    // ==================== FIX 4: PRIVACY FUNCTIONS ====================
     window.savePrivacy = function() {
-        localStorage.setItem('privacy_private', document.getElementById('privateProfileToggle').checked);
-        localStorage.setItem('privacy_discovery', document.getElementById('discoveryToggle').checked);
-        localStorage.setItem('privacy_show_email', document.getElementById('showEmailToggle').checked);
         const t = window.settingsTrans || settingsTranslations.en;
+        
+        // Save privacy settings to localStorage
+        const privateProfile = document.getElementById('privateProfileToggle').checked;
+        const discovery = document.getElementById('discoveryToggle').checked;
+        const showEmail = document.getElementById('showEmailToggle').checked;
+        
+        localStorage.setItem('privacy_private', privateProfile);
+        localStorage.setItem('privacy_discovery', discovery);
+        localStorage.setItem('privacy_show_email', showEmail);
+        
         showAlert(t.successPrivacy, 'success');
     };
     
@@ -1279,13 +1308,35 @@
         }
     };
     
-    // ==================== INVITE FUNCTIONS ====================
+    // ==================== FIX 3: INVITE FUNCTIONS ====================
     window.copyInviteLink = function() {
         const inviteLink = document.getElementById('inviteLink');
-        inviteLink.select();
-        document.execCommand('copy');
         const t = window.settingsTrans || settingsTranslations.en;
-        showAlert(t.successCopy, 'success');
+        
+        // Generate proper invite link with current user ID
+        const userId = currentUser ? currentUser.id : '';
+        const baseUrl = window.location.origin;
+        const fullLink = `${baseUrl}/register.html?ref=${userId}`;
+        
+        inviteLink.value = fullLink;
+        
+        // Copy to clipboard
+        inviteLink.select();
+        inviteLink.setSelectionRange(0, 99999);
+        
+        try {
+            document.execCommand('copy');
+            showAlert(t.successCopy, 'success');
+        } catch (err) {
+            // Fallback for modern browsers
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullLink)
+                    .then(() => showAlert(t.successCopy, 'success'))
+                    .catch(() => showAlert('Failed to copy link', 'error'));
+            } else {
+                showAlert('Failed to copy link. Please copy manually.', 'error');
+            }
+        }
     };
     
     // ==================== DELETE ACCOUNT ====================
@@ -1293,7 +1344,10 @@
         const t = window.settingsTrans || settingsTranslations.en;
         if (confirm(t.confirmDelete)) {
             try {
-                await fetch(`${API_URL}/user/${userId}`, { method: 'DELETE' });
+                await fetch(`${API_URL}/user/${userId}`, { 
+                    method: 'DELETE',
+                    headers: { 'user-id': currentUser.id }
+                });
                 localStorage.clear();
                 window.location.href = 'login.html';
             } catch (err) {
@@ -1312,6 +1366,13 @@
     loadUser();
     loadSavedSettings();
     updateSettingsLanguage();
+
+    // Set the invite link on load
+    setTimeout(() => {
+        const userId = currentUser ? currentUser.id : '';
+        const baseUrl = window.location.origin;
+        document.getElementById('inviteLink').value = `${baseUrl}/register.html?ref=${userId}`;
+    }, 500);
 </script>
 </body>
 </html>

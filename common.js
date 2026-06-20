@@ -41,9 +41,11 @@
 
 // ==================== GLOBAL API AND SOCKET URL DEFINITIONS ====================
 // Automatically detect environment - works for both local and production
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const isLocal = window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname === '';
 
-// CHANGE THIS PART:
+// For local development, use the port your server is running on
 const API_URL = isLocal 
     ? 'http://localhost:5000/api' 
     : 'https://laborconnect-production.up.railway.app/api';
@@ -51,6 +53,19 @@ const API_URL = isLocal
 const SOCKET_URL = isLocal 
     ? 'http://localhost:5000' 
     : 'https://laborconnect-production.up.railway.app';
+
+// Fallback for when running from file:// protocol
+if (window.location.protocol === 'file:') {
+    // If opening HTML file directly, use localhost
+    window.API_URL = 'http://localhost:5000/api';
+    window.SOCKET_URL = 'http://localhost:5000';
+} else {
+    window.API_URL = API_URL;
+    window.SOCKET_URL = SOCKET_URL;
+}
+
+console.log('🌐 API_URL:', window.API_URL);
+console.log('🌐 SOCKET_URL:', window.SOCKET_URL);
 
 if (typeof API_URL !== 'undefined') {
     window.API_URL = API_URL;
@@ -182,12 +197,13 @@ function getOptimizedAudioConstraints() {
   };
 }
 
+// ===== FIX 1: LOWER VIDEO QUALITY TO PREVENT OVERHEATING =====
 function getOptimizedVideoConstraints() {
   return {
     facingMode: isFrontCamera ? 'user' : 'environment',
-    width: { ideal: 640, max: 720 },
-    height: { ideal: 480, max: 540 },
-    frameRate: { ideal: 15, max: 20 }
+    width: { ideal: 480, max: 640 },  // REDUCED from 720
+    height: { ideal: 360, max: 480 },  // REDUCED from 540
+    frameRate: { ideal: 12, max: 15 }  // REDUCED from 15-20
   };
 }
 
@@ -1089,7 +1105,7 @@ async function showIncomingCallModal(callerName, callerId, callType, callId, cha
   }
   if (globalIncomingModal) globalIncomingModal.style.display = 'flex';
   playRingtone();
-  if (ringTimeout) clearTimeout(ringTimeout);
+  if (ringTimeout) clearInterval(ringTimeout);
   ringTimeout = setTimeout(() => {
     if (globalPendingCall) {
       console.log('📞 Call auto-declined after 50 seconds');
@@ -1101,7 +1117,7 @@ async function showIncomingCallModal(callerName, callerId, callType, callId, cha
 function hideIncomingCallModal() {
   if (globalIncomingModal) globalIncomingModal.style.display = 'none';
   stopRingtone();
-  if (ringTimeout) clearTimeout(ringTimeout);
+  if (ringTimeout) clearInterval(ringTimeout);
 }
 
 // ========== CALL DATABASE FUNCTIONS ==========
@@ -1263,6 +1279,24 @@ async function startCall(toUserId, callType) {
       video: callType === 'video' ? getOptimizedVideoConstraints() : false
     };
     activeLocalStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+    
+    // ===== FIX 1b: Apply lower quality constraints to prevent overheating =====
+    if (callType === 'video' && activeLocalStream) {
+      const videoTrack = activeLocalStream.getVideoTracks()[0];
+      if (videoTrack) {
+        try {
+          const capabilities = videoTrack.getCapabilities();
+          if (capabilities.width) {
+            await videoTrack.applyConstraints({
+              width: { ideal: 480, max: 640 },
+              height: { ideal: 360, max: 480 },
+              frameRate: { ideal: 12, max: 15 }
+            });
+          }
+        } catch (e) { console.log('Video constraints applied:', e); }
+      }
+    }
+    
     if (callType === 'video' && mediaElements.localVideo) {
       mediaElements.localVideo.srcObject = activeLocalStream;
     }
@@ -1393,6 +1427,24 @@ async function acceptGlobalCall() {
       video: currentCallType === 'video' ? getOptimizedVideoConstraints() : false
     };
     activeLocalStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
+    
+    // ===== FIX 1c: Apply lower quality constraints to prevent overheating =====
+    if (currentCallType === 'video' && activeLocalStream) {
+      const videoTrack = activeLocalStream.getVideoTracks()[0];
+      if (videoTrack) {
+        try {
+          const capabilities = videoTrack.getCapabilities();
+          if (capabilities.width) {
+            await videoTrack.applyConstraints({
+              width: { ideal: 480, max: 640 },
+              height: { ideal: 360, max: 480 },
+              frameRate: { ideal: 12, max: 15 }
+            });
+          }
+        } catch (e) { console.log('Video constraints applied:', e); }
+      }
+    }
+    
     if (currentCallType === 'video' && mediaElements.localVideo) {
       mediaElements.localVideo.srcObject = activeLocalStream;
     }

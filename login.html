@@ -643,9 +643,11 @@
             }, 1500);
 
         } catch (err) {
-            showAlert(err.message || "Network error. Please try again.", "error");
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+            // ===== FIX: Show network errors on screen =====
+        console.error('Login error:', err);
+        showAlert(err.message || "Network error. Please check your connection and try again.", "error");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
         }
     });
 

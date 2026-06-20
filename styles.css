@@ -1400,3 +1400,7 @@ body.dark-active .input-with-icons .icon-btn {
         color: #f1f5f9 !important;
     }
 }
+/* Hide connection status badge completely */
+#connectionStatus {
+    display: none !important;
+}
