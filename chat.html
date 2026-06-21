@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - LaborConnect</title>
     
-    <!-- CORRECT FONT LINK - COPY THIS EXACTLY -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <!-- FIXED: Simpler Google Fonts URL that works -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,800|Poppins:600,700&display=swap" rel="stylesheet" crossorigin="anonymous">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-</head>
     <style>
         /* ===== CHAT PAGE OPTIMIZED STYLES - NO EXTRA SPACE ===== */
         * {
@@ -1467,87 +1466,132 @@
     };
 
     // ==================== VOICE RECORDING - HOLD TO RECORD (LIKE WHATSAPP) ====================
-   // ==================== VOICE RECORDING - HOLD TO RECORD (LIKE WHATSAPP) ====================
-const recordToggle = document.getElementById('recordToggle');
-let voiceStream = null;
-let recordingTimer = null;
-let recordingSeconds = 0;
-let isCancelled = false;
-let recordingIndicator = null;
+    const recordToggle = document.getElementById('recordToggle');
+    let voiceStream = null;
+    let recordingTimer = null;
+    let recordingSeconds = 0;
+    let isCancelled = false;
+    let recordingIndicator = null;
 
-// Hold to record - start on mousedown/touchstart
-recordToggle.addEventListener('mousedown', startVoiceRecording);
-recordToggle.addEventListener('touchstart', startVoiceRecording, { passive: false });
+    // Hold to record - start on mousedown/touchstart
+    recordToggle.addEventListener('mousedown', startVoiceRecording);
+    recordToggle.addEventListener('touchstart', startVoiceRecording, { passive: false });
 
-// Stop on mouseup/touchend - BOTH with passive: false
-recordToggle.addEventListener('mouseup', stopVoiceRecording);
-recordToggle.addEventListener('touchend', stopVoiceRecording, { passive: false });  // <-- FIXED THIS LINE
-recordToggle.addEventListener('mouseleave', stopVoiceRecording);
+    // Stop on mouseup/touchend
+    recordToggle.addEventListener('mouseup', stopVoiceRecording);
+    recordToggle.addEventListener('touchend', stopVoiceRecording, { passive: false });
+    recordToggle.addEventListener('mouseleave', stopVoiceRecording);
 
-async function startVoiceRecording(e) {
-    e.preventDefault();
-    if (isRecording) return;
-    isCancelled = false;
-    
-    try {
-        voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(voiceStream);
-        recordedChunks = [];
-        recordingSeconds = 0;
+    async function startVoiceRecording(e) {
+        e.preventDefault();
+        if (isRecording) return;
+        isCancelled = false;
         
-        mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) recordedChunks.push(event.data);
-        };
-        
-        mediaRecorder.onstop = async () => {
-            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+        try {
+            voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(voiceStream);
+            recordedChunks = [];
+            recordingSeconds = 0;
             
-            if (!isCancelled && blob.size > 0 && recordingSeconds >= 1) {
-                showVoiceSending();
-                try {
-                    const formData = new FormData();
-                    const fileName = `voice-note-${Date.now()}.webm`;
-                    const file = new File([blob], fileName, { type: 'audio/webm' });
-                    formData.append('file', file);
-                    
-                    const uploadRes = await fetch(`${API_URL}/upload`, { 
-                        method: 'POST', 
-                        body: formData 
-                    });
-                    const uploadData = await uploadRes.json();
-                    
-                    if (!uploadData.url) {
-                        throw new Error('Upload failed');
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) recordedChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                
+                if (!isCancelled && blob.size > 0 && recordingSeconds >= 1) {
+                    showVoiceSending();
+                    try {
+                        const formData = new FormData();
+                        const fileName = `voice-note-${Date.now()}.webm`;
+                        const file = new File([blob], fileName, { type: 'audio/webm' });
+                        formData.append('file', file);
+                        
+                        const uploadRes = await fetch(`${API_URL}/upload`, { 
+                            method: 'POST', 
+                            body: formData 
+                        });
+                        const uploadData = await uploadRes.json();
+                        
+                        if (!uploadData.url) {
+                            throw new Error('Upload failed');
+                        }
+                        
+                        const payload = {
+                            chatId: chatId,
+                            from: currentUser.id,
+                            to: otherUserId,
+                            text: 'Voice note',
+                            type: 'voice',
+                            payload: uploadData.url,
+                            replyTo: replyToMessage?.id || null
+                        };
+                        socket.emit('send-message', payload);
+                        
+                        recordedChunks = [];
+                        
+                    } catch (err) {
+                        console.error('Voice upload failed:', err);
+                        alert('Failed to send voice note. Please try again.');
                     }
-                    
-                    const payload = {
-                        chatId: chatId,
-                        from: currentUser.id,
-                        to: otherUserId,
-                        text: 'Voice note',
-                        type: 'voice',
-                        payload: uploadData.url,
-                        replyTo: replyToMessage?.id || null
-                    };
-                    socket.emit('send-message', payload);
-                    
-                    recordedChunks = [];
-                    
-                } catch (err) {
-                    console.error('Voice upload failed:', err);
-                    alert('Failed to send voice note. Please try again.');
+                } else if (blob.size === 0 || recordingSeconds < 1) {
+                    showVoiceTooShort();
+                } else if (isCancelled) {
+                    showVoiceCancelled();
                 }
-            } else if (blob.size === 0 || recordingSeconds < 1) {
-                showVoiceTooShort();
-            } else if (isCancelled) {
-                showVoiceCancelled();
-            }
+                
+                if (voiceStream) {
+                    voiceStream.getTracks().forEach(track => track.stop());
+                    voiceStream = null;
+                }
+                
+                isRecording = false;
+                clearInterval(recordingTimer);
+                recordToggle.classList.remove('recording-active');
+                recordToggle.innerHTML = '<i class="fas fa-microphone"></i>';
+                messageInput.placeholder = 'Type a message...';
+                messageInput.disabled = false;
+                hideRecordingIndicator();
+            };
             
-            if (voiceStream) {
-                voiceStream.getTracks().forEach(track => track.stop());
-                voiceStream = null;
-            }
+            mediaRecorder.start();
+            isRecording = true;
             
+            recordToggle.innerHTML = '<i class="fas fa-stop" style="color: #dc2626;"></i>';
+            recordToggle.classList.add('recording-active');
+            messageInput.placeholder = '🔴 Release to send...';
+            messageInput.disabled = true;
+            
+            showRecordingIndicator();
+            
+            recordingTimer = setInterval(() => {
+                recordingSeconds++;
+                updateRecordingIndicator(recordingSeconds);
+            }, 1000);
+            
+        } catch (err) {
+            console.error('Recording error:', err);
+            alert('Please allow microphone access to record voice notes.');
+        }
+    }
+
+    function stopVoiceRecording(e) {
+        if (e) e.preventDefault();
+        if (!isRecording || !mediaRecorder) return;
+        
+        if (e && e.changedTouches) {
+            const touch = e.changedTouches[0];
+            const recordBtn = recordToggle.getBoundingClientRect();
+            if (touch.clientY < recordBtn.top - 50) {
+                isCancelled = true;
+            }
+        }
+        
+        try {
+            mediaRecorder.stop();
+        } catch (err) {
+            console.error('Error stopping recorder:', err);
             isRecording = false;
             clearInterval(recordingTimer);
             recordToggle.classList.remove('recording-active');
@@ -1555,54 +1599,8 @@ async function startVoiceRecording(e) {
             messageInput.placeholder = 'Type a message...';
             messageInput.disabled = false;
             hideRecordingIndicator();
-        };
-        
-        mediaRecorder.start();
-        isRecording = true;
-        
-        recordToggle.innerHTML = '<i class="fas fa-stop" style="color: #dc2626;"></i>';
-        recordToggle.classList.add('recording-active');
-        messageInput.placeholder = '🔴 Release to send...';
-        messageInput.disabled = true;
-        
-        showRecordingIndicator();
-        
-        recordingTimer = setInterval(() => {
-            recordingSeconds++;
-            updateRecordingIndicator(recordingSeconds);
-        }, 1000);
-        
-    } catch (err) {
-        console.error('Recording error:', err);
-        alert('Please allow microphone access to record voice notes.');
-    }
-}
-
-function stopVoiceRecording(e) {
-    if (e) e.preventDefault();
-    if (!isRecording || !mediaRecorder) return;
-    
-    if (e && e.changedTouches) {
-        const touch = e.changedTouches[0];
-        const recordBtn = recordToggle.getBoundingClientRect();
-        if (touch.clientY < recordBtn.top - 50) {
-            isCancelled = true;
         }
     }
-    
-    try {
-        mediaRecorder.stop();
-    } catch (err) {
-        console.error('Error stopping recorder:', err);
-        isRecording = false;
-        clearInterval(recordingTimer);
-        recordToggle.classList.remove('recording-active');
-        recordToggle.innerHTML = '<i class="fas fa-microphone"></i>';
-        messageInput.placeholder = 'Type a message...';
-        messageInput.disabled = false;
-        hideRecordingIndicator();
-    }
-}
 
     // ==================== VOICE UI INDICATORS ====================
     function showRecordingIndicator() {
