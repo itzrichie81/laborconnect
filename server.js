@@ -655,12 +655,8 @@ app.delete('/api/jobs/:id', async (req, res) => {
 });
 
 // ========== UPLOAD FILE TO SUPABASE STORAGE ==========
-const { createClient } = require('@supabase/supabase-js');
-
-// Initialize Supabase client (if not already done)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Supabase is already initialized at the top of the file
+// DO NOT redeclare createClient or supabase here
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
