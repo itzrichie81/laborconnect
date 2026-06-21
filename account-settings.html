@@ -1140,13 +1140,35 @@
     }
     
     // ==================== LOAD SAVED SETTINGS ====================
-    function loadSavedSettings() {
-        document.getElementById('privateProfileToggle').checked = localStorage.getItem('privacy_private') === 'true';
-        document.getElementById('discoveryToggle').checked = localStorage.getItem('privacy_discovery') !== 'false';
-        document.getElementById('showEmailToggle').checked = localStorage.getItem('privacy_show_email') === 'true';
-        document.getElementById('emailNotifyToggle').checked = localStorage.getItem('notify_email') !== 'false';
-        document.getElementById('smsNotifyToggle').checked = localStorage.getItem('notify_sms') === 'true';
-        document.getElementById('marketingToggle').checked = localStorage.getItem('notify_marketing') === 'true';
+// ==================== LOAD SAVED SETTINGS ====================
+async function loadSavedSettings() {
+    try {
+        // First try to load from server
+        const response = await fetch(`${API_URL}/user/${userId}/settings`, {
+            headers: { 'user-id': currentUser.id }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Privacy settings
+            document.getElementById('privateProfileToggle').checked = data.privacy?.private_profile || false;
+            document.getElementById('discoveryToggle').checked = data.privacy?.discovery !== false;
+            document.getElementById('showEmailToggle').checked = data.privacy?.show_email || false;
+            
+            // Notification settings
+            document.getElementById('emailNotifyToggle').checked = data.notifications?.email !== false;
+            document.getElementById('smsNotifyToggle').checked = data.notifications?.sms || false;
+            document.getElementById('marketingToggle').checked = data.notifications?.marketing || false;
+        } else {
+            // Fallback to localStorage if server fails
+            document.getElementById('privateProfileToggle').checked = localStorage.getItem('privacy_private') === 'true';
+            document.getElementById('discoveryToggle').checked = localStorage.getItem('privacy_discovery') !== 'false';
+            document.getElementById('showEmailToggle').checked = localStorage.getItem('privacy_show_email') === 'true';
+            document.getElementById('emailNotifyToggle').checked = localStorage.getItem('notify_email') !== 'false';
+            document.getElementById('smsNotifyToggle').checked = localStorage.getItem('notify_sms') === 'true';
+            document.getElementById('marketingToggle').checked = localStorage.getItem('notify_marketing') === 'true';
+        }
         
         // Calculate cache size
         let cacheSize = 0;
@@ -1156,7 +1178,17 @@
             if (value) cacheSize += value.length * 2;
         }
         document.getElementById('cacheSize').value = `${Math.round(cacheSize / 1024)} KB`;
+    } catch (err) {
+        console.error('Error loading settings:', err);
+        // Fallback to localStorage
+        document.getElementById('privateProfileToggle').checked = localStorage.getItem('privacy_private') === 'true';
+        document.getElementById('discoveryToggle').checked = localStorage.getItem('privacy_discovery') !== 'false';
+        document.getElementById('showEmailToggle').checked = localStorage.getItem('privacy_show_email') === 'true';
+        document.getElementById('emailNotifyToggle').checked = localStorage.getItem('notify_email') !== 'false';
+        document.getElementById('smsNotifyToggle').checked = localStorage.getItem('notify_sms') === 'true';
+        document.getElementById('marketingToggle').checked = localStorage.getItem('notify_marketing') === 'true';
     }
+}
     
     // ==================== SHOW ALERT ====================
     function showAlert(message, type) {
@@ -1269,29 +1301,85 @@
     };
     
     // ==================== FIX 4: PRIVACY FUNCTIONS ====================
-    window.savePrivacy = function() {
+// ==================== PRIVACY FUNCTIONS ====================
+window.savePrivacy = async function() {
+    try {
         const t = window.settingsTrans || settingsTranslations.en;
         
-        // Save privacy settings to localStorage
-        const privateProfile = document.getElementById('privateProfileToggle').checked;
-        const discovery = document.getElementById('discoveryToggle').checked;
-        const showEmail = document.getElementById('showEmailToggle').checked;
+        const settings = {
+            private_profile: document.getElementById('privateProfileToggle').checked,
+            discovery: document.getElementById('discoveryToggle').checked,
+            show_email: document.getElementById('showEmailToggle').checked
+        };
         
-        localStorage.setItem('privacy_private', privateProfile);
-        localStorage.setItem('privacy_discovery', discovery);
-        localStorage.setItem('privacy_show_email', showEmail);
+        // Save to localStorage
+        localStorage.setItem('privacy_private', settings.private_profile);
+        localStorage.setItem('privacy_discovery', settings.discovery);
+        localStorage.setItem('privacy_show_email', settings.show_email);
         
-        showAlert(t.successPrivacy, 'success');
-    };
+        // Save to server
+        const response = await fetch(`${API_URL}/user/${userId}/privacy`, {
+            method: 'PATCH',
+            headers: { 
+                'Content-Type': 'application/json',
+                'user-id': currentUser.id
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert(t.successPrivacy, 'success');
+        } else {
+            showAlert(data.message || 'Failed to save privacy settings', 'error');
+        }
+    } catch (err) {
+        console.error('Save privacy error:', err);
+        const t = window.settingsTrans || settingsTranslations.en;
+        showAlert('Network error. Please try again.', 'error');
+    }
+};
     
-    // ==================== NOTIFICATION FUNCTIONS ====================
-    window.saveNotifications = function() {
-        localStorage.setItem('notify_email', document.getElementById('emailNotifyToggle').checked);
-        localStorage.setItem('notify_sms', document.getElementById('smsNotifyToggle').checked);
-        localStorage.setItem('notify_marketing', document.getElementById('marketingToggle').checked);
+// ==================== NOTIFICATION FUNCTIONS ====================
+window.saveNotifications = async function() {
+    try {
         const t = window.settingsTrans || settingsTranslations.en;
-        showAlert(t.successNotifications, 'success');
-    };
+        
+        const settings = {
+            email: document.getElementById('emailNotifyToggle').checked,
+            sms: document.getElementById('smsNotifyToggle').checked,
+            marketing: document.getElementById('marketingToggle').checked
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('notify_email', settings.email);
+        localStorage.setItem('notify_sms', settings.sms);
+        localStorage.setItem('notify_marketing', settings.marketing);
+        
+        // Save to server
+        const response = await fetch(`${API_URL}/user/${userId}/notifications`, {
+            method: 'PATCH',
+            headers: { 
+                'Content-Type': 'application/json',
+                'user-id': currentUser.id
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert(t.successNotifications, 'success');
+        } else {
+            showAlert(data.message || 'Failed to save notification settings', 'error');
+        }
+    } catch (err) {
+        console.error('Save notifications error:', err);
+        const t = window.settingsTrans || settingsTranslations.en;
+        showAlert('Network error. Please try again.', 'error');
+    }
+};
     
     // ==================== DATA FUNCTIONS ====================
     window.clearAppData = function() {

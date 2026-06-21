@@ -292,7 +292,24 @@ app.get('/api/users', async (req, res) => {
 app.get('/api/user/:id', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
-        res.json(result.rows[0] || null);
+        const user = result.rows[0] || null;
+        
+        // Parse JSON fields if they exist
+        if (user) {
+            if (user.privacy_settings && typeof user.privacy_settings === 'string') {
+                user.privacy_settings = JSON.parse(user.privacy_settings);
+            } else if (!user.privacy_settings) {
+                user.privacy_settings = { private_profile: false, discovery: true, show_email: false };
+            }
+            
+            if (user.notification_settings && typeof user.notification_settings === 'string') {
+                user.notification_settings = JSON.parse(user.notification_settings);
+            } else if (!user.notification_settings) {
+                user.notification_settings = { email: true, sms: false, marketing: false };
+            }
+        }
+        
+        res.json(user);
     } catch (err) {
         console.error('Get user error:', err);
         res.status(500).json(null);
@@ -405,6 +422,119 @@ app.patch('/api/user/:id/password', async (req, res) => {
     } catch (err) {
         console.error('Password change error:', err);
         res.sendStatus(500);
+    }
+});
+
+// ========== UPDATE PRIVACY SETTINGS ==========
+app.patch('/api/user/:id/privacy', async (req, res) => {
+    try {
+        const { private_profile, discovery, show_email } = req.body;
+        const userId = req.params.id;
+        
+        // Get current privacy settings
+        const currentResult = await pool.query('SELECT privacy_settings FROM users WHERE id = $1', [userId]);
+        let current = { private_profile: false, discovery: true, show_email: false };
+        
+        if (currentResult.rows[0]?.privacy_settings) {
+            const existing = currentResult.rows[0].privacy_settings;
+            if (typeof existing === 'string') {
+                current = JSON.parse(existing);
+            } else {
+                current = existing;
+            }
+        }
+        
+        // Merge with new values
+        const updated = {
+            private_profile: private_profile !== undefined ? private_profile : current.private_profile,
+            discovery: discovery !== undefined ? discovery : current.discovery,
+            show_email: show_email !== undefined ? show_email : current.show_email
+        };
+        
+        await pool.query('UPDATE users SET privacy_settings = $1 WHERE id = $2', [
+            JSON.stringify(updated),
+            userId
+        ]);
+        
+        res.json({ success: true, message: 'Privacy settings updated', settings: updated });
+    } catch (err) {
+        console.error('Update privacy error:', err);
+        res.status(500).json({ message: 'Failed to update privacy settings' });
+    }
+});
+
+// ========== UPDATE NOTIFICATION SETTINGS ==========
+app.patch('/api/user/:id/notifications', async (req, res) => {
+    try {
+        const { email, sms, marketing } = req.body;
+        const userId = req.params.id;
+        
+        // Get current notification settings
+        const currentResult = await pool.query('SELECT notification_settings FROM users WHERE id = $1', [userId]);
+        let current = { email: true, sms: false, marketing: false };
+        
+        if (currentResult.rows[0]?.notification_settings) {
+            const existing = currentResult.rows[0].notification_settings;
+            if (typeof existing === 'string') {
+                current = JSON.parse(existing);
+            } else {
+                current = existing;
+            }
+        }
+        
+        // Merge with new values
+        const updated = {
+            email: email !== undefined ? email : current.email,
+            sms: sms !== undefined ? sms : current.sms,
+            marketing: marketing !== undefined ? marketing : current.marketing
+        };
+        
+        await pool.query('UPDATE users SET notification_settings = $1 WHERE id = $2', [
+            JSON.stringify(updated),
+            userId
+        ]);
+        
+        res.json({ success: true, message: 'Notification settings updated', settings: updated });
+    } catch (err) {
+        console.error('Update notifications error:', err);
+        res.status(500).json({ message: 'Failed to update notification settings' });
+    }
+});
+
+// ========== GET USER SETTINGS ==========
+app.get('/api/user/:id/settings', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const result = await pool.query(
+            'SELECT privacy_settings, notification_settings FROM users WHERE id = $1',
+            [userId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        let privacy = { private_profile: false, discovery: true, show_email: false };
+        let notifications = { email: true, sms: false, marketing: false };
+        
+        const data = result.rows[0];
+        
+        if (data.privacy_settings) {
+            privacy = typeof data.privacy_settings === 'string' 
+                ? JSON.parse(data.privacy_settings) 
+                : data.privacy_settings;
+        }
+        
+        if (data.notification_settings) {
+            notifications = typeof data.notification_settings === 'string'
+                ? JSON.parse(data.notification_settings)
+                : data.notification_settings;
+        }
+        
+        res.json({ privacy, notifications });
+    } catch (err) {
+        console.error('Get settings error:', err);
+        res.status(500).json({ message: 'Failed to load settings' });
     }
 });
 
