@@ -206,7 +206,7 @@
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             z-index: 10000;
-            display: flex;
+            display: none !important; /* HIDDEN BY DEFAULT */
             align-items: center;
             gap: 12px;
             transform: translateX(400px);
@@ -217,6 +217,7 @@
         }
 
         .welcome-toast.show {
+            display: flex !important;
             transform: translateX(0);
         }
 
@@ -820,7 +821,7 @@
     <div class="star" style="left: 90%; top: 12%; animation-duration: 2.8s; animation-delay: 1.5s;"></div>
 </div>
 
-<!-- Welcome Toast Notification -->
+<!-- Welcome Toast Notification - HIDDEN BY DEFAULT -->
 <div id="welcomeToast" class="welcome-toast">
     <i class="fas fa-smile-wink"></i>
     <div class="welcome-toast-content">
@@ -1059,8 +1060,6 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="common.js"></script>
 <script>
-    //const API_URL = (location.port && location.port === '5000') ? `${location.origin}/api` : 'http://localhost:5000/api';
-
     // ==================== WELCOME TOAST FUNCTION ====================
     const WELCOME_DISMISSED_KEY = 'laborconnect-welcome-toast-dismissed';
 
@@ -1069,10 +1068,17 @@
         const titleEl = document.getElementById('welcomeTitle');
         const messageEl = document.getElementById('welcomeMessage');
 
+        // Check if already dismissed forever
         if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
             return;
         }
 
+        // Check if already shown this session
+        if (sessionStorage.getItem('welcomeToastShown') === 'true') {
+            return;
+        }
+
+        // Set content
         if (isNewUser) {
             titleEl.innerHTML = `🎉 Welcome to LaborConnect, ${userName || 'there'}!`;
             messageEl.innerHTML = 'We\'re excited to have you on board. Start exploring today!';
@@ -1081,8 +1087,15 @@
             messageEl.innerHTML = 'Great to see you again. Ready to connect with professionals?';
         }
 
+        // Show the toast
+        toast.style.display = 'flex';
         toast.classList.add('show');
+        toast.style.transform = 'translateX(0)';
+        
+        // Mark as shown this session
+        sessionStorage.setItem('welcomeToastShown', 'true');
 
+        // Auto-hide after 5 seconds
         setTimeout(() => {
             if (localStorage.getItem(WELCOME_DISMISSED_KEY) !== 'true') {
                 closeWelcomeToast();
@@ -1094,6 +1107,10 @@
         const toast = document.getElementById('welcomeToast');
         localStorage.setItem(WELCOME_DISMISSED_KEY, 'true');
         toast.classList.remove('show');
+        toast.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 300);
     }
 
     function checkForWelcomeMessage() {
@@ -1101,7 +1118,13 @@
         const welcomeType = urlParams.get('welcome');
         const userName = urlParams.get('name') || '';
 
+        // Don't show if already dismissed
         if (localStorage.getItem(WELCOME_DISMISSED_KEY) === 'true') {
+            return;
+        }
+
+        // Don't show if already shown this session
+        if (sessionStorage.getItem('welcomeToastShown') === 'true') {
             return;
         }
 
