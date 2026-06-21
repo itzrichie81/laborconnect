@@ -250,11 +250,12 @@
             box-shadow: var(--shadow-xl);
         }
 
+        /* FIX 1: Video thumbnail - better background */
         .gallery-media-wrapper {
             position: relative;
             aspect-ratio: 1 / 1;
             overflow: hidden;
-            background: var(--gray-100);
+            background: #1a1a2e;
         }
 
         .gallery-media {
@@ -262,6 +263,22 @@
             height: 100%;
             object-fit: cover;
             transition: transform 0.3s ease;
+        }
+
+        /* FIX 2: Video background and thumbnail fix */
+        .gallery-media-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #1a1a2e;
+        }
+
+        .gallery-media-wrapper video::poster {
+            object-fit: cover;
+        }
+
+        .gallery-media-wrapper video:not([poster]) {
+            background: #1a1a2e;
         }
 
         .gallery-item:hover .gallery-media {
@@ -413,7 +430,7 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ===== FULLSCREEN MODAL - NO CANCEL BUTTON ===== */
+        /* ===== FULLSCREEN MODAL ===== */
         .fullscreen-modal {
             position: fixed;
             top: 0;
@@ -454,7 +471,6 @@
             border-radius: var(--radius-lg);
         }
 
-        /* Navigation buttons - left and right */
         .fullscreen-nav {
             position: fixed;
             top: 50%;
@@ -486,7 +502,6 @@
             right: 20px;
         }
 
-        /* Done button - bottom center */
         .fullscreen-action-row {
             position: fixed;
             bottom: 30px;
@@ -699,7 +714,7 @@
     </div>
 </div>
 
-<!-- Fullscreen Modal - No Cancel Button -->
+<!-- Fullscreen Modal -->
 <div id="fullscreenModal" class="fullscreen-modal">
     <div class="fullscreen-content">
         <button class="fullscreen-nav prev" onclick="prevMedia()">
@@ -922,6 +937,7 @@
         window.open(currentMediaUrl, '_blank');
     }
     
+    // ==================== FIX 3: Delete with custom alert ====================
     async function deleteMedia() {
         const t = window.galleryTrans || galleryTranslations.en;
         if (!confirm(`Delete this ${currentMediaType} permanently?`)) return;
@@ -931,9 +947,10 @@
                 if (!res.ok) throw new Error('Delete failed');
                 await loadGallery();
                 removeContextMenu();
+                showCustomAlert(`${currentMediaType} deleted successfully!`, 'success');
             } catch (e) {
                 console.error(e);
-                alert('Could not delete media. Try again.');
+                showCustomAlert('Could not delete media. Try again.', 'error');
             }
         }
     }
@@ -1084,6 +1101,7 @@
         }
     }
     
+    // ==================== FIX 2: Video thumbnails with #t=0.5 ====================
     function renderGallery() {
         const t = window.galleryTrans || galleryTranslations.en;
         const grid = document.getElementById("galleryGrid");
@@ -1116,12 +1134,15 @@
             const date = item.created_at ? new Date(item.created_at).toLocaleDateString() : new Date().toLocaleDateString();
             const typeLabel = item.type === 'image' ? t.image : t.video;
             
+            // FIX 2: Add #t=0.5 to video src for thumbnail
+            const videoSrc = item.url + (item.type === 'video' ? '#t=0.5' : '');
+            
             itemDiv.innerHTML = `
                 <div class="gallery-media-wrapper">
                     ${item.type === "image" ? 
                         `<img src="${item.url}" class="gallery-media" loading="lazy">` : 
-                        `<video class="gallery-media" preload="metadata">
-                            <source src="${item.url}" type="video/mp4">
+                        `<video class="gallery-media" preload="metadata" muted playsinline>
+                            <source src="${videoSrc}" type="video/mp4">
                          </video>`
                     }
                     <div class="media-overlay">
@@ -1179,6 +1200,7 @@
         });
     }
     
+    // ==================== FIX 3: Delete with custom alert ====================
     async function deleteMediaAtIndex(index) {
         const t = window.galleryTrans || galleryTranslations.en;
         if (!confirm(`Delete this ${galleryItems[index]?.type} permanently?`)) return;
@@ -1187,12 +1209,124 @@
             const res = await fetch(`${API_URL}/user/${currentUser.id}/gallery/${index}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Delete failed');
             await loadGallery();
+            showCustomAlert(`${galleryItems[index]?.type} deleted successfully!`, 'success');
         } catch (e) {
             console.error(e);
-            alert('Could not delete media. Try again.');
+            showCustomAlert('Could not delete media. Try again.', 'error');
         }
     }
     
+    // ==================== FIX 4: Custom Alert (no website name) ====================
+    function showCustomAlert(message, type = 'success') {
+        // Remove existing custom alert
+        const existing = document.querySelector('.custom-alert-overlay');
+        if (existing) existing.remove();
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-alert-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.2s ease;
+        `;
+        
+        const colors = {
+            success: 'linear-gradient(135deg, #10b981, #059669)',
+            error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            warning: 'linear-gradient(135deg, #f59e0b, #d97706)'
+        };
+        
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-exclamation-circle',
+            warning: 'fa-exclamation-triangle'
+        };
+        
+        const icon = icons[type] || icons.success;
+        const bg = colors[type] || colors.success;
+        
+        overlay.innerHTML = `
+            <div style="
+                background: white;
+                border-radius: 20px;
+                padding: 32px 40px;
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                animation: slideUp 0.3s ease;
+            ">
+                <div style="
+                    width: 64px;
+                    height: 64px;
+                    background: ${bg};
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 16px;
+                    color: white;
+                    font-size: 28px;
+                ">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <p style="
+                    color: #1f2937;
+                    font-size: 16px;
+                    font-weight: 500;
+                    margin-bottom: 20px;
+                ">${message}</p>
+                <button onclick="this.closest('.custom-alert-overlay').remove()" style="
+                    background: linear-gradient(135deg, #2563eb, #3b82f6);
+                    border: none;
+                    color: white;
+                    padding: 10px 32px;
+                    border-radius: 30px;
+                    font-weight: 600;
+                    font-size: 14px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                ">OK</button>
+            </div>
+        `;
+        
+        // Add keyframe animations
+        if (!document.getElementById('customAlertStyles')) {
+            const style = document.createElement('style');
+            style.id = 'customAlertStyles';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(overlay);
+        
+        // Auto-close after 3 seconds for success
+        if (type === 'success') {
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.remove();
+            }, 3000);
+        }
+    }
+    
+    // ==================== UPLOAD HANDLER (FIXED with custom alert) ====================
     document.getElementById("uploadNewMedia").onchange = async function(e) {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
@@ -1227,7 +1361,7 @@
             } catch (err) {
                 console.error(`Upload failed for ${file.name}:`, err);
                 failCount++;
-                alert(`Failed to upload ${file.name}: ${err.message}`);
+                showCustomAlert(`Failed to upload ${file.name}: ${err.message}`, 'error');
             }
         }
         
@@ -1244,7 +1378,8 @@
         await loadGallery();
         
         if (successCount > 0) {
-            alert(`${successCount} file(s) uploaded successfully!${failCount > 0 ? ` ${failCount} failed.` : ''}`);
+            const msg = `${successCount} file(s) uploaded successfully!${failCount > 0 ? ` ${failCount} failed.` : ''}`;
+            showCustomAlert(msg, 'success');
         }
     };
     
