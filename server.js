@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
 });
 
 // ========== SUPABASE STORAGE SETUP ==========
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || 'https://aodpvnrmfcgkxttivcxz.supabase.co';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
@@ -66,14 +66,17 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ========== FILE VALIDATION ==========
+// ADD AUDIO TYPES FOR VOICE NOTES
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-const allowedMimeTypes = [...allowedImageTypes, ...allowedVideoTypes];
+const allowedAudioTypes = ['audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav'];
+const allowedMimeTypes = [...allowedImageTypes, ...allowedVideoTypes, ...allowedAudioTypes];
 
 const fileFilter = (req, file, cb) => {
     if (allowedMimeTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
+        console.log('❌ Invalid file type:', file.mimetype);
         cb(new Error('Invalid file type'), false);
     }
 };
@@ -666,7 +669,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        console.log('📄 File received:', req.file.originalname, req.file.size);
+        console.log('📄 File received:', req.file.originalname, req.file.size, 'Type:', req.file.mimetype);
 
         const file = req.file;
         const fileBuffer = fs.readFileSync(file.path);
@@ -722,7 +725,6 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
             }
         } else {
             console.log('⚠️ No Supabase credentials, using local storage');
-            // No Supabase configured - use local storage
             const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
             console.log('🔗 Local URL:', localUrl);
             return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
