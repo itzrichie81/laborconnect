@@ -1235,7 +1235,7 @@
 
     // Hold to record - start on mousedown/touchstart
     recordToggle.addEventListener('mousedown', startVoiceRecording);
-    recordToggle.addEventListener('touchstart', startVoiceRecording, { passive: true });
+    recordToggle.addEventListener('touchstart', startVoiceRecording, { passive: false });
 
     // Stop on mouseup/touchend
     recordToggle.addEventListener('mouseup', stopVoiceRecording);

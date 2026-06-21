@@ -59,6 +59,8 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
     console.warn('⚠️ Supabase credentials missing. Uploads will use local storage fallback.');
+} else {
+    console.log('✅ Supabase credentials found.');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -655,14 +657,16 @@ app.delete('/api/jobs/:id', async (req, res) => {
 });
 
 // ========== UPLOAD FILE TO SUPABASE STORAGE ==========
-// Supabase is already initialized at the top of the file
-// DO NOT redeclare createClient or supabase here
-
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
+        console.log('📤 Upload request received');
+        
         if (!req.file) {
+            console.log('❌ No file in request');
             return res.status(400).json({ message: 'No file uploaded' });
         }
+
+        console.log('📄 File received:', req.file.originalname, req.file.size);
 
         const file = req.file;
         const fileBuffer = fs.readFileSync(file.path);
@@ -671,6 +675,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
         // Check if Supabase credentials exist
         if (supabaseUrl && supabaseKey) {
+            console.log('☁️ Uploading to Supabase...');
+            
             try {
                 // Upload to Supabase Storage
                 const { data, error } = await supabase.storage
@@ -681,14 +687,22 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
                     });
 
                 // Clean up local file
-                try { fs.unlinkSync(file.path); } catch (e) {}
+                try { 
+                    if (fs.existsSync(file.path)) {
+                        fs.unlinkSync(file.path); 
+                        console.log('🗑️ Local file cleaned up');
+                    }
+                } catch (e) {}
 
                 if (error) {
-                    console.error('Supabase upload error:', error);
+                    console.error('❌ Supabase upload error:', error.message);
                     // Fallback to local storage
                     const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+                    console.log('⚠️ Using local storage fallback:', localUrl);
                     return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
                 }
+
+                console.log('✅ Supabase upload successful!');
 
                 // Get public URL
                 const { data: urlData } = supabase.storage
@@ -696,24 +710,33 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
                     .getPublicUrl(filePath);
 
                 const fileUrl = urlData.publicUrl;
+                console.log('🔗 File URL:', fileUrl);
                 return res.json({ url: fileUrl, name: file.originalname, type: file.mimetype });
 
             } catch (supabaseErr) {
-                console.error('Supabase error:', supabaseErr);
+                console.error('❌ Supabase error:', supabaseErr.message);
                 // Fallback to local storage
                 const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+                console.log('⚠️ Using local storage fallback:', localUrl);
                 return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
             }
         } else {
+            console.log('⚠️ No Supabase credentials, using local storage');
             // No Supabase configured - use local storage
             const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            console.log('🔗 Local URL:', localUrl);
             return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
         }
 
     } catch (err) {
-        console.error('Upload error:', err);
+        console.error('❌ Upload error:', err.message);
+        console.error(err.stack);
         if (req.file && req.file.path) {
-            try { fs.unlinkSync(req.file.path); } catch (e) {}
+            try { 
+                if (fs.existsSync(req.file.path)) {
+                    fs.unlinkSync(req.file.path); 
+                }
+            } catch (e) {}
         }
         res.status(500).json({ message: 'Upload failed: ' + err.message });
     }
