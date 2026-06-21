@@ -276,38 +276,175 @@
             text-align: right;
         }
 
-        /* Voice Message - Compact */
+        /* ===== MODERN VOICE MESSAGE PLAYER ===== */
         .voice-card {
-            background: rgba(37, 99, 235, 0.1);
-            border-radius: 16px;
-            padding: 6px 12px;
-            min-width: 200px;
+            background: rgba(37, 99, 235, 0.08);
+            border-radius: 18px;
+            padding: 10px 16px;
+            min-width: 220px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(37, 99, 235, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .voice-card:hover {
+            background: rgba(37, 99, 235, 0.12);
+            border-color: rgba(37, 99, 235, 0.12);
         }
 
         .voice-player {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 12px;
         }
 
         .voice-play-btn {
-            background: #2563eb;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
             border: none;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
         }
 
-        .voice-wave {
+        .voice-play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        .voice-play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .voice-wave-container {
             flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 36px;
+            padding: 0 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .voice-wave-bars-playback {
+            display: flex;
+            align-items: center;
+            gap: 3px;
             height: 32px;
-            background: linear-gradient(90deg, #dbeafe 0%, #fff 100%);
-            border-radius: 16px;
+            flex: 1;
+        }
+
+        .voice-wave-bars-playback .bar {
+            display: inline-block;
+            width: 4px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, #93c5fd, #3b82f6);
+            transition: height 0.15s ease;
+            min-height: 6px;
+        }
+
+        /* Sent message - voice wave bars color */
+        .message.sent .voice-wave-bars-playback .bar {
+            background: linear-gradient(180deg, #93c5fd, #60a5fa);
+        }
+
+        /* Received message - voice wave bars color */
+        .message.received .voice-wave-bars-playback .bar {
+            background: linear-gradient(180deg, #93c5fd, #3b82f6);
+        }
+
+        /* Active play animation */
+        .voice-wave-bars-playback.playing .bar {
+            animation: wavePlay 0.8s ease-in-out infinite alternate;
+        }
+
+        .voice-wave-bars-playback.playing .bar:nth-child(1) { animation-delay: 0s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(2) { animation-delay: 0.1s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(3) { animation-delay: 0.2s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(4) { animation-delay: 0.3s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(5) { animation-delay: 0.15s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(6) { animation-delay: 0.05s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(7) { animation-delay: 0.25s; }
+        .voice-wave-bars-playback.playing .bar:nth-child(8) { animation-delay: 0.35s; }
+
+        @keyframes wavePlay {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(1); }
+        }
+
+        .voice-duration {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6b7280;
+            min-width: 32px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Sent message voice duration color */
+        .message.sent .voice-duration {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Received message voice duration color */
+        .message.received .voice-duration {
+            color: #6b7280;
+        }
+
+        /* Progress bar for voice */
+        .voice-progress {
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(37, 99, 235, 0.15);
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .voice-progress .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #7c3aed);
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .voice-card:hover .voice-progress {
+            opacity: 1;
+        }
+
+        /* Dark mode support */
+        body.dark-active .voice-card {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.1);
+        }
+
+        body.dark-active .voice-card:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        body.dark-active .voice-duration {
+            color: #94a3b8;
+        }
+
+        body.dark-active .message.sent .voice-duration {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        body.dark-active .voice-play-btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
         }
 
         /* Media Message - Compact */
@@ -719,6 +856,23 @@
             background: rgba(30, 41, 59, 0.95) !important;
         }
 
+        /* Mobile responsive for voice */
+        @media (max-width: 480px) {
+            .voice-card {
+                min-width: 160px;
+                padding: 8px 12px;
+            }
+            
+            .voice-play-btn {
+                width: 34px;
+                height: 34px;
+            }
+            
+            .voice-wave-bars-playback .bar {
+                width: 3px;
+            }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .chat-container {
@@ -1022,7 +1176,7 @@
         
         chatMessages.innerHTML = '';
         
-        visibleMessages.forEach((msg, idx) => {
+        visibleMessages.forEach((msg) => {
             const messageRow = document.createElement('div');
             const isSent = String(getMessageSenderId(msg)) === String(currentUser.id);
             messageRow.className = `message ${isSent ? 'sent' : 'received'}`;
@@ -1039,12 +1193,28 @@
                 }
             }
             
-            // Message content based on type
+            // ===== MODERN VOICE MESSAGE PLAYER =====
             if (msg.type === 'voice') {
+                // Generate random bar heights for visual effect
+                const barHeights = [8, 16, 24, 18, 30, 22, 14, 10];
+                const barsHtml = barHeights.map(h => 
+                    `<span class="bar" style="height:${h}px;"></span>`
+                ).join('');
+                
                 content += `<div class="message-bubble voice-card">
                     <div class="voice-player">
-                        <button class="voice-play-btn" onclick="toggleVoicePlayback(this)"><i class="fas fa-play"></i></button>
-                        <div class="voice-wave"></div>
+                        <button class="voice-play-btn" onclick="toggleVoicePlayback(this)">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="voice-wave-container">
+                            <div class="voice-wave-bars-playback">
+                                ${barsHtml}
+                            </div>
+                            <span class="voice-duration">0:00</span>
+                            <div class="voice-progress">
+                                <div class="progress-fill"></div>
+                            </div>
+                        </div>
                         <audio src="${msg.payload || ''}" preload="metadata" style="display:none;"></audio>
                     </div>
                 </div>`;
@@ -1090,6 +1260,19 @@
             
             content += `<div class="message-time">${formatTime(msg.time)}</div>`;
             messageRow.innerHTML = content;
+
+            // Update voice duration when audio loads
+            if (msg.type === 'voice') {
+                const audio = messageRow.querySelector('audio');
+                const durationSpan = messageRow.querySelector('.voice-duration');
+                if (audio && durationSpan) {
+                    audio.addEventListener('loadedmetadata', function() {
+                        const mins = Math.floor(audio.duration / 60);
+                        const secs = Math.floor(audio.duration % 60);
+                        durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    });
+                }
+            }
 
             const actionButton = document.createElement('button');
             actionButton.type = 'button';
@@ -1224,6 +1407,60 @@
         replyToMessage = null;
         updateReplyPreview();
     }
+
+    // ==================== MODERN VOICE PLAYBACK ====================
+    window.toggleVoicePlayback = function(button) {
+        const audio = button.parentElement.querySelector('audio');
+        const waveBars = button.parentElement.querySelector('.voice-wave-bars-playback');
+        const progressFill = button.parentElement.querySelector('.progress-fill');
+        
+        if (!audio) return;
+        
+        if (audio.paused) {
+            // Play
+            audio.play();
+            button.innerHTML = '<i class="fas fa-pause"></i>';
+            button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
+            
+            if (waveBars) waveBars.classList.add('playing');
+            
+            // Update progress
+            if (progressFill) {
+                audio.addEventListener('timeupdate', function updateProgress() {
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    progressFill.style.width = progress + '%';
+                });
+            }
+            
+            audio.onended = () => {
+                button.innerHTML = '<i class="fas fa-play"></i>';
+                button.style.background = '';
+                if (waveBars) waveBars.classList.remove('playing');
+                if (progressFill) progressFill.style.width = '0%';
+            };
+            
+            // Pause other audio players
+            document.querySelectorAll('.voice-player audio').forEach(otherAudio => {
+                if (otherAudio !== audio && !otherAudio.paused) {
+                    otherAudio.pause();
+                    const otherBtn = otherAudio.parentElement.querySelector('.voice-play-btn');
+                    if (otherBtn) {
+                        otherBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        otherBtn.style.background = '';
+                    }
+                    const otherWaves = otherAudio.parentElement.querySelector('.voice-wave-bars-playback');
+                    if (otherWaves) otherWaves.classList.remove('playing');
+                }
+            });
+            
+        } else {
+            // Pause
+            audio.pause();
+            button.innerHTML = '<i class="fas fa-play"></i>';
+            button.style.background = '';
+            if (waveBars) waveBars.classList.remove('playing');
+        }
+    };
 
     // ==================== VOICE RECORDING - HOLD TO RECORD (LIKE WHATSAPP) ====================
     const recordToggle = document.getElementById('recordToggle');
@@ -1581,19 +1818,6 @@
     window.cancelReply = function() {
         replyToMessage = null;
         updateReplyPreview();
-    };
-
-    window.toggleVoicePlayback = function(button) {
-        const audio = button.parentElement.querySelector('audio');
-        if (!audio) return;
-        if (audio.paused) {
-            audio.play();
-            button.innerHTML = '<i class="fas fa-pause"></i>';
-            audio.onended = () => button.innerHTML = '<i class="fas fa-play"></i>';
-        } else {
-            audio.pause();
-            button.innerHTML = '<i class="fas fa-play"></i>';
-        }
     };
 
     // ==================== SELECTION MODE ====================
