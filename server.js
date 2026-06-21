@@ -655,6 +655,13 @@ app.delete('/api/jobs/:id', async (req, res) => {
 });
 
 // ========== UPLOAD FILE TO SUPABASE STORAGE ==========
+const { createClient } = require('@supabase/supabase-js');
+
+// Initialize Supabase client (if not already done)
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
@@ -666,8 +673,10 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         const fileName = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         const filePath = `uploads/${fileName}`;
 
+        // Check if Supabase credentials exist
         if (supabaseUrl && supabaseKey) {
             try {
+                // Upload to Supabase Storage
                 const { data, error } = await supabase.storage
                     .from('uploads')
                     .upload(filePath, fileBuffer, {
@@ -675,14 +684,17 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
                         cacheControl: '3600'
                     });
 
+                // Clean up local file
                 try { fs.unlinkSync(file.path); } catch (e) {}
 
                 if (error) {
                     console.error('Supabase upload error:', error);
+                    // Fallback to local storage
                     const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
                     return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
                 }
 
+                // Get public URL
                 const { data: urlData } = supabase.storage
                     .from('uploads')
                     .getPublicUrl(filePath);
@@ -692,12 +704,14 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
             } catch (supabaseErr) {
                 console.error('Supabase error:', supabaseErr);
+                // Fallback to local storage
                 const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
                 return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
             }
         } else {
+            // No Supabase configured - use local storage
             const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
-            res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
+            return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
         }
 
     } catch (err) {
