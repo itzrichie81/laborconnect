@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { Server } = require('socket.io');
 const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 const app = express();
@@ -51,6 +52,16 @@ app.use(express.static(__dirname));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// ========== SUPABASE STORAGE SETUP ==========
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+    console.warn('⚠️ Supabase credentials missing. Uploads will use local storage fallback.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ========== FILE VALIDATION ==========
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -140,7 +151,9 @@ const createTables = async () => {
                 is_admin BOOLEAN DEFAULT false,
                 is_suspended BOOLEAN DEFAULT false,
                 suspension_reason TEXT,
-                flagged_at TIMESTAMP
+                flagged_at TIMESTAMP,
+                privacy_settings JSONB DEFAULT '{"private_profile": false, "discovery": true, "show_email": false}'::JSONB,
+                notification_settings JSONB DEFAULT '{"email": true, "sms": false, "marketing": false}'::JSONB
             )
         `);
 
@@ -251,14 +264,13 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ message: 'Incorrect email or password' });
         }
 
-        // No verification check - users can login immediately
         res.json({
             user: {
                 id: user.id,
                 name: user.name,
                 email: user.email,
                 userType: user.userType,
-                is_admin: user.is_admin || false  // ✅ ADD THIS!
+                is_admin: user.is_admin || false
             }
         });
 
@@ -294,7 +306,6 @@ app.get('/api/user/:id', async (req, res) => {
         const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.params.id]);
         const user = result.rows[0] || null;
         
-        // Parse JSON fields if they exist
         if (user) {
             if (user.privacy_settings && typeof user.privacy_settings === 'string') {
                 user.privacy_settings = JSON.parse(user.privacy_settings);
@@ -431,7 +442,6 @@ app.patch('/api/user/:id/privacy', async (req, res) => {
         const { private_profile, discovery, show_email } = req.body;
         const userId = req.params.id;
         
-        // Get current privacy settings
         const currentResult = await pool.query('SELECT privacy_settings FROM users WHERE id = $1', [userId]);
         let current = { private_profile: false, discovery: true, show_email: false };
         
@@ -444,7 +454,6 @@ app.patch('/api/user/:id/privacy', async (req, res) => {
             }
         }
         
-        // Merge with new values
         const updated = {
             private_profile: private_profile !== undefined ? private_profile : current.private_profile,
             discovery: discovery !== undefined ? discovery : current.discovery,
@@ -469,7 +478,6 @@ app.patch('/api/user/:id/notifications', async (req, res) => {
         const { email, sms, marketing } = req.body;
         const userId = req.params.id;
         
-        // Get current notification settings
         const currentResult = await pool.query('SELECT notification_settings FROM users WHERE id = $1', [userId]);
         let current = { email: true, sms: false, marketing: false };
         
@@ -482,7 +490,6 @@ app.patch('/api/user/:id/notifications', async (req, res) => {
             }
         }
         
-        // Merge with new values
         const updated = {
             email: email !== undefined ? email : current.email,
             sms: sms !== undefined ? sms : current.sms,
@@ -647,17 +654,58 @@ app.delete('/api/jobs/:id', async (req, res) => {
     }
 });
 
-// ========== UPLOAD FILE ==========
+// ========== UPLOAD FILE TO SUPABASE STORAGE ==========
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-        const host = req.get('host');
-        const protocol = req.protocol;
-        const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
-        res.json({ url: fileUrl, name: req.file.originalname, type: req.file.mimetype });
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const file = req.file;
+        const fileBuffer = fs.readFileSync(file.path);
+        const fileName = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const filePath = `uploads/${fileName}`;
+
+        if (supabaseUrl && supabaseKey) {
+            try {
+                const { data, error } = await supabase.storage
+                    .from('uploads')
+                    .upload(filePath, fileBuffer, {
+                        contentType: file.mimetype,
+                        cacheControl: '3600'
+                    });
+
+                try { fs.unlinkSync(file.path); } catch (e) {}
+
+                if (error) {
+                    console.error('Supabase upload error:', error);
+                    const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+                    return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
+                }
+
+                const { data: urlData } = supabase.storage
+                    .from('uploads')
+                    .getPublicUrl(filePath);
+
+                const fileUrl = urlData.publicUrl;
+                return res.json({ url: fileUrl, name: file.originalname, type: file.mimetype });
+
+            } catch (supabaseErr) {
+                console.error('Supabase error:', supabaseErr);
+                const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+                return res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
+            }
+        } else {
+            const localUrl = `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            res.json({ url: localUrl, name: file.originalname, type: file.mimetype });
+        }
+
     } catch (err) {
         console.error('Upload error:', err);
-        res.status(500).json({ message: 'Upload failed' });
+        if (req.file && req.file.path) {
+            try { fs.unlinkSync(req.file.path); } catch (e) {}
+        }
+        res.status(500).json({ message: 'Upload failed: ' + err.message });
     }
 });
 
