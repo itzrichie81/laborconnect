@@ -1183,8 +1183,6 @@
     }
 
     function syncChatLayout() {
-        // Simple layout - let CSS handle it
-        // Just scroll to bottom when keyboard appears
         if (window.visualViewport) {
             const height = window.visualViewport.height;
             const container = document.querySelector('.chat-container');
@@ -1380,7 +1378,6 @@
                 ).join('');
                 
                 let audioSrc = msg.payload || '';
-                // Add timestamp for cache busting
                 audioSrc = audioSrc + (audioSrc.includes('?') ? '&' : '?') + 't=' + Date.now();
                 
                 content += `<div class="message-bubble voice-card" data-audio-url="${audioSrc}" data-msg-id="${msg.id}">
@@ -1432,7 +1429,6 @@
             content += `<div class="message-time">${formatTime(msg.time)}</div>`;
             messageRow.innerHTML = content;
 
-            // Update voice duration when audio loads
             if (msg.type === 'voice') {
                 const audio = messageRow.querySelector('audio');
                 const durationSpan = messageRow.querySelector('.voice-duration');
@@ -1502,7 +1498,6 @@
             });
         }
         
-        // Preload voice messages after rendering
         if (window.preloadVoiceMessages) {
             setTimeout(window.preloadVoiceMessages, 300);
         }
@@ -1579,7 +1574,7 @@
         updateReplyPreview();
     }
 
-    // ===== VOICE RECORDING WITH BETTER COMPATIBILITY =====
+    // ===== VOICE RECORDING WITH FIXED MIME TYPES =====
     const recordToggle = document.getElementById('recordToggle');
     let voiceStream = null;
     let recordingTimer = null;
@@ -1603,10 +1598,11 @@
             
             // ========== FIX: Better MIME type support for iOS/Android ==========
             const mimeTypes = [
+                'audio/webm;codecs=opus',
+                'audio/webm',
                 'audio/mp4',
                 'audio/aac',
-                'audio/webm;codecs=opus',
-                'audio/webm'
+                'audio/ogg;codecs=opus'
             ];
             let mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
             console.log('🎤 Using MIME type:', mimeType || 'default');
@@ -1624,24 +1620,44 @@
             };
             
             mediaRecorder.onstop = async () => {
-                const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                // Determine the correct file extension
+                const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                let extension = 'webm';
+                let fileMimeType = 'audio/webm';
+                
+                if (mimeType.includes('mp4') || mimeType.includes('aac')) {
+                    extension = 'm4a';
+                    fileMimeType = 'audio/mp4';
+                } else if (mimeType.includes('ogg')) {
+                    extension = 'ogg';
+                    fileMimeType = 'audio/ogg';
+                } else {
+                    extension = 'webm';
+                    fileMimeType = 'audio/webm';
+                }
+                
+                const blob = new Blob(recordedChunks, { type: fileMimeType });
                 
                 if (!isCancelled && blob.size > 0 && recordingSeconds >= 1) {
                     showVoiceSending();
                     try {
                         const formData = new FormData();
-                        const fileName = `voice-note-${Date.now()}.${blob.type.includes('mp4') ? 'm4a' : 'webm'}`;
-                        const file = new File([blob], fileName, { type: blob.type || 'audio/webm' });
+                        const fileName = `voice-note-${Date.now()}.${extension}`;
+                        const file = new File([blob], fileName, { type: fileMimeType });
                         formData.append('file', file);
+                        
+                        console.log('📤 Uploading voice note:', fileName, 'Size:', file.size, 'Type:', fileMimeType);
                         
                         const uploadRes = await fetch(`${API_URL}/upload`, { 
                             method: 'POST', 
                             body: formData 
                         });
+                        
                         const uploadData = await uploadRes.json();
+                        console.log('📥 Upload response:', uploadData);
                         
                         if (!uploadData.url) {
-                            throw new Error('Upload failed');
+                            throw new Error('Upload failed - no URL returned');
                         }
                         
                         const payload = {
@@ -1658,7 +1674,7 @@
                         recordedChunks = [];
                         
                     } catch (err) {
-                        console.error('Voice upload failed:', err);
+                        console.error('❌ Voice upload failed:', err);
                         alert('Failed to send voice note. Please try again.');
                     }
                 } else if (blob.size === 0 || recordingSeconds < 1) {
@@ -2146,7 +2162,6 @@
         } catch(e) {}
     }, { once: true, passive: true });
 
-    // Also unlock on click
     document.addEventListener('click', function() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
