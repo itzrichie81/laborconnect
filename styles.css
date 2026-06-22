@@ -1596,6 +1596,7 @@ body.dark-active.chat-page .input-with-icons .icon-btn {
     padding: 0.5rem !important;
   }
 }
+
 /* ===== VOICE NOTE - MOBILE FIX ===== */
 .voice-play-btn {
     background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
@@ -1644,5 +1645,76 @@ body.dark-active.chat-page .input-with-icons .icon-btn {
     .voice-duration {
         font-size: 0.8rem !important;
         min-width: 40px !important;
+    }
+}
+
+/* ===== ENSURE VOICE PLAY BUTTON IS CLICKABLE ===== */
+.voice-play-btn {
+    position: relative !important;
+    z-index: 10 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+.voice-play-btn i {
+    pointer-events: none !important;
+}
+
+.voice-player {
+    position: relative !important;
+    z-index: 5 !important;
+}
+
+.voice-card {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* ===== ENSURE VOICE BUTTON OVERRIDES ALL ===== */
+.voice-play-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+    border: none !important;
+    color: white !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+    flex-shrink: 0 !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    position: relative !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+}
+
+.voice-play-btn:active {
+    transform: scale(0.92) !important;
+}
+
+.voice-play-btn i {
+    pointer-events: none !important;
+    font-size: 16px !important;
+}
+
+@media (max-width: 768px) {
+    .voice-play-btn {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        font-size: 16px !important;
+    }
+    
+    .voice-play-btn i {
+        font-size: 18px !important;
     }
 }

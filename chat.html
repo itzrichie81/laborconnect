@@ -1383,10 +1383,9 @@
                     `<span class="bar" style="height:${h}px;"></span>`
                 ).join('');
                 
-                // FIX: Added playsinline and preload="auto" for mobile
                 content += `<div class="message-bubble voice-card">
                     <div class="voice-player">
-                        <button class="voice-play-btn" onclick="toggleVoicePlayback(this)">
+                        <button class="voice-play-btn" onclick="toggleVoicePlayback(this)" type="button">
                             <i class="fas fa-play"></i>
                         </button>
                         <div class="voice-wave-container">
@@ -1398,7 +1397,7 @@
                                 <div class="progress-fill"></div>
                             </div>
                         </div>
-                        <audio src="${msg.payload || ''}" preload="auto" playsinline style="display:none;"></audio>
+                        <audio src="${msg.payload || ''}" preload="metadata" playsinline crossorigin="anonymous" style="display:none;"></audio>
                     </div>
                 </div>`;
             } 
@@ -1588,24 +1587,39 @@
 
     // ===== VOICE PLAYBACK - MOBILE FIXED =====
     window.toggleVoicePlayback = function(button) {
-        const voiceCard = button.closest('.voice-card');
-        if (!voiceCard) return;
+        console.log('Voice play button clicked');
         
+        // Find the voice card (parent container)
+        const voiceCard = button.closest('.voice-card');
+        if (!voiceCard) {
+            console.error('Voice card not found');
+            return;
+        }
+        
+        // Find the audio element inside the voice card
         const audio = voiceCard.querySelector('audio');
+        if (!audio) {
+            console.error('Audio element not found');
+            return;
+        }
+        
+        console.log('Audio found:', audio.src);
+        
         const waveBars = voiceCard.querySelector('.voice-wave-bars-playback');
         const progressFill = voiceCard.querySelector('.progress-fill');
         const durationSpan = voiceCard.querySelector('.voice-duration');
         
-        if (!audio) return;
-
         // FIX: Ensure audio context is resumed on mobile
         if (window.AudioContext || window.webkitAudioContext) {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
+                    console.log('AudioContext resumed');
                 }
-            } catch (e) { console.log('AudioContext error:', e); }
+            } catch (e) { 
+                console.log('AudioContext error:', e); 
+            }
         }
 
         // If another audio is playing, pause it first
@@ -1625,6 +1639,7 @@
         if (audio.paused) {
             // FIX: Load audio if not loaded
             if (!audio.src || audio.src === '') {
+                console.log('Loading audio...');
                 audio.load();
             }
             
@@ -1633,19 +1648,27 @@
                 audio.currentTime = 0;
             }
             
+            // Update duration display
+            if (durationSpan && audio.duration) {
+                const mins = Math.floor(audio.duration / 60);
+                const secs = Math.floor(audio.duration % 60);
+                durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+            
             // FIX: Play with user interaction handling
             const playPromise = audio.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
+                    console.log('Playback started successfully');
                     button.innerHTML = '<i class="fas fa-pause"></i>';
                     button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
                     if (waveBars) waveBars.classList.add('playing');
                 }).catch(err => {
                     console.warn('Playback failed:', err);
-                    // FIX: Try again with user gesture
                     button.innerHTML = '<i class="fas fa-play"></i>';
                     button.style.background = '';
-                    alert('Tap again to play voice note');
+                    // Show error in console but don't alert user
+                    console.log('Playback error - tap again to play');
                 });
             }
             
@@ -1660,6 +1683,7 @@
             }
             
             audio.onended = function() {
+                console.log('Playback ended');
                 button.innerHTML = '<i class="fas fa-play"></i>';
                 button.style.background = '';
                 if (waveBars) waveBars.classList.remove('playing');
@@ -1676,11 +1700,11 @@
                 button.innerHTML = '<i class="fas fa-play"></i>';
                 button.style.background = '';
                 if (waveBars) waveBars.classList.remove('playing');
-                alert('Unable to play voice note. Please try again.');
             };
             
         } else {
             // Pause
+            console.log('Pausing playback');
             audio.pause();
             button.innerHTML = '<i class="fas fa-play"></i>';
             button.style.background = '';
