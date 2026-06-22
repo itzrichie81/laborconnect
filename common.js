@@ -242,13 +242,12 @@ function getOptimizedAudioConstraints() {
   };
 }
 
-// ===== FIX 1: LOWER VIDEO QUALITY TO PREVENT OVERHEATING =====
 function getOptimizedVideoConstraints() {
   return {
     facingMode: isFrontCamera ? 'user' : 'environment',
-    width: { ideal: 480, max: 640 },  // REDUCED from 720
-    height: { ideal: 360, max: 480 },  // REDUCED from 540
-    frameRate: { ideal: 12, max: 15 }  // REDUCED from 15-20
+    width: { ideal: 480, max: 640 },
+    height: { ideal: 360, max: 480 },
+    frameRate: { ideal: 12, max: 15 }
   };
 }
 
@@ -1325,7 +1324,6 @@ async function startCall(toUserId, callType) {
     };
     activeLocalStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     
-    // ===== FIX 1b: Apply lower quality constraints to prevent overheating =====
     if (callType === 'video' && activeLocalStream) {
       const videoTrack = activeLocalStream.getVideoTracks()[0];
       if (videoTrack) {
@@ -1347,31 +1345,56 @@ async function startCall(toUserId, callType) {
     }
     
     activePeerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }],
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ],
       iceCandidatePoolSize: 0
     });
     
+    // ========== FIX: Add tracks BEFORE creating offer ==========
     activeLocalStream.getTracks().forEach(track => {
+      console.log('📹 Adding track:', track.kind);
       activePeerConnection.addTrack(track, activeLocalStream);
     });
     
+    // ========== FIX: Enhanced ontrack handler with logging ==========
     activePeerConnection.ontrack = (event) => {
-      console.log('📞 Received remote track');
-      const remoteVideo = document.getElementById('remoteVideo');
-      if (remoteVideo) {
-        remoteVideo.srcObject = event.streams[0];
-        remoteVideo.style.display = 'block';
+      console.log('📹 Remote track received! Kind:', event.track.kind);
+      console.log('📹 Streams:', event.streams.length);
+      
+      if (event.streams && event.streams.length > 0) {
+        const remoteVideo = document.getElementById('remoteVideo');
+        if (remoteVideo) {
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.style.display = 'block';
+          remoteVideo.play().catch(e => console.log('Remote video play error:', e));
+          console.log('✅ Remote video attached');
+        } else {
+          console.warn('⚠️ remoteVideo element not found');
+        }
+      } else {
+        console.warn('⚠️ No streams in ontrack event');
       }
     };
     
     activePeerConnection.onicecandidate = (event) => {
       if (event.candidate && globalSocket) {
+        console.log('📤 Sending ICE candidate');
         globalSocket.emit('signal', {
           to: currentOtherUserId,
           senderId: currentUser.id,
           type: 'candidate',
           candidate: event.candidate
         });
+      }
+    };
+    
+    activePeerConnection.oniceconnectionstatechange = () => {
+      console.log('📞 ICE state:', activePeerConnection.iceConnectionState);
+      if (activePeerConnection.iceConnectionState === 'connected') {
+        console.log('✅ ICE connected');
       }
     };
     
@@ -1389,10 +1412,19 @@ async function startCall(toUserId, callType) {
       }
     };
     
-    const offer = await activePeerConnection.createOffer();
+    // ========== FIX: Create offer with proper SDP ==========
+    console.log('📤 Creating offer...');
+    const offer = await activePeerConnection.createOffer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: callType === 'video'
+    });
+    console.log('✅ Offer created');
+    
     await activePeerConnection.setLocalDescription(offer);
+    console.log('✅ Local description set');
     
     if (globalSocket) {
+      console.log('📤 Sending offer to:', toUserId);
       globalSocket.emit('start-call', {
         to: toUserId,
         from: currentUser.id,
@@ -1404,7 +1436,7 @@ async function startCall(toUserId, callType) {
     }
     
     updateCallBannerStatus('Ringing...');
-    console.log('📞 Offer sent');
+    console.log('📞 Offer sent successfully');
   } catch (err) {
     console.error('Failed to start call:', err);
     alert('Unable to access microphone/camera. Please check permissions.');
@@ -1473,7 +1505,6 @@ async function acceptGlobalCall() {
     };
     activeLocalStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     
-    // ===== FIX 1c: Apply lower quality constraints to prevent overheating =====
     if (currentCallType === 'video' && activeLocalStream) {
       const videoTrack = activeLocalStream.getVideoTracks()[0];
       if (videoTrack) {
@@ -1495,25 +1526,43 @@ async function acceptGlobalCall() {
     }
     
     activePeerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }],
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ],
       iceCandidatePoolSize: 0
     });
     
+    // ========== FIX: Add tracks BEFORE setting remote description ==========
     activeLocalStream.getTracks().forEach(track => {
+      console.log('📹 Adding track:', track.kind);
       activePeerConnection.addTrack(track, activeLocalStream);
     });
     
+    // ========== FIX: Enhanced ontrack handler with logging ==========
     activePeerConnection.ontrack = (event) => {
-      console.log('📞 Received remote track');
-      const remoteVideo = document.getElementById('remoteVideo');
-      if (remoteVideo) {
-        remoteVideo.srcObject = event.streams[0];
-        remoteVideo.style.display = 'block';
+      console.log('📹 Remote track received! Kind:', event.track.kind);
+      console.log('📹 Streams:', event.streams.length);
+      
+      if (event.streams && event.streams.length > 0) {
+        const remoteVideo = document.getElementById('remoteVideo');
+        if (remoteVideo) {
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.style.display = 'block';
+          remoteVideo.play().catch(e => console.log('Remote video play error:', e));
+          console.log('✅ Remote video attached');
+        } else {
+          console.warn('⚠️ remoteVideo element not found');
+        }
+      } else {
+        console.warn('⚠️ No streams in ontrack event');
       }
     };
     
     activePeerConnection.onicecandidate = (event) => {
       if (event.candidate && globalSocket) {
+        console.log('📤 Sending ICE candidate');
         globalSocket.emit('signal', {
           to: currentOtherUserId,
           senderId: currentUser.id,
@@ -1521,6 +1570,10 @@ async function acceptGlobalCall() {
           candidate: event.candidate
         });
       }
+    };
+    
+    activePeerConnection.oniceconnectionstatechange = () => {
+      console.log('📞 ICE state:', activePeerConnection.iceConnectionState);
     };
     
     activePeerConnection.onconnectionstatechange = () => {
@@ -1537,11 +1590,24 @@ async function acceptGlobalCall() {
       }
     };
     
+    // ========== FIX: Set remote description first ==========
+    console.log('📤 Setting remote description...');
     await activePeerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: globalPendingCall.sdp }));
-    const answer = await activePeerConnection.createAnswer();
+    console.log('✅ Remote description set');
+    
+    // ========== FIX: Create answer with proper SDP ==========
+    console.log('📤 Creating answer...');
+    const answer = await activePeerConnection.createAnswer({
+      offerToReceiveAudio: true,
+      offerToReceiveVideo: currentCallType === 'video'
+    });
+    console.log('✅ Answer created');
+    
     await activePeerConnection.setLocalDescription(answer);
+    console.log('✅ Local description set');
     
     if (globalSocket) {
+      console.log('📤 Sending answer to:', currentOtherUserId);
       globalSocket.emit('signal', {
         to: currentOtherUserId,
         senderId: currentUser.id,
@@ -1684,6 +1750,33 @@ async function initGlobalSocket() {
     endGlobalCall(false);
   });
 
+  // ========== FIX: Enhanced signal handler for SDP and ICE ==========
+  globalSocket.on('signal', async (data) => {
+    console.log('📶 Signal received:', data.type);
+    console.log('📶 Active peer connection:', !!activePeerConnection);
+    
+    if (!activePeerConnection) {
+      console.warn('⚠️ No active peer connection for signal');
+      return;
+    }
+    
+    try {
+      if (data.type === 'answer') {
+        console.log('📤 Setting remote answer...');
+        await activePeerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
+        console.log('✅ Remote answer set successfully');
+      } else if (data.type === 'candidate') {
+        console.log('📤 Adding ICE candidate...');
+        await activePeerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        console.log('✅ ICE candidate added');
+      } else {
+        console.log('📶 Unknown signal type:', data.type);
+      }
+    } catch (err) {
+      console.error('❌ Signal handling error:', err);
+    }
+  });
+
   globalSocket.on('chat-notification', (data) => {
     if (!data || !data.chatId) return;
     if (window.location.pathname.endsWith('chat.html') && window.currentChatId && String(window.currentChatId) === String(data.chatId)) {
@@ -1695,19 +1788,6 @@ async function initGlobalSocket() {
       chatId: data.chatId,
       fromUser: data.from
     });
-  });
-  
-  globalSocket.on('signal', async (data) => {
-    if (!activePeerConnection) return;
-    try {
-      if (data.type === 'answer') {
-        await activePeerConnection.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: data.sdp }));
-        console.log('📞 Remote answer set');
-      } else if (data.type === 'candidate') {
-        await activePeerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        console.log('📞 ICE candidate added');
-      }
-    } catch (err) { console.warn('Signal error:', err); }
   });
   
   globalSocket.on('disconnect', () => {
@@ -2097,3 +2177,242 @@ if (document.querySelector('.chat-page')) {
 }
 
 console.log('✅ Common.js loaded - Chat keyboard fix applied');
+
+// ==================== VOICE NOTE FIX - COMPLETE SOLUTION ====================
+(function() {
+    console.log('🎤 Voice note system initializing...');
+    
+    // Store audio elements to prevent memory leaks
+    const audioCache = new Map();
+    let currentPlayingAudio = null;
+    let currentPlayingButton = null;
+    
+    // ========== FIX: Enhanced voice playback with preloading ==========
+    window.toggleVoicePlayback = function(button) {
+        console.log('🎤 Voice play button clicked');
+        
+        const voiceCard = button.closest('.voice-card');
+        if (!voiceCard) {
+            console.error('❌ Voice card not found');
+            return;
+        }
+        
+        const audio = voiceCard.querySelector('audio');
+        if (!audio) {
+            console.error('❌ Audio element not found');
+            return;
+        }
+        
+        const waveBars = voiceCard.querySelector('.voice-wave-bars-playback');
+        const progressFill = voiceCard.querySelector('.progress-fill');
+        const durationSpan = voiceCard.querySelector('.voice-duration');
+        
+        // ========== FIX: Resume audio context on mobile ==========
+        if (window.AudioContext || window.webkitAudioContext) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                    console.log('✅ AudioContext resumed');
+                }
+            } catch (e) { 
+                console.log('AudioContext error:', e); 
+            }
+        }
+
+        // ========== FIX: Stop any currently playing audio ==========
+        if (currentPlayingAudio && currentPlayingAudio !== audio) {
+            try {
+                currentPlayingAudio.pause();
+                currentPlayingAudio.currentTime = 0;
+                if (currentPlayingButton) {
+                    currentPlayingButton.innerHTML = '<i class="fas fa-play"></i>';
+                    currentPlayingButton.style.background = '';
+                    const oldWaves = currentPlayingButton.closest('.voice-card')?.querySelector('.voice-wave-bars-playback');
+                    if (oldWaves) oldWaves.classList.remove('playing');
+                }
+            } catch (e) {
+                console.log('Error stopping previous audio:', e);
+            }
+        }
+        
+        // ========== FIX: Handle play/pause ==========
+        if (audio.paused) {
+            // ========== FIX: Force preload and load audio ==========
+            console.log('🎵 Loading audio...');
+            
+            // Reset progress
+            if (progressFill) progressFill.style.width = '0%';
+            
+            // Update duration display
+            if (durationSpan) {
+                durationSpan.textContent = '...';
+            }
+            
+            // ========== FIX: Preload audio properly ==========
+            audio.preload = 'auto';
+            audio.load();
+            
+            // ========== FIX: Set current time to 0 ==========
+            audio.currentTime = 0;
+            
+            // ========== FIX: Play with retry mechanism ==========
+            const playAudio = function(retryCount = 0) {
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('✅ Playback started successfully');
+                        button.innerHTML = '<i class="fas fa-pause"></i>';
+                        button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
+                        if (waveBars) waveBars.classList.add('playing');
+                        currentPlayingAudio = audio;
+                        currentPlayingButton = button;
+                    }).catch(err => {
+                        console.warn('⚠️ Playback failed:', err);
+                        if (retryCount < 3) {
+                            console.log(`🔄 Retrying (${retryCount + 1}/3)...`);
+                            setTimeout(() => {
+                                audio.load();
+                                playAudio(retryCount + 1);
+                            }, 200 * (retryCount + 1));
+                        } else {
+                            button.innerHTML = '<i class="fas fa-play"></i>';
+                            button.style.background = '';
+                            if (waveBars) waveBars.classList.remove('playing');
+                            // Show user-friendly error
+                            if (window.showAlert) {
+                                window.showAlert('Unable to play voice note. Try again.', 'error');
+                            }
+                        }
+                    });
+                }
+            };
+            
+            // ========== FIX: Wait for audio to be ready ==========
+            if (audio.readyState >= 2) {
+                playAudio();
+            } else {
+                audio.addEventListener('canplaythrough', function onCanPlay() {
+                    audio.removeEventListener('canplaythrough', onCanPlay);
+                    playAudio();
+                });
+                // Fallback: try after 500ms even if not loaded
+                setTimeout(() => {
+                    if (audio.paused) {
+                        playAudio(1);
+                    }
+                }, 500);
+            }
+            
+            // ========== FIX: Update duration when metadata loads ==========
+            audio.addEventListener('loadedmetadata', function() {
+                if (durationSpan && audio.duration && !isNaN(audio.duration)) {
+                    const mins = Math.floor(audio.duration / 60);
+                    const secs = Math.floor(audio.duration % 60);
+                    durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+            });
+            
+            // ========== FIX: Update progress during playback ==========
+            if (progressFill) {
+                audio.addEventListener('timeupdate', function() {
+                    if (audio.duration && !isNaN(audio.duration)) {
+                        const progress = (audio.currentTime / audio.duration) * 100;
+                        progressFill.style.width = progress + '%';
+                    }
+                });
+            }
+            
+            // ========== FIX: Handle playback end ==========
+            audio.onended = function() {
+                console.log('🎵 Playback ended');
+                button.innerHTML = '<i class="fas fa-play"></i>';
+                button.style.background = '';
+                if (waveBars) waveBars.classList.remove('playing');
+                if (progressFill) progressFill.style.width = '0%';
+                if (durationSpan && audio.duration && !isNaN(audio.duration)) {
+                    const mins = Math.floor(audio.duration / 60);
+                    const secs = Math.floor(audio.duration % 60);
+                    durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+                currentPlayingAudio = null;
+                currentPlayingButton = null;
+            };
+            
+            // ========== FIX: Handle audio errors ==========
+            audio.onerror = function(e) {
+                console.error('❌ Audio error:', e);
+                button.innerHTML = '<i class="fas fa-play"></i>';
+                button.style.background = '';
+                if (waveBars) waveBars.classList.remove('playing');
+                currentPlayingAudio = null;
+                currentPlayingButton = null;
+                // Try reloading
+                console.log('🔄 Reloading audio due to error...');
+                audio.load();
+                setTimeout(() => {
+                    if (audio.paused) {
+                        playAudio(2);
+                    }
+                }, 300);
+            };
+            
+        } else {
+            // ========== FIX: Pause ==========
+            console.log('⏸️ Pausing playback');
+            audio.pause();
+            button.innerHTML = '<i class="fas fa-play"></i>';
+            button.style.background = '';
+            if (waveBars) waveBars.classList.remove('playing');
+            currentPlayingAudio = null;
+            currentPlayingButton = null;
+        }
+    };
+    
+    // ========== FIX: Preload voice messages when they appear ==========
+    function preloadVoiceMessages() {
+        document.querySelectorAll('.voice-card audio').forEach((audio, index) => {
+            if (!audio.hasAttribute('data-preloaded')) {
+                audio.setAttribute('data-preloaded', 'true');
+                audio.preload = 'auto';
+                // Load metadata only for faster response
+                audio.load();
+                console.log(`📦 Preloaded voice message ${index + 1}`);
+            }
+        });
+    }
+    
+    // ========== FIX: Setup MutationObserver for new voice messages ==========
+    const voiceObserver = new MutationObserver(function(mutations) {
+        for (const mutation of mutations) {
+            if (mutation.addedNodes.length > 0) {
+                preloadVoiceMessages();
+            }
+        }
+    });
+    
+    // ========== FIX: Observe chat messages container ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            voiceObserver.observe(chatMessages, { childList: true, subtree: true });
+            console.log('👀 Voice observer attached');
+        }
+        // Preload existing
+        setTimeout(preloadVoiceMessages, 1000);
+    });
+    
+    // Also run when messages are rendered (in chat.js)
+    const originalRenderMessages = window.renderMessages;
+    if (typeof originalRenderMessages === 'function') {
+        window.renderMessages = function() {
+            originalRenderMessages.apply(this, arguments);
+            setTimeout(preloadVoiceMessages, 300);
+        };
+    }
+    
+    // ========== FIX: Global preload for new messages ==========
+    window.preloadVoiceMessages = preloadVoiceMessages;
+    
+    console.log('✅ Voice note system initialized');
+})();
