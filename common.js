@@ -2200,26 +2200,6 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
         }
     }
     
-    // Create audio element on demand (iOS fix)
-    function createAudioElement(voiceCard, url) {
-        let audio = voiceCard.querySelector('audio');
-        if (!audio) {
-            audio = document.createElement('audio');
-            audio.setAttribute('playsinline', '');
-            audio.setAttribute('crossorigin', 'anonymous');
-            audio.preload = 'metadata';
-            audio.style.display = 'none';
-            voiceCard.querySelector('.voice-player').appendChild(audio);
-        }
-        
-        // Set source with cache busting
-        const srcUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-        audio.src = srcUrl;
-        audio.load();
-        
-        return audio;
-    }
-    
     window.toggleVoicePlayback = function(button) {
         console.log('🎤 Voice play button clicked (iOS)');
         
@@ -2239,11 +2219,20 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
             return;
         }
         
-        // Create or get audio element
-        const audio = createAudioElement(voiceCard, audioUrl);
+        // Get or create audio element
+        let audio = voiceCard.querySelector('audio');
         if (!audio) {
-            console.error('❌ Failed to create audio element');
-            return;
+            audio = document.createElement('audio');
+            audio.setAttribute('playsinline', '');
+            audio.setAttribute('crossorigin', 'anonymous');
+            audio.preload = 'metadata';
+            audio.style.display = 'none';
+            voiceCard.querySelector('.voice-player').appendChild(audio);
+            
+            // Set source with cache busting ONLY ONCE
+            const srcUrl = audioUrl + (audioUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+            audio.src = srcUrl;
+            audio.load();
         }
         
         const waveBars = voiceCard.querySelector('.voice-wave-bars-playback');
@@ -2272,65 +2261,9 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
             if (progressFill) progressFill.style.width = '0%';
             if (durationSpan) durationSpan.textContent = '...';
             
-            // iOS: force load before play
-            audio.load();
-            
-            // Play with retry
-            const playWithRetry = function(retryCount = 0) {
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        console.log('✅ Playback started on iOS');
-                        button.innerHTML = '<i class="fas fa-pause"></i>';
-                        button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
-                        if (waveBars) waveBars.classList.add('playing');
-                        currentPlayingAudio = audio;
-                        currentPlayingButton = button;
-                    }).catch(err => {
-                        console.warn('⚠️ Playback failed:', err);
-                        if (retryCount < 3) {
-                            // iOS: try unlocking again
-                            unlockAudioContext();
-                            setTimeout(() => {
-                                audio.load();
-                                playWithRetry(retryCount + 1);
-                            }, 300 * (retryCount + 1));
-                        } else {
-                            button.innerHTML = '<i class="fas fa-play"></i>';
-                            button.style.background = '';
-                            if (waveBars) waveBars.classList.remove('playing');
-                            // Show toast on iOS
-                            if (window.showToast) {
-                                window.showToast('Tap again to play voice note', 'warning');
-                            }
-                        }
-                    });
-                }
-            };
-            
-            // Wait for metadata if not loaded
-            if (audio.readyState >= 1) {
-                playWithRetry();
-            } else {
-                audio.addEventListener('loadedmetadata', function onLoad() {
-                    audio.removeEventListener('loadedmetadata', onLoad);
-                    if (durationSpan && audio.duration && !isNaN(audio.duration)) {
-                        const mins = Math.floor(audio.duration / 60);
-                        const secs = Math.floor(audio.duration % 60);
-                        durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-                    }
-                    playWithRetry();
-                });
-                // Fallback timeout
-                setTimeout(() => {
-                    if (audio.paused) {
-                        playWithRetry(1);
-                    }
-                }, 800);
-            }
-            
             // Update duration on metadata load
-            audio.addEventListener('loadedmetadata', function() {
+            audio.addEventListener('loadedmetadata', function onMeta() {
+                audio.removeEventListener('loadedmetadata', onMeta);
                 if (durationSpan && audio.duration && !isNaN(audio.duration)) {
                     const mins = Math.floor(audio.duration / 60);
                     const secs = Math.floor(audio.duration % 60);
@@ -2372,12 +2305,47 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                 if (waveBars) waveBars.classList.remove('playing');
                 currentPlayingAudio = null;
                 currentPlayingButton = null;
-                // iOS: retry after error
-                setTimeout(() => {
-                    audio.load();
-                }, 500);
             };
             
+            // ========== FIX: Don't call audio.load() here - already loaded ==========
+            // Just play
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('✅ Playback started on iOS');
+                    button.innerHTML = '<i class="fas fa-pause"></i>';
+                    button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
+                    if (waveBars) waveBars.classList.add('playing');
+                    currentPlayingAudio = audio;
+                    currentPlayingButton = button;
+                }).catch(err => {
+                    console.warn('⚠️ Playback failed:', err);
+                    // If failed, try reloading once
+                    if (!audio.dataset.reloaded) {
+                        audio.dataset.reloaded = 'true';
+                        audio.load();
+                        setTimeout(() => {
+                            audio.play().then(() => {
+                                console.log('✅ Playback started after reload');
+                                button.innerHTML = '<i class="fas fa-pause"></i>';
+                                button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
+                                if (waveBars) waveBars.classList.add('playing');
+                                currentPlayingAudio = audio;
+                                currentPlayingButton = button;
+                            }).catch(e2 => {
+                                console.warn('⚠️ Retry failed:', e2);
+                                button.innerHTML = '<i class="fas fa-play"></i>';
+                                button.style.background = '';
+                                if (waveBars) waveBars.classList.remove('playing');
+                            });
+                        }, 300);
+                    } else {
+                        button.innerHTML = '<i class="fas fa-play"></i>';
+                        button.style.background = '';
+                        if (waveBars) waveBars.classList.remove('playing');
+                    }
+                });
+            }
         } else {
             // Pause
             console.log('⏸️ Pausing playback');
@@ -2397,12 +2365,21 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                 card.dataset.preloaded = 'true';
                 const url = card.dataset.audioUrl;
                 if (url) {
-                    const audio = new Audio();
-                    audio.preload = 'metadata';
-                    audio.crossOrigin = 'anonymous';
-                    audio.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
-                    audio.load();
-                    console.log(`📦 Preloaded voice message ${index + 1}`);
+                    // Check if audio already exists
+                    let audio = card.querySelector('audio');
+                    if (!audio) {
+                        audio = document.createElement('audio');
+                        audio.setAttribute('playsinline', '');
+                        audio.setAttribute('crossorigin', 'anonymous');
+                        audio.preload = 'metadata';
+                        audio.style.display = 'none';
+                        card.querySelector('.voice-player').appendChild(audio);
+                        
+                        const srcUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                        audio.src = srcUrl;
+                        audio.load();
+                        console.log(`📦 Preloaded voice message ${index + 1}`);
+                    }
                 }
             }
         });
