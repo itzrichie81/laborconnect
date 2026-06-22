@@ -2178,18 +2178,53 @@ if (document.querySelector('.chat-page')) {
 
 console.log('✅ Common.js loaded - Chat keyboard fix applied');
 
-// ==================== VOICE NOTE FIX - COMPLETE SOLUTION ====================
+// ==================== VOICE NOTE FIX - iOS COMPLETE ====================
 (function() {
-    console.log('🎤 Voice note system initializing...');
+    console.log('🎤 Voice note system initializing for iOS...');
     
-    // Store audio elements to prevent memory leaks
-    const audioCache = new Map();
     let currentPlayingAudio = null;
     let currentPlayingButton = null;
     
-    // ========== FIX: Enhanced voice playback with preloading ==========
+    // iOS audio unlock helper
+    function unlockAudioContext() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+                console.log('✅ AudioContext resumed for iOS');
+            }
+            return ctx;
+        } catch (e) {
+            console.log('AudioContext error:', e);
+            return null;
+        }
+    }
+    
+    // Create audio element on demand (iOS fix)
+    function createAudioElement(voiceCard, url) {
+        let audio = voiceCard.querySelector('audio');
+        if (!audio) {
+            audio = document.createElement('audio');
+            audio.setAttribute('playsinline', '');
+            audio.setAttribute('crossorigin', 'anonymous');
+            audio.preload = 'metadata';
+            audio.style.display = 'none';
+            voiceCard.querySelector('.voice-player').appendChild(audio);
+        }
+        
+        // Set source with cache busting
+        const srcUrl = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+        audio.src = srcUrl;
+        audio.load();
+        
+        return audio;
+    }
+    
     window.toggleVoicePlayback = function(button) {
-        console.log('🎤 Voice play button clicked');
+        console.log('🎤 Voice play button clicked (iOS)');
+        
+        // Unlock audio on iOS
+        unlockAudioContext();
         
         const voiceCard = button.closest('.voice-card');
         if (!voiceCard) {
@@ -2197,9 +2232,17 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
             return;
         }
         
-        const audio = voiceCard.querySelector('audio');
+        // Get audio URL from data attribute
+        const audioUrl = voiceCard.dataset.audioUrl;
+        if (!audioUrl) {
+            console.error('❌ No audio URL found');
+            return;
+        }
+        
+        // Create or get audio element
+        const audio = createAudioElement(voiceCard, audioUrl);
         if (!audio) {
-            console.error('❌ Audio element not found');
+            console.error('❌ Failed to create audio element');
             return;
         }
         
@@ -2207,20 +2250,7 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
         const progressFill = voiceCard.querySelector('.progress-fill');
         const durationSpan = voiceCard.querySelector('.voice-duration');
         
-        // ========== FIX: Resume audio context on mobile ==========
-        if (window.AudioContext || window.webkitAudioContext) {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume();
-                    console.log('✅ AudioContext resumed');
-                }
-            } catch (e) { 
-                console.log('AudioContext error:', e); 
-            }
-        }
-
-        // ========== FIX: Stop any currently playing audio ==========
+        // Stop any currently playing audio
         if (currentPlayingAudio && currentPlayingAudio !== audio) {
             try {
                 currentPlayingAudio.pause();
@@ -2236,32 +2266,21 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
             }
         }
         
-        // ========== FIX: Handle play/pause ==========
+        // Toggle play/pause
         if (audio.paused) {
-            // ========== FIX: Force preload and load audio ==========
-            console.log('🎵 Loading audio...');
-            
             // Reset progress
             if (progressFill) progressFill.style.width = '0%';
+            if (durationSpan) durationSpan.textContent = '...';
             
-            // Update duration display
-            if (durationSpan) {
-                durationSpan.textContent = '...';
-            }
-            
-            // ========== FIX: Preload audio properly ==========
-            audio.preload = 'auto';
+            // iOS: force load before play
             audio.load();
             
-            // ========== FIX: Set current time to 0 ==========
-            audio.currentTime = 0;
-            
-            // ========== FIX: Play with retry mechanism ==========
-            const playAudio = function(retryCount = 0) {
+            // Play with retry
+            const playWithRetry = function(retryCount = 0) {
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
-                        console.log('✅ Playback started successfully');
+                        console.log('✅ Playback started on iOS');
                         button.innerHTML = '<i class="fas fa-pause"></i>';
                         button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
                         if (waveBars) waveBars.classList.add('playing');
@@ -2270,41 +2289,47 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                     }).catch(err => {
                         console.warn('⚠️ Playback failed:', err);
                         if (retryCount < 3) {
-                            console.log(`🔄 Retrying (${retryCount + 1}/3)...`);
+                            // iOS: try unlocking again
+                            unlockAudioContext();
                             setTimeout(() => {
                                 audio.load();
-                                playAudio(retryCount + 1);
-                            }, 200 * (retryCount + 1));
+                                playWithRetry(retryCount + 1);
+                            }, 300 * (retryCount + 1));
                         } else {
                             button.innerHTML = '<i class="fas fa-play"></i>';
                             button.style.background = '';
                             if (waveBars) waveBars.classList.remove('playing');
-                            // Show user-friendly error
-                            if (window.showAlert) {
-                                window.showAlert('Unable to play voice note. Try again.', 'error');
+                            // Show toast on iOS
+                            if (window.showToast) {
+                                window.showToast('Tap again to play voice note', 'warning');
                             }
                         }
                     });
                 }
             };
             
-            // ========== FIX: Wait for audio to be ready ==========
-            if (audio.readyState >= 2) {
-                playAudio();
+            // Wait for metadata if not loaded
+            if (audio.readyState >= 1) {
+                playWithRetry();
             } else {
-                audio.addEventListener('canplaythrough', function onCanPlay() {
-                    audio.removeEventListener('canplaythrough', onCanPlay);
-                    playAudio();
+                audio.addEventListener('loadedmetadata', function onLoad() {
+                    audio.removeEventListener('loadedmetadata', onLoad);
+                    if (durationSpan && audio.duration && !isNaN(audio.duration)) {
+                        const mins = Math.floor(audio.duration / 60);
+                        const secs = Math.floor(audio.duration % 60);
+                        durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    }
+                    playWithRetry();
                 });
-                // Fallback: try after 500ms even if not loaded
+                // Fallback timeout
                 setTimeout(() => {
                     if (audio.paused) {
-                        playAudio(1);
+                        playWithRetry(1);
                     }
-                }, 500);
+                }, 800);
             }
             
-            // ========== FIX: Update duration when metadata loads ==========
+            // Update duration on metadata load
             audio.addEventListener('loadedmetadata', function() {
                 if (durationSpan && audio.duration && !isNaN(audio.duration)) {
                     const mins = Math.floor(audio.duration / 60);
@@ -2313,7 +2338,7 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                 }
             });
             
-            // ========== FIX: Update progress during playback ==========
+            // Update progress
             if (progressFill) {
                 audio.addEventListener('timeupdate', function() {
                     if (audio.duration && !isNaN(audio.duration)) {
@@ -2323,7 +2348,7 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                 });
             }
             
-            // ========== FIX: Handle playback end ==========
+            // Handle end
             audio.onended = function() {
                 console.log('🎵 Playback ended');
                 button.innerHTML = '<i class="fas fa-play"></i>';
@@ -2339,7 +2364,7 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                 currentPlayingButton = null;
             };
             
-            // ========== FIX: Handle audio errors ==========
+            // Handle errors
             audio.onerror = function(e) {
                 console.error('❌ Audio error:', e);
                 button.innerHTML = '<i class="fas fa-play"></i>';
@@ -2347,18 +2372,14 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
                 if (waveBars) waveBars.classList.remove('playing');
                 currentPlayingAudio = null;
                 currentPlayingButton = null;
-                // Try reloading
-                console.log('🔄 Reloading audio due to error...');
-                audio.load();
+                // iOS: retry after error
                 setTimeout(() => {
-                    if (audio.paused) {
-                        playAudio(2);
-                    }
-                }, 300);
+                    audio.load();
+                }, 500);
             };
             
         } else {
-            // ========== FIX: Pause ==========
+            // Pause
             console.log('⏸️ Pausing playback');
             audio.pause();
             button.innerHTML = '<i class="fas fa-play"></i>';
@@ -2369,50 +2390,43 @@ console.log('✅ Common.js loaded - Chat keyboard fix applied');
         }
     };
     
-    // ========== FIX: Preload voice messages when they appear ==========
+    // Preload voice messages
     function preloadVoiceMessages() {
-        document.querySelectorAll('.voice-card audio').forEach((audio, index) => {
-            if (!audio.hasAttribute('data-preloaded')) {
-                audio.setAttribute('data-preloaded', 'true');
-                audio.preload = 'auto';
-                // Load metadata only for faster response
-                audio.load();
-                console.log(`📦 Preloaded voice message ${index + 1}`);
+        document.querySelectorAll('.voice-card').forEach((card, index) => {
+            if (!card.dataset.preloaded) {
+                card.dataset.preloaded = 'true';
+                const url = card.dataset.audioUrl;
+                if (url) {
+                    const audio = new Audio();
+                    audio.preload = 'metadata';
+                    audio.crossOrigin = 'anonymous';
+                    audio.src = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                    audio.load();
+                    console.log(`📦 Preloaded voice message ${index + 1}`);
+                }
             }
         });
     }
     
-    // ========== FIX: Setup MutationObserver for new voice messages ==========
+    // Observer for new voice messages
     const voiceObserver = new MutationObserver(function(mutations) {
         for (const mutation of mutations) {
             if (mutation.addedNodes.length > 0) {
-                preloadVoiceMessages();
+                setTimeout(preloadVoiceMessages, 200);
             }
         }
     });
     
-    // ========== FIX: Observe chat messages container ==========
     document.addEventListener('DOMContentLoaded', function() {
         const chatMessages = document.getElementById('chatMessages');
         if (chatMessages) {
             voiceObserver.observe(chatMessages, { childList: true, subtree: true });
             console.log('👀 Voice observer attached');
         }
-        // Preload existing
-        setTimeout(preloadVoiceMessages, 1000);
+        setTimeout(preloadVoiceMessages, 500);
     });
     
-    // Also run when messages are rendered (in chat.js)
-    const originalRenderMessages = window.renderMessages;
-    if (typeof originalRenderMessages === 'function') {
-        window.renderMessages = function() {
-            originalRenderMessages.apply(this, arguments);
-            setTimeout(preloadVoiceMessages, 300);
-        };
-    }
-    
-    // ========== FIX: Global preload for new messages ==========
     window.preloadVoiceMessages = preloadVoiceMessages;
     
-    console.log('✅ Voice note system initialized');
+    console.log('✅ Voice note system initialized for iOS');
 })();

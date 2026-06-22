@@ -1376,22 +1376,18 @@
                 }
             }
             
-// ===== MODERN VOICE MESSAGE PLAYER - MOBILE FIXED =====
+<!-- ===== VOICE MESSAGE PLAYER - IOS FIXED ===== -->
 if (msg.type === 'voice') {
     const barHeights = [8, 16, 24, 18, 30, 22, 14, 10];
     const barsHtml = barHeights.map(h => 
         `<span class="bar" style="height:${h}px;"></span>`
     ).join('');
     
-    // FIX: Force audio to reload for sent messages by adding cache-busting param
     let audioSrc = msg.payload || '';
-    const isSent = String(getMessageSenderId(msg)) === String(currentUser.id);
-    if (isSent && audioSrc) {
-        // Add timestamp to force reload on mobile
-        audioSrc = audioSrc + (audioSrc.includes('?') ? '&' : '?') + 't=' + Date.now();
-    }
+    // Add cache-busting for all devices
+    audioSrc = audioSrc + (audioSrc.includes('?') ? '&' : '?') + 't=' + Date.now();
     
-    content += `<div class="message-bubble voice-card">
+    content += `<div class="message-bubble voice-card" data-audio-url="${audioSrc}">
         <div class="voice-player">
             <button class="voice-play-btn" onclick="toggleVoicePlayback(this)" type="button">
                 <i class="fas fa-play"></i>
@@ -1405,10 +1401,10 @@ if (msg.type === 'voice') {
                     <div class="progress-fill"></div>
                 </div>
             </div>
-            <audio src="${audioSrc}" preload="metadata" playsinline crossorigin="anonymous" style="display:none;"></audio>
+            <audio preload="metadata" playsinline crossorigin="anonymous" style="display:none;"></audio>
         </div>
     </div>`;
-} 
+}
             else if (msg.type === 'call') {
                 try {
                     const callData = typeof msg.payload === 'string' ? JSON.parse(msg.payload) : msg.payload;
@@ -2290,6 +2286,26 @@ window.toggleVoicePlayback = function(button) {
     syncChatLayout();
     loadChatUser();
     loadMessages();
+    // ===== iOS AUDIO UNLOCK =====
+document.addEventListener('touchstart', function() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+            console.log('✅ iOS audio unlocked via touch');
+        }
+    } catch(e) {}
+}, { once: true, passive: true });
+
+// Also unlock on click
+document.addEventListener('click', function() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+    } catch(e) {}
+}, { once: true, passive: true });
 </script>
 </body>
 </html>
