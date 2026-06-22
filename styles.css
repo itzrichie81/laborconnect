@@ -1718,3 +1718,16 @@ body.dark-active.chat-page .input-with-icons .icon-btn {
         font-size: 18px !important;
     }
 }
+/* ===== FORCE AUDIO ON MOBILE ===== */
+audio {
+    display: none !important;
+}
+
+.voice-play-btn {
+    position: relative !important;
+    z-index: 999 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
