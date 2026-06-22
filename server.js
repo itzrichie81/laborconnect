@@ -66,10 +66,9 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ========== FILE VALIDATION ==========
-// ADD AUDIO TYPES FOR VOICE NOTES
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
-const allowedAudioTypes = ['audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav'];
+const allowedAudioTypes = ['audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp4', 'audio/aac'];
 const allowedMimeTypes = [...allowedImageTypes, ...allowedVideoTypes, ...allowedAudioTypes];
 
 const fileFilter = (req, file, cb) => {
