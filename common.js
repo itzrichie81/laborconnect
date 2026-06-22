@@ -2038,74 +2038,62 @@ window.fixChatKeyboard = function() {
     function adjustLayout() {
         if (!container) return;
         const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        // Set container height to viewport
         container.style.height = viewportHeight + 'px';
         container.style.maxHeight = viewportHeight + 'px';
+        // Scroll to bottom after layout adjustment
         setTimeout(scrollToBottom, 50);
     }
 
-    // Use visualViewport for keyboard detection
     if (window.visualViewport) {
         let lastHeight = window.visualViewport.height;
+        let isKeyboardOpen = false;
+        
         window.visualViewport.addEventListener('resize', function() {
             const currentHeight = window.visualViewport.height;
             const diff = lastHeight - currentHeight;
             
-            // Keyboard opened
             if (diff > 100) {
+                // Keyboard opened
+                isKeyboardOpen = true;
+                adjustLayout();
+                setTimeout(scrollToBottom, 150);
+            } else if (diff < -100) {
+                // Keyboard closed
+                isKeyboardOpen = false;
                 adjustLayout();
                 setTimeout(scrollToBottom, 100);
-            }
-            // Keyboard closed
-            else if (diff < -100) {
-                adjustLayout();
             }
             
             lastHeight = currentHeight;
         });
     }
 
-    // Window resize fallback
-    window.addEventListener('resize', adjustLayout);
+    window.addEventListener('resize', function() {
+        setTimeout(adjustLayout, 100);
+        setTimeout(scrollToBottom, 150);
+    });
     
-    // Focus events
     document.addEventListener('focusin', function(e) {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            setTimeout(adjustLayout, 150);
+            setTimeout(adjustLayout, 100);
             setTimeout(scrollToBottom, 200);
         }
     });
 
-    // Initial setup
     setTimeout(adjustLayout, 200);
     setTimeout(scrollToBottom, 300);
 };
 
 // Auto-run on chat page
 if (document.querySelector('.chat-page')) {
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(window.fixChatKeyboard, 100);
-    });
-    // Also run immediately if already loaded
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(window.fixChatKeyboard, 100);
+        setTimeout(window.fixChatKeyboard, 150);
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(window.fixChatKeyboard, 150);
+        });
     }
 }
 
-
-// ==================== FIX CONTEXT MENU ====================
-// Override showContextMenu to use CSS positioning only
-// This is a patch for chat.html - the real fix is in the CSS
-// The context menu will now be positioned by CSS, not by click coordinates
-
-// Store original function if it exists
-const originalShowContextMenu = window.showContextMenu;
-
-// Replace with CSS-only positioning
-window.showContextMenu = function(messageId, x, y, isSent) {
-    // This function is now handled by CSS
-    // The menu is positioned using CSS only (centered or bottom sheet)
-    // No inline styles for left/top
-    console.log('Context menu opened for message:', messageId);
-};
-
-console.log('✅ Common.js loaded - Context menu fix applied');
+console.log('✅ Common.js loaded - Chat keyboard fix applied');
