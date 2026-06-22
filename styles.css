@@ -1731,3 +1731,9 @@ audio {
     touch-action: manipulation !important;
     -webkit-tap-highlight-color: transparent !important;
 }
+.message, .voice-card {
+  pointer-events: none;
+}
+.voice-play-btn, .voice-player {
+  pointer-events: auto;
+}
