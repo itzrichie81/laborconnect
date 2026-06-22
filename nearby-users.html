@@ -1070,9 +1070,9 @@
 
     let allUsers = [];
     let userLocation = null;
-    
-    // Store user distances in a cache to avoid recalculating
     let userDistances = new Map();
+    let watchId = null;
+    let isLocationTracking = false;
 
     // ==================== TRANSLATIONS ====================
     const translations = {
@@ -1104,7 +1104,8 @@
             viewProfile: "View Profile",
             chatNow: "Chat Now",
             noPhone: "No phone number",
-            kmAway: "km away"
+            kmAway: "km away",
+            live: "Live"
         },
         ko: {
             pageTitle: "주변 사람들",
@@ -1134,7 +1135,8 @@
             viewProfile: "프로필 보기",
             chatNow: "채팅하기",
             noPhone: "전화번호 없음",
-            kmAway: "km 떨어짐"
+            kmAway: "km 떨어짐",
+            live: "실시간"
         },
         zh: {
             pageTitle: "附近的人",
@@ -1164,7 +1166,8 @@
             viewProfile: "查看资料",
             chatNow: "立即聊天",
             noPhone: "无电话号码",
-            kmAway: "公里远"
+            kmAway: "公里远",
+            live: "实时"
         },
         fr: {
             pageTitle: "Personnes à proximité",
@@ -1194,7 +1197,8 @@
             viewProfile: "Voir le profil",
             chatNow: "Discuter",
             noPhone: "Pas de numéro",
-            kmAway: "km"
+            kmAway: "km",
+            live: "En direct"
         },
         ru: {
             pageTitle: "Люди рядом",
@@ -1224,7 +1228,8 @@
             viewProfile: "Просмотр профиля",
             chatNow: "Чат",
             noPhone: "Нет телефона",
-            kmAway: "км"
+            kmAway: "км",
+            live: "В прямом эфире"
         }
     };
 
@@ -1303,7 +1308,7 @@
 
     // ==================== HAVERSINE FORMULA ====================
     function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Earth's radius in km
+        const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -1320,7 +1325,6 @@
             const users = await response.json();
             allUsers = users.filter(user => String(user.id) !== String(currentUser.id));
             
-            // If we already have a location, update distances and filter
             if (userLocation) {
                 updateDistancesAndFilter();
             } else {
@@ -1333,30 +1337,22 @@
     }
 
     function updateDistancesAndFilter() {
-        // Calculate distances for all users
         userDistances.clear();
         for (const user of allUsers) {
-            // For demo purposes, generate plausible distances based on user ID
-            // In a real app, you would store lat/lng per user in the database
-            // This is a simulation - users with IDs close to current user are "nearby"
-            const userIdNum = parseInt(user.id) || 0;
-            const currentIdNum = parseInt(currentUser.id) || 0;
-            
-            // Simulate distance based on ID difference (just for demo)
-            // In production, use actual stored coordinates
-            let distance;
-            if (userIdNum === currentIdNum) {
-                distance = 0;
+            if (user.latitude && user.longitude && userLocation) {
+                const distance = calculateDistance(
+                    userLocation.lat, userLocation.lng,
+                    parseFloat(user.latitude), parseFloat(user.longitude)
+                );
+                userDistances.set(user.id, distance);
             } else {
-                // Simulate distance between 0.5km and 100km
-                const diff = Math.abs(userIdNum - currentIdNum);
-                distance = Math.max(0.5, Math.min(100, diff * 0.5 + Math.random() * 10));
+                userDistances.set(user.id, 9999);
             }
-            userDistances.set(user.id, distance);
         }
         filterUsers();
     }
 
+    // ==================== REAL-TIME LOCATION FUNCTIONS ====================
     function getUserLocation() {
         const t = window.currentTranslations || translations.en;
         
@@ -1374,7 +1370,10 @@
                     lng: position.coords.longitude
                 };
                 
-                // Try to get location name
+                // Save to server
+                saveUserLocation(userLocation.lat, userLocation.lng);
+                
+                // Get location name
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${userLocation.lat}&lon=${userLocation.lng}&zoom=18&addressdetails=1`)
                     .then(res => res.json())
                     .then(data => {
@@ -1387,11 +1386,11 @@
                         locationStatusEl.textContent = t.locationDetected;
                     });
                 
-                // Calculate distances and filter
-                updateDistancesAndFilter();
+                // Start real-time tracking
+                startLocationTracking();
                 
-                // In a real app, you would save this location to the server
-                saveUserLocation(userLocation.lat, userLocation.lng);
+                // Update distances and filter
+                updateDistancesAndFilter();
             },
             (error) => {
                 console.error('Location error:', error);
@@ -1407,16 +1406,78 @@
                 }
                 locationNameEl.innerHTML = `<i class="fas fa-globe me-1"></i> ${t.allLocations}`;
                 filterUsers();
-            }
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
         );
     }
 
+    // ==================== REAL-TIME LOCATION TRACKING ====================
+    function startLocationTracking() {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+        }
+        
+        isLocationTracking = true;
+        
+        watchId = navigator.geolocation.watchPosition(
+            async (position) => {
+                const newLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Check if location changed significantly (more than 50 meters)
+                if (userLocation) {
+                    const distance = calculateDistance(
+                        userLocation.lat, userLocation.lng,
+                        newLocation.lat, newLocation.lng
+                    );
+                    if (distance < 0.05) { // 50 meters
+                        return;
+                    }
+                }
+                
+                userLocation = newLocation;
+                
+                // Save to server
+                await saveUserLocation(userLocation.lat, userLocation.lng);
+                
+                // Update distances and filter
+                updateDistancesAndFilter();
+                
+                console.log(`📍 Location updated: ${userLocation.lat}, ${userLocation.lng}`);
+            },
+            (error) => {
+                console.error('Watch location error:', error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+        );
+    }
+
+    function stopLocationTracking() {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            isLocationTracking = false;
+            console.log('📍 Location tracking stopped');
+        }
+    }
+
+    // ==================== SAVE LOCATION TO SERVER ====================
     async function saveUserLocation(lat, lng) {
         try {
-            // This endpoint doesn't exist yet - you would need to add it to server.js
-            // For now, just store in localStorage for demo
-            localStorage.setItem('user_location', JSON.stringify({ lat, lng, updated: new Date().toISOString() }));
-            console.log('Location saved locally:', lat, lng);
+            const response = await fetch(`${API_URL}/user/${currentUser.id}/location`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'user-id': currentUser.id
+                },
+                body: JSON.stringify({ latitude: lat, longitude: lng })
+            });
+            
+            if (response.ok) {
+                console.log('✅ Location saved to server');
+            }
         } catch (err) {
             console.error('Failed to save location:', err);
         }
@@ -1490,6 +1551,7 @@
         }
     });
 
+    // ==================== FILTER USERS WITH REAL DISTANCES ====================
     function filterUsers() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const selectedType = typeFilter.value;
@@ -1508,14 +1570,13 @@
             filtered = filtered.filter(user => user.userType === selectedType);
         }
         
-        // REAL distance filtering (not random anymore)
+        // REAL distance filtering
         if (maxDistance && userDistances.size > 0) {
             filtered = filtered.filter(user => {
                 const distance = userDistances.get(user.id);
                 return distance !== undefined && distance <= maxDistance;
             });
             
-            // Sort by distance (closest first)
             filtered.sort((a, b) => {
                 const distA = userDistances.get(a.id) || Infinity;
                 const distB = userDistances.get(b.id) || Infinity;
@@ -1542,6 +1603,7 @@
             const distance = userDistances.get(user.id) || null;
             const userType = user.userType || (user.trade ? 'Worker' : 'Customer');
             const tradeDisplay = user.trade || (userType === 'Worker' ? 'Skilled Professional' : 'Customer');
+            const hasLiveLocation = user.latitude && user.longitude;
             
             let starsHtml = '';
             for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fas fa-star"></i>';
@@ -1562,9 +1624,27 @@
                 </div>
             `;
             
-            const distanceDisplay = distance !== null && userLocation ? 
-                `<div class="distance-badge">
-                    <i class="fas fa-location-dot"></i> ${distance.toFixed(1)} ${t.kmAway}
+            // Distance badge with color coding
+            let distanceColor = '#6b7280';
+            let distanceText = t.availableNationwide;
+            let distanceValue = '';
+            
+            if (distance !== null && distance !== undefined && distance < 9999 && userLocation) {
+                distanceValue = distance.toFixed(1);
+                if (distance < 5) {
+                    distanceColor = '#10b981'; // Green - very close
+                } else if (distance < 20) {
+                    distanceColor = '#f59e0b'; // Yellow - medium
+                } else {
+                    distanceColor = '#6b7280'; // Gray - far
+                }
+                distanceText = `${distanceValue} ${t.kmAway}`;
+            }
+            
+            const distanceDisplay = (distance !== null && distance !== undefined && distance < 9999 && userLocation) ? 
+                `<div class="distance-badge" style="background: ${distanceColor};">
+                    <i class="fas fa-location-dot"></i> ${distanceText}
+                    ${hasLiveLocation ? `<span style="font-size:0.6rem;margin-left:4px;">● ${t.live}</span>` : ''}
                 </div>` : 
                 `<div class="distance-badge">
                     <i class="fas fa-location-dot"></i> ${t.availableNationwide}
@@ -1592,6 +1672,7 @@
                         <div class="user-location">
                             <i class="fas fa-map-marker-alt"></i>
                             <span>${user.location || t.availableNationwide}</span>
+                            ${hasLiveLocation ? `<span style="color:#10b981;font-size:0.7rem;">● ${t.live}</span>` : ''}
                         </div>
                         
                         <div class="user-rating">
@@ -1681,7 +1762,23 @@
         }
     });
 
-    // Initialize
+    // ==================== CLEANUP ON PAGE LEAVE ====================
+    window.addEventListener('beforeunload', () => {
+        stopLocationTracking();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // Page hidden - optionally reduce tracking
+        } else {
+            // Page visible again - check if tracking is still running
+            if (!isLocationTracking && userLocation) {
+                startLocationTracking();
+            }
+        }
+    });
+
+    // ==================== INITIALIZE ====================
     updatePageLanguage();
     loadUsers();
 
@@ -1692,14 +1789,13 @@
             const loc = JSON.parse(savedLocation);
             const savedTime = new Date(loc.updated);
             const hoursSince = (Date.now() - savedTime) / (1000 * 60 * 60);
-            // Use saved location if less than 24 hours old
             if (hoursSince < 24 && loc.lat && loc.lng) {
                 userLocation = { lat: loc.lat, lng: loc.lng };
                 updateDistancesAndFilter();
                 locationNameEl.innerHTML = `<i class="fas fa-map-pin me-1"></i> Last known location`;
                 locationStatusEl.textContent = 'Using saved location';
+                startLocationTracking();
             } else {
-                // Location too old, ask for new one
                 setTimeout(() => {
                     if (navigator.geolocation) {
                         getUserLocation();

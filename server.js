@@ -550,6 +550,74 @@ app.get('/api/user/:id/settings', async (req, res) => {
     }
 });
 
+// ========== UPDATE USER LOCATION ==========
+app.patch('/api/user/:id/location', async (req, res) => {
+    try {
+        const { latitude, longitude } = req.body;
+        const userId = req.params.id;
+        
+        if (latitude === undefined || longitude === undefined) {
+            return res.status(400).json({ message: 'Latitude and longitude are required' });
+        }
+        
+        await pool.query(
+            `UPDATE users SET 
+                latitude = $1, 
+                longitude = $2, 
+                location_updated_at = NOW() 
+             WHERE id = $3`,
+            [latitude, longitude, userId]
+        );
+        
+        res.json({ success: true, message: 'Location updated' });
+    } catch (err) {
+        console.error('Update location error:', err);
+        res.status(500).json({ message: 'Failed to update location' });
+    }
+});
+
+// ========== GET USERS NEARBY ==========
+app.get('/api/users/nearby', async (req, res) => {
+    try {
+        const { lat, lng, radius = 50 } = req.query;
+        
+        if (!lat || !lng) {
+            return res.status(400).json({ message: 'Latitude and longitude required' });
+        }
+        
+        const result = await pool.query(`
+            SELECT 
+                id, name, email, userType, trade, phone, photoURL,
+                latitude, longitude,
+                (
+                    6371 * acos(
+                        cos(radians($1)) * cos(radians(latitude)) *
+                        cos(radians(longitude) - radians($2)) +
+                        sin(radians($1)) * sin(radians(latitude))
+                    )
+                ) AS distance
+            FROM users
+            WHERE 
+                latitude IS NOT NULL 
+                AND longitude IS NOT NULL
+                AND id != $3
+                AND (
+                    6371 * acos(
+                        cos(radians($1)) * cos(radians(latitude)) *
+                        cos(radians(longitude) - radians($2)) +
+                        sin(radians($1)) * sin(radians(latitude))
+                    )
+                ) < $4
+            ORDER BY distance ASC
+        `, [lat, lng, req.query.userId || 0, radius]);
+        
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Nearby users error:', err);
+        res.status(500).json([]);
+    }
+});
+
 // ========== DELETE USER ==========
 app.delete('/api/user/:id', async (req, res) => {
     try {
