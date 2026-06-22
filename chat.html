@@ -12,66 +12,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* ===== WHATSAPP-STYLE LAYOUT FIX ===== */
-        html, body {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            overflow: hidden !important;
-            touch-action: manipulation !important;
-        }
-
-        .chat-container {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 1000px !important;
-            margin: 0 auto !important;
-            display: flex !important;
-            flex-direction: column !important;
-            overflow: hidden !important;
-            background: white !important;
-            z-index: 10 !important;
-        }
-
-        .chat-messages {
-            flex: 1 1 auto !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            -webkit-overflow-scrolling: touch !important;
-            min-height: 0 !important;
-            height: 100% !important;
-        }
-
-        .chat-input {
-            flex-shrink: 0 !important;
-            position: relative !important;
-            bottom: 0 !important;
-            z-index: 15 !important;
-        }
-
-        input, textarea, select, button {
-            font-size: 16px !important;
-        }
-
-        /* ===== CHAT PAGE OPTIMIZED STYLES - NO EXTRA SPACE ===== */
+        /* ===== CHAT PAGE OPTIMIZED STYLES ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
             background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            touch-action: manipulation;
         }
 
         .chat-page {
@@ -82,12 +45,28 @@
             overflow: hidden;
         }
 
-        /* Navbar hidden on chat page */
         .chat-page .navbar {
             display: none !important;
         }
 
-        /* Chat Header - Compact */
+        .chat-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            min-height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
         .chat-header {
             background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
             color: white;
@@ -203,7 +182,6 @@
             justify-content: center;
         }
 
-        /* Chat Messages - Compact & No Extra Space */
         .chat-messages {
             flex: 1 1 auto;
             min-height: 0;
@@ -217,7 +195,6 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Individual Message - Minimal Margin */
         .message {
             display: flex;
             flex-direction: column;
@@ -274,7 +251,6 @@
             align-items: flex-start;
         }
 
-        /* Message Bubble - Compact */
         .message-bubble {
             max-width: 75%;
             padding: 8px 12px;
@@ -298,7 +274,6 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
-        /* Message Time */
         .message-time {
             font-size: 0.6rem;
             color: #9ca3af;
@@ -311,7 +286,6 @@
             text-align: right;
         }
 
-        /* ===== MODERN VOICE MESSAGE PLAYER ===== */
         .voice-card {
             background: rgba(37, 99, 235, 0.08);
             border-radius: 18px;
@@ -386,17 +360,14 @@
             min-height: 6px;
         }
 
-        /* Sent message - voice wave bars color */
         .message.sent .voice-wave-bars-playback .bar {
             background: linear-gradient(180deg, #93c5fd, #60a5fa);
         }
 
-        /* Received message - voice wave bars color */
         .message.received .voice-wave-bars-playback .bar {
             background: linear-gradient(180deg, #93c5fd, #3b82f6);
         }
 
-        /* Active play animation */
         .voice-wave-bars-playback.playing .bar {
             animation: wavePlay 0.8s ease-in-out infinite alternate;
         }
@@ -424,17 +395,14 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* Sent message voice duration color */
         .message.sent .voice-duration {
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Received message voice duration color */
         .message.received .voice-duration {
             color: #6b7280;
         }
 
-        /* Progress bar for voice */
         .voice-progress {
             position: absolute;
             bottom: -2px;
@@ -460,7 +428,6 @@
             opacity: 1;
         }
 
-        /* Dark mode support */
         body.dark-active .voice-card {
             background: rgba(59, 130, 246, 0.12);
             border-color: rgba(59, 130, 246, 0.1);
@@ -482,7 +449,6 @@
             background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
         }
 
-        /* Media Message - Compact */
         .media-card img,
         .media-card video {
             max-width: 250px;
@@ -490,7 +456,6 @@
             border-radius: 12px;
         }
 
-        /* Call Notification - Compact */
         .call-notification {
             background: rgba(37, 99, 235, 0.08);
             border-radius: 16px;
@@ -532,7 +497,6 @@
             margin: 0;
         }
 
-        /* Chat Input - Compact */
         .chat-input {
             display: flex;
             align-items: center;
@@ -611,7 +575,6 @@
             transform: scale(1.05);
         }
 
-        /* Reply Preview - Compact */
         .reply-preview-panel {
             padding: 6px 12px;
             border-left: 3px solid #2563eb;
@@ -621,42 +584,81 @@
             font-size: 0.8rem;
         }
 
-        /* Context Menu */
+        /* ===== CONTEXT MENU - OVERRIDE ===== */
         .context-menu {
-            position: fixed;
-            background: #1f2937;
-            border-radius: 12px;
-            overflow: hidden;
-            z-index: 10001;
-            min-width: 160px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: fixed !important;
+            z-index: 99999 !important;
+            min-width: 200px !important;
+            background: #1f2937 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important;
+            overflow: hidden !important;
+        }
+
+        @media (min-width: 769px) {
+            .context-menu {
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                max-height: 80vh !important;
+                overflow-y: auto !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .context-menu {
+                top: auto !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                transform: none !important;
+                width: 100% !important;
+                border-radius: 20px 20px 0 0 !important;
+                max-height: 60vh !important;
+                padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+                animation: slideUpMenu 0.25s ease !important;
+            }
         }
 
         .context-menu-item {
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            color: white;
-            font-size: 0.85rem;
-            transition: background 0.2s;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 20px !important;
+            font-size: 15px !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            color: white !important;
         }
 
         .context-menu-item:last-child {
-            border-bottom: none;
-        }
-
-        .context-menu-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            border-bottom: none !important;
         }
 
         .context-menu-item.danger {
-            color: #f87171;
+            color: #f87171 !important;
         }
 
-        /* Selection Mode */
+        .context-menu-item i {
+            width: 24px !important;
+            text-align: center !important;
+        }
+
+        .context-menu-divider {
+            height: 1px !important;
+            background: rgba(255,255,255,0.08) !important;
+            margin: 0 !important;
+        }
+
+        @keyframes slideUpMenu {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        body.dark-active .context-menu {
+            background: #1e293b !important;
+        }
+
         .selection-mode .message-checkbox {
             display: block;
         }
@@ -680,7 +682,6 @@
             outline: 2px solid #2563eb;
         }
 
-        /* Selection Toolbar */
         .selection-toolbar {
             position: fixed;
             bottom: 80px;
@@ -714,7 +715,6 @@
             color: #f87171;
         }
 
-        /* Connection Status */
         .connection-status {
             position: fixed;
             bottom: 20px;
@@ -740,7 +740,6 @@
             color: #1f2937;
         }
 
-        /* Lightbox */
         .lightbox {
             position: fixed;
             inset: 0;
@@ -777,7 +776,6 @@
             justify-content: center;
         }
 
-        /* ===== VOICE RECORDING STYLES ===== */
         #recordToggle.recording-active {
             color: #dc2626 !important;
             background: rgba(220, 38, 38, 0.15) !important;
@@ -856,7 +854,6 @@
         .voice-wave-bars span:nth-child(4) { height: 14px; animation-delay: 0.6s; }
         .voice-wave-bars span:nth-child(5) { height: 8px; animation-delay: 0.8s; }
 
-        /* Dark Mode */
         body.dark-active .chat-container {
             background: #1e293b;
         }
@@ -891,7 +888,6 @@
             background: rgba(30, 41, 59, 0.95) !important;
         }
 
-        /* Mobile responsive for voice */
         @media (max-width: 480px) {
             .voice-card {
                 min-width: 160px;
@@ -908,7 +904,6 @@
             }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .chat-container {
                 height: 100vh;
@@ -1064,12 +1059,10 @@
     const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
     const chatId = `${Math.min(currentUser?.id, otherUserId)}-${Math.max(currentUser?.id, otherUserId)}`;
     
-    // Check authentication
     if (!currentUser || !currentUser.id || !otherUserId) {
         window.location.href = 'login.html';
     }
     
-    // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
     const chatStatus = document.getElementById('chatStatus');
@@ -1083,7 +1076,6 @@
     const closeSelectionBtn = document.getElementById('closeSelectionBtn');
     const selectionCountSpan = document.getElementById('selectionCount');
 
-    // State variables
     let messages = [];
     let replyToMessage = null;
     let isRecording = false;
@@ -1098,11 +1090,9 @@
     let contextMenu = null;
     let localStream = null;
 
-    // Socket events
     socket.emit('register-user', currentUser.id);
     window.currentChatId = chatId;
 
-    // ==================== HELPER FUNCTIONS ====================
     function scrollChatToBottom() {
         if (!chatMessages) return;
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1113,7 +1103,6 @@
         const viewportHeight = viewport ? viewport.height : window.innerHeight;
         const chatContainer = document.querySelector('.chat-container');
         const chatInput = document.querySelector('.chat-input');
-        const chatMessages = document.getElementById('chatMessages');
 
         let keyboardHeight = 0;
         if (viewport) {
@@ -1177,7 +1166,6 @@
         return message?.fromuser || message?.fromUser || message?.from || '';
     }
 
-    // ==================== CHAT USER INFO ====================
     async function loadChatUser() {
         try {
             const res = await fetch(`${API_URL}/user/${otherUserId}`);
@@ -1204,92 +1192,85 @@
         }
     }
 
-    // ==================== ONLINE/OFFLINE STATUS ====================
-let statusCheckInterval = null;
+    let statusCheckInterval = null;
 
-async function checkUserStatus() {
-    if (!otherUserId) return;
-    try {
-        const response = await fetch(`${API_URL}/user/${otherUserId}/status`);
-        const data = await response.json();
-        updateStatusDisplay(data);
-    } catch (err) {
-        console.error('Error checking status:', err);
-    }
-}
-
-function updateStatusDisplay(data) {
-    const statusEl = document.getElementById('chatStatus');
-    if (!statusEl) return;
-
-    if (data?.status === 'checking') {
-        statusEl.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; color: #cbd5e1;"></i> Checking...';
-        statusEl.classList.remove('online');
-        statusEl.classList.remove('offline');
-        return;
-    }
-
-    if (data?.is_online || data?.status === 'online') {
-        statusEl.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; color: #90ff90;"></i> Online';
-        statusEl.classList.add('online');
-        statusEl.classList.remove('offline');
-        return;
-    }
-
-    let statusText = 'Offline';
-    if (data?.last_active) {
-        const lastActive = new Date(data.last_active);
-        const now = new Date();
-        const diffMinutes = Math.floor((now - lastActive) / (1000 * 60));
-        const diffHours = Math.floor(diffMinutes / 60);
-        const diffDays = Math.floor(diffHours / 24);
-
-        if (diffMinutes < 1) {
-            statusText = 'Just now';
-        } else if (diffMinutes < 60) {
-            statusText = `${diffMinutes}m ago`;
-        } else if (diffHours < 24) {
-            statusText = `${diffHours}h ago`;
-        } else if (diffDays === 1) {
-            statusText = 'Yesterday';
-        } else {
-            statusText = `${diffDays}d ago`;
+    async function checkUserStatus() {
+        if (!otherUserId) return;
+        try {
+            const response = await fetch(`${API_URL}/user/${otherUserId}/status`);
+            const data = await response.json();
+            updateStatusDisplay(data);
+        } catch (err) {
+            console.error('Error checking status:', err);
         }
     }
 
-    statusEl.innerHTML = `<i class="fas fa-circle" style="font-size: 8px; color: #94a3b8;"></i> ${statusText}`;
-    statusEl.classList.remove('online');
-    statusEl.classList.add('offline');
-}
+    function updateStatusDisplay(data) {
+        const statusEl = document.getElementById('chatStatus');
+        if (!statusEl) return;
 
-// Listen for status changes from socket
-window.updateUserStatus = function(userId, isOnline, lastActive) {
-    if (String(userId) !== String(otherUserId)) return;
-    updateStatusDisplay({ is_online: isOnline, status: isOnline ? 'online' : 'offline', last_active: lastActive });
-};
+        if (data?.status === 'checking') {
+            statusEl.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; color: #cbd5e1;"></i> Checking...';
+            statusEl.classList.remove('online');
+            statusEl.classList.remove('offline');
+            return;
+        }
 
-// Start periodic status checking
-function startStatusChecking() {
-    if (statusCheckInterval) clearInterval(statusCheckInterval);
-    // Check immediately
-    checkUserStatus();
-    // Then check every 30 seconds
-    statusCheckInterval = setInterval(checkUserStatus, 30000);
-}
+        if (data?.is_online || data?.status === 'online') {
+            statusEl.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; color: #90ff90;"></i> Online';
+            statusEl.classList.add('online');
+            statusEl.classList.remove('offline');
+            return;
+        }
 
-function stopStatusChecking() {
-    if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-        statusCheckInterval = null;
+        let statusText = 'Offline';
+        if (data?.last_active) {
+            const lastActive = new Date(data.last_active);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - lastActive) / (1000 * 60));
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMinutes < 1) {
+                statusText = 'Just now';
+            } else if (diffMinutes < 60) {
+                statusText = `${diffMinutes}m ago`;
+            } else if (diffHours < 24) {
+                statusText = `${diffHours}h ago`;
+            } else if (diffDays === 1) {
+                statusText = 'Yesterday';
+            } else {
+                statusText = `${diffDays}d ago`;
+            }
+        }
+
+        statusEl.innerHTML = `<i class="fas fa-circle" style="font-size: 8px; color: #94a3b8;"></i> ${statusText}`;
+        statusEl.classList.remove('online');
+        statusEl.classList.add('offline');
     }
-}
 
-// Clean up on page leave
-window.addEventListener('beforeunload', () => {
-    stopStatusChecking();
-});
+    window.updateUserStatus = function(userId, isOnline, lastActive) {
+        if (String(userId) !== String(otherUserId)) return;
+        updateStatusDisplay({ is_online: isOnline, status: isOnline ? 'online' : 'offline', last_active: lastActive });
+    };
 
-    // ==================== LOAD MESSAGES ====================
+    function startStatusChecking() {
+        if (statusCheckInterval) clearInterval(statusCheckInterval);
+        checkUserStatus();
+        statusCheckInterval = setInterval(checkUserStatus, 30000);
+    }
+
+    function stopStatusChecking() {
+        if (statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+            statusCheckInterval = null;
+        }
+    }
+
+    window.addEventListener('beforeunload', () => {
+        stopStatusChecking();
+    });
+
     async function loadMessages() {
         try {
             const res = await fetch(`${API_URL}/messages/${chatId}?userId=${currentUser.id}`);
@@ -1300,7 +1281,6 @@ window.addEventListener('beforeunload', () => {
         }
     }
 
-    // ==================== RENDER MESSAGES - COMPACT VERSION ====================
     function renderMessages() {
         const visibleMessages = messages.filter(msg => {
             const deletedFor = msg.deleted_for || '';
@@ -1327,9 +1307,7 @@ window.addEventListener('beforeunload', () => {
                 }
             }
             
-            // ===== MODERN VOICE MESSAGE PLAYER =====
             if (msg.type === 'voice') {
-                // Generate random bar heights for visual effect
                 const barHeights = [8, 16, 24, 18, 30, 22, 14, 10];
                 const barsHtml = barHeights.map(h => 
                     `<span class="bar" style="height:${h}px;"></span>`
@@ -1395,7 +1373,6 @@ window.addEventListener('beforeunload', () => {
             content += `<div class="message-time">${formatTime(msg.time)}</div>`;
             messageRow.innerHTML = content;
 
-            // Update voice duration when audio loads
             if (msg.type === 'voice') {
                 const audio = messageRow.querySelector('audio');
                 const durationSpan = messageRow.querySelector('.voice-duration');
@@ -1425,7 +1402,6 @@ window.addEventListener('beforeunload', () => {
                 toggleSelectionForMessage(msg.id, !selectedMessages.has(String(msg.id)));
             });
             
-            // Context menu events
             messageRow.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1434,7 +1410,6 @@ window.addEventListener('beforeunload', () => {
                 return false;
             });
             
-            // Long press for mobile
             let pressTimer;
             messageRow.addEventListener('touchstart', (e) => {
                 pressTimer = setTimeout(() => {
@@ -1450,7 +1425,6 @@ window.addEventListener('beforeunload', () => {
         
         scrollChatToBottom();
         
-        // Update selection mode checkboxes if active
         if (isSelectionMode) {
             document.querySelectorAll('.message').forEach(msg => {
                 if (!msg.querySelector('.message-checkbox')) {
@@ -1469,7 +1443,6 @@ window.addEventListener('beforeunload', () => {
         }
     }
 
-    // ==================== SEND MESSAGE ====================
     async function sendMessage() {
         const text = messageInput.value.trim();
 
@@ -1517,7 +1490,6 @@ window.addEventListener('beforeunload', () => {
         messageInput.value = '';
     }
 
-    // ==================== UPLOAD FILE ====================
     async function uploadFile(file) {
         const formData = new FormData();
         formData.append('file', file);
@@ -1542,7 +1514,6 @@ window.addEventListener('beforeunload', () => {
         updateReplyPreview();
     }
 
-    // ==================== MODERN VOICE PLAYBACK ====================
     window.toggleVoicePlayback = function(button) {
         const audio = button.parentElement.querySelector('audio');
         const waveBars = button.parentElement.querySelector('.voice-wave-bars-playback');
@@ -1551,14 +1522,12 @@ window.addEventListener('beforeunload', () => {
         if (!audio) return;
         
         if (audio.paused) {
-            // Play
             audio.play();
             button.innerHTML = '<i class="fas fa-pause"></i>';
             button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
             
             if (waveBars) waveBars.classList.add('playing');
             
-            // Update progress
             if (progressFill) {
                 audio.addEventListener('timeupdate', function updateProgress() {
                     const progress = (audio.currentTime / audio.duration) * 100;
@@ -1573,7 +1542,6 @@ window.addEventListener('beforeunload', () => {
                 if (progressFill) progressFill.style.width = '0%';
             };
             
-            // Pause other audio players
             document.querySelectorAll('.voice-player audio').forEach(otherAudio => {
                 if (otherAudio !== audio && !otherAudio.paused) {
                     otherAudio.pause();
@@ -1588,7 +1556,6 @@ window.addEventListener('beforeunload', () => {
             });
             
         } else {
-            // Pause
             audio.pause();
             button.innerHTML = '<i class="fas fa-play"></i>';
             button.style.background = '';
@@ -1596,7 +1563,6 @@ window.addEventListener('beforeunload', () => {
         }
     };
 
-    // ==================== VOICE RECORDING - HOLD TO RECORD (LIKE WHATSAPP) ====================
     const recordToggle = document.getElementById('recordToggle');
     let voiceStream = null;
     let recordingTimer = null;
@@ -1604,11 +1570,8 @@ window.addEventListener('beforeunload', () => {
     let isCancelled = false;
     let recordingIndicator = null;
 
-    // Hold to record - start on mousedown/touchstart
     recordToggle.addEventListener('mousedown', startVoiceRecording);
     recordToggle.addEventListener('touchstart', startVoiceRecording, { passive: false });
-
-    // Stop on mouseup/touchend
     recordToggle.addEventListener('mouseup', stopVoiceRecording);
     recordToggle.addEventListener('touchend', stopVoiceRecording, { passive: false });
     recordToggle.addEventListener('mouseleave', stopVoiceRecording);
@@ -1733,7 +1696,6 @@ window.addEventListener('beforeunload', () => {
         }
     }
 
-    // ==================== VOICE UI INDICATORS ====================
     function showRecordingIndicator() {
         hideRecordingIndicator();
         
@@ -1800,7 +1762,6 @@ window.addEventListener('beforeunload', () => {
         }, 1000);
     }
 
-    // ==================== DELETE MESSAGE ====================
     function deleteMessage(messageId, deleteForEveryone) {
         socket.emit('delete-message', {
             chatId,
@@ -1810,7 +1771,6 @@ window.addEventListener('beforeunload', () => {
         });
     }
 
-    // ==================== CONTEXT MENU ====================
     function removeContextMenu() {
         if (contextMenu) {
             contextMenu.remove();
@@ -1818,6 +1778,7 @@ window.addEventListener('beforeunload', () => {
         }
     }
 
+    // ===== CONTEXT MENU - REAL FIX =====
     function showContextMenu(messageId, x, y, isSent) {
         removeContextMenu();
         
@@ -1830,8 +1791,9 @@ window.addEventListener('beforeunload', () => {
         
         const menu = document.createElement('div');
         menu.className = 'context-menu';
-        menu.style.left = x + 'px';
-        menu.style.top = y + 'px';
+        // REMOVED: menu.style.left = x + 'px';
+        // REMOVED: menu.style.top = y + 'px';
+        // Now positioned by CSS only
         
         let menuHtml = `
             <div class="context-menu-item" data-action="reply"><i class="fas fa-reply"></i> Reply</div>
@@ -1938,7 +1900,6 @@ window.addEventListener('beforeunload', () => {
         updateReplyPreview();
     };
 
-    // ==================== SELECTION MODE ====================
     function toggleSelectionForMessage(messageId, shouldSelect = null) {
         const row = document.querySelector(`.message[data-message-id="${messageId}"]`);
         const msgId = String(messageId);
@@ -1977,7 +1938,6 @@ window.addEventListener('beforeunload', () => {
         selectionCountSpan.textContent = `${selectedMessages.size} selected`;
     }
 
-    // ==================== LIGHTBOX ====================
     function openLightbox(src, type) {
         const lb = document.getElementById('lightbox');
         const img = document.getElementById('lightbox-img');
@@ -2002,7 +1962,6 @@ window.addEventListener('beforeunload', () => {
         lb.classList.remove('active');
     }
 
-    // ==================== SOCKET EVENTS ====================
     socket.on('connect', () => {
         updateConnectionStatus('connected', 'Connected');
         socket.emit('join-chat', chatId);
@@ -2062,7 +2021,6 @@ window.addEventListener('beforeunload', () => {
         }
     }
 
-    // ==================== EVENT LISTENERS ====================
     document.getElementById('attachBtn')?.addEventListener('click', () => document.getElementById('mediaInput').click());
     document.getElementById('cameraBtn')?.addEventListener('click', () => document.getElementById('cameraInput').click());
     document.getElementById('sendButton')?.addEventListener('click', sendMessage);
@@ -2108,7 +2066,6 @@ window.addEventListener('beforeunload', () => {
 
     chatUserInfo?.addEventListener('click', () => window.location.href = `profile.html?uid=${otherUserId}`);
 
-    // Selection mode buttons
     selectModeBtn?.addEventListener('click', enterSelectionMode);
     selectAllBtn?.addEventListener('click', () => {
         document.querySelectorAll('.message').forEach(el => {
@@ -2134,7 +2091,6 @@ window.addEventListener('beforeunload', () => {
     });
     closeSelectionBtn?.addEventListener('click', exitSelectionMode);
 
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeLightbox();
@@ -2143,7 +2099,6 @@ window.addEventListener('beforeunload', () => {
         }
     });
 
-    // ==================== CLEANUP ====================
     window.addEventListener('beforeunload', () => {
         if (voiceStream) {
             voiceStream.getTracks().forEach(track => track.stop());
@@ -2151,37 +2106,11 @@ window.addEventListener('beforeunload', () => {
         hideRecordingIndicator();
     });
 
-    // ==================== WHATSAPP KEYBOARD HANDLER =====
-    (function() {
-        const messages = document.getElementById('chatMessages');
-        const container = document.querySelector('.chat-container');
-        if (!messages) return;
+    // ===== INITIALIZE KEYBOARD FIX =====
+    if (typeof fixChatKeyboard === 'function') {
+        fixChatKeyboard();
+    }
 
-        function scrollBottom() {
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-        if (window.visualViewport) {
-            let lastHeight = window.visualViewport.height;
-            window.visualViewport.addEventListener('resize', function() {
-                const h = window.visualViewport.height;
-                const diff = lastHeight - h;
-                if (diff > 100) setTimeout(scrollBottom, 50);
-                if (container) { container.style.height = h + 'px'; container.style.maxHeight = h + 'px'; }
-                lastHeight = h;
-            });
-        }
-
-        window.addEventListener('resize', function() { setTimeout(scrollBottom, 100); });
-        document.addEventListener('focusin', function(e) {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-                setTimeout(scrollBottom, 150);
-            }
-        });
-        setTimeout(scrollBottom, 200);
-    })();
-
-    // Initialize
     syncChatLayout();
     loadChatUser();
     loadMessages();
