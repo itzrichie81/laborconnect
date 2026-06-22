@@ -575,6 +575,122 @@ app.patch('/api/user/:id/location', async (req, res) => {
         res.status(500).json({ message: 'Failed to update location' });
     }
 });
+// ========== UPDATE USER ONLINE STATUS ==========
+app.patch('/api/user/:id/online', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { is_online } = req.body;
+        
+        await pool.query(
+            `UPDATE users SET 
+                last_active = NOW(),
+                is_online = $1
+             WHERE id = $2`,
+            [is_online || false, userId]
+        );
+        
+        // Broadcast to all connected users that this user's status changed
+        io.emit('user-status-change', { 
+            userId: userId, 
+            is_online: is_online || false,
+            last_active: new Date().toISOString()
+        });
+        
+        res.json({ success: true, is_online: is_online || false });
+    } catch (err) {
+        console.error('Update online status error:', err);
+        res.status(500).json({ message: 'Failed to update status' });
+    }
+});
+
+// ========== GET USER ONLINE STATUS ==========
+app.get('/api/user/:id/status', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const result = await pool.query(
+            'SELECT is_online, last_active FROM users WHERE id = $1',
+            [userId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const user = result.rows[0];
+        const isOnline = user.is_online || false;
+        const lastActive = user.last_active;
+        
+        // If offline, check if last_active was more than 2 minutes ago
+        let status = 'offline';
+        if (isOnline) {
+            status = 'online';
+        } else if (lastActive) {
+            const lastActiveTime = new Date(lastActive);
+            const now = new Date();
+            const diffMinutes = (now - lastActiveTime) / (1000 * 60);
+            if (diffMinutes < 2) {
+                status = 'online';
+            } else {
+                status = 'offline';
+            }
+        }
+        
+        res.json({ 
+            userId, 
+            is_online: status === 'online',
+            status,
+            last_active: lastActive
+        });
+    } catch (err) {
+        console.error('Get status error:', err);
+        res.status(500).json({ message: 'Failed to get status' });
+    }
+});
+
+// ========== BULK GET ONLINE STATUSES ==========
+app.get('/api/users/statuses', async (req, res) => {
+    try {
+        const { userIds } = req.query;
+        if (!userIds) {
+            return res.json({});
+        }
+        
+        const ids = userIds.split(',');
+        const result = await pool.query(
+            'SELECT id, is_online, last_active FROM users WHERE id = ANY($1)',
+            [ids]
+        );
+        
+        const statuses = {};
+        const now = new Date();
+        
+        result.rows.forEach(user => {
+            const isOnline = user.is_online || false;
+            let status = 'offline';
+            
+            if (isOnline) {
+                status = 'online';
+            } else if (user.last_active) {
+                const lastActiveTime = new Date(user.last_active);
+                const diffMinutes = (now - lastActiveTime) / (1000 * 60);
+                if (diffMinutes < 2) {
+                    status = 'online';
+                }
+            }
+            
+            statuses[user.id] = {
+                is_online: status === 'online',
+                status,
+                last_active: user.last_active
+            };
+        });
+        
+        res.json(statuses);
+    } catch (err) {
+        console.error('Bulk status error:', err);
+        res.status(500).json({});
+    }
+});
 
 // ========== GET USERS NEARBY ==========
 app.get('/api/users/nearby', async (req, res) => {

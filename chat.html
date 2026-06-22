@@ -1159,6 +1159,114 @@
         }
     }
 
+    // ==================== ONLINE/OFFLINE STATUS ====================
+let statusCheckInterval = null;
+
+async function checkUserStatus() {
+    if (!otherUserId) return;
+    try {
+        const response = await fetch(`${API_URL}/user/${otherUserId}/status`);
+        const data = await response.json();
+        updateStatusDisplay(data);
+    } catch (err) {
+        console.error('Error checking status:', err);
+    }
+}
+
+function updateStatusDisplay(data) {
+    const statusEl = document.getElementById('chatStatus');
+    if (!statusEl) return;
+    
+    if (data.is_online || data.status === 'online') {
+        statusEl.innerHTML = '<i class="fas fa-circle" style="font-size: 8px; color: #90ff90;"></i> Online';
+        statusEl.classList.add('online');
+        statusEl.classList.remove('offline');
+    } else {
+        // Show last active time
+        let statusText = 'Offline';
+        if (data.last_active) {
+            const lastActive = new Date(data.last_active);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - lastActive) / (1000 * 60));
+            const diffHours = Math.floor(diffMinutes / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMinutes < 1) {
+                statusText = 'Just now';
+            } else if (diffMinutes < 60) {
+                statusText = `${diffMinutes}m ago`;
+            } else if (diffHours < 24) {
+                statusText = `${diffHours}h ago`;
+            } else if (diffDays === 1) {
+                statusText = 'Yesterday';
+            } else {
+                statusText = `${diffDays}d ago`;
+            }
+        }
+        statusEl.innerHTML = `<i class="fas fa-circle" style="font-size: 8px; color: #94a3b8;"></i> ${statusText}`;
+        statusEl.classList.remove('online');
+        statusEl.classList.add('offline');
+    }
+}
+
+// Listen for status changes from socket
+window.updateUserStatus = function(userId, isOnline, lastActive) {
+    if (String(userId) !== String(otherUserId)) return;
+    updateStatusDisplay({ is_online: isOnline, status: isOnline ? 'online' : 'offline', last_active: lastActive });
+};
+
+// Start periodic status checking
+function startStatusChecking() {
+    if (statusCheckInterval) clearInterval(statusCheckInterval);
+    // Check immediately
+    checkUserStatus();
+    // Then check every 30 seconds
+    statusCheckInterval = setInterval(checkUserStatus, 30000);
+}
+
+function stopStatusChecking() {
+    if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+        statusCheckInterval = null;
+    }
+}
+
+// Initialize status checking after loading chat user
+// Add this inside loadChatUser function after setting otherUserName
+// Or call it after loadChatUser completes
+
+// Update the loadChatUser function to start status checking
+async function loadChatUser() {
+    try {
+        const res = await fetch(`${API_URL}/user/${otherUserId}`);
+        const user = await res.json();
+        if (user && user.name) {
+            otherUserName = user.name;
+            otherUserPhoto = user.photourl || user.photoURL;
+            chatTitle.textContent = user.name;
+            
+            if (otherUserPhoto && otherUserPhoto !== 'null') {
+                chatAvatar.innerHTML = `<img src="${otherUserPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+            } else {
+                const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                chatAvatar.innerHTML = `<div style="width:100%;height:100%;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:18px;">${initials}</div>`;
+            }
+            
+            // Start status checking after user is loaded
+            startStatusChecking();
+        }
+    } catch (e) {
+        console.error('Failed to load user:', e);
+        otherUserName = `User ${otherUserId}`;
+        chatTitle.textContent = `User ${otherUserId}`;
+    }
+}
+
+// Clean up on page leave
+window.addEventListener('beforeunload', () => {
+    stopStatusChecking();
+});
+
     // ==================== LOAD MESSAGES ====================
     async function loadMessages() {
         try {
