@@ -754,10 +754,6 @@
             font-size: 0.8rem;
         }
 
-        .selection-toolbar button:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
         .selection-toolbar .delete-selected {
             color: #f87171;
         }
@@ -1376,35 +1372,34 @@
                 }
             }
             
-<!-- ===== VOICE MESSAGE PLAYER - IOS FIXED ===== -->
-if (msg.type === 'voice') {
-    const barHeights = [8, 16, 24, 18, 30, 22, 14, 10];
-    const barsHtml = barHeights.map(h => 
-        `<span class="bar" style="height:${h}px;"></span>`
-    ).join('');
-    
-    let audioSrc = msg.payload || '';
-    // Add cache-busting for all devices
-    audioSrc = audioSrc + (audioSrc.includes('?') ? '&' : '?') + 't=' + Date.now();
-    
-    content += `<div class="message-bubble voice-card" data-audio-url="${audioSrc}">
-        <div class="voice-player">
-            <button class="voice-play-btn" onclick="toggleVoicePlayback(this)" type="button">
-                <i class="fas fa-play"></i>
-            </button>
-            <div class="voice-wave-container">
-                <div class="voice-wave-bars-playback">
-                    ${barsHtml}
-                </div>
-                <span class="voice-duration">0:00</span>
-                <div class="voice-progress">
-                    <div class="progress-fill"></div>
-                </div>
-            </div>
-            <audio preload="metadata" playsinline crossorigin="anonymous" style="display:none;"></audio>
-        </div>
-    </div>`;
-}
+            // ===== WHATSAPP-STYLE VOICE MESSAGE PLAYER =====
+            if (msg.type === 'voice') {
+                const barHeights = [8, 16, 24, 18, 30, 22, 14, 10];
+                const barsHtml = barHeights.map(h => 
+                    `<span class="bar" style="height:${h}px;"></span>`
+                ).join('');
+                
+                let audioSrc = msg.payload || '';
+                // Add timestamp for cache busting
+                audioSrc = audioSrc + (audioSrc.includes('?') ? '&' : '?') + 't=' + Date.now();
+                
+                content += `<div class="message-bubble voice-card" data-audio-url="${audioSrc}" data-msg-id="${msg.id}">
+                    <div class="voice-player">
+                        <button class="voice-play-btn" onclick="toggleVoicePlayback(this, '${audioSrc}')" type="button">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <div class="voice-wave-container">
+                            <div class="voice-wave-bars-playback" id="wave-${msg.id}">
+                                ${barsHtml}
+                            </div>
+                            <span class="voice-duration" id="duration-${msg.id}">0:00</span>
+                            <div class="voice-progress">
+                                <div class="progress-fill" id="progress-${msg.id}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            } 
             else if (msg.type === 'call') {
                 try {
                     const callData = typeof msg.payload === 'string' ? JSON.parse(msg.payload) : msg.payload;
@@ -1506,6 +1501,11 @@ if (msg.type === 'voice') {
                 }
             });
         }
+        
+        // Preload voice messages after rendering
+        if (window.preloadVoiceMessages) {
+            setTimeout(window.preloadVoiceMessages, 300);
+        }
     }
 
     async function sendMessage() {
@@ -1579,162 +1579,7 @@ if (msg.type === 'voice') {
         updateReplyPreview();
     }
 
-    // ===== VOICE PLAYBACK - MOBILE FIXED =====
-window.toggleVoicePlayback = function(button) {
-    console.log('Voice play button clicked');
-    
-    const voiceCard = button.closest('.voice-card');
-    if (!voiceCard) {
-        console.error('Voice card not found');
-        return;
-    }
-    
-    const audio = voiceCard.querySelector('audio');
-    if (!audio) {
-        console.error('Audio element not found');
-        return;
-    }
-    
-    console.log('Audio src:', audio.src);
-    
-    const waveBars = voiceCard.querySelector('.voice-wave-bars-playback');
-    const progressFill = voiceCard.querySelector('.progress-fill');
-    const durationSpan = voiceCard.querySelector('.voice-duration');
-    
-    // FIX: Resume audio context on mobile
-    if (window.AudioContext || window.webkitAudioContext) {
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-                console.log('AudioContext resumed');
-            }
-        } catch (e) { 
-            console.log('AudioContext error:', e); 
-        }
-    }
-
-    // If another audio is playing, pause it first
-    document.querySelectorAll('.voice-player audio').forEach(otherAudio => {
-        if (otherAudio !== audio && !otherAudio.paused) {
-            otherAudio.pause();
-            const otherBtn = otherAudio.closest('.voice-player')?.querySelector('.voice-play-btn');
-            if (otherBtn) {
-                otherBtn.innerHTML = '<i class="fas fa-play"></i>';
-                otherBtn.style.background = '';
-                const otherWaves = otherBtn.closest('.voice-card')?.querySelector('.voice-wave-bars-playback');
-                if (otherWaves) otherWaves.classList.remove('playing');
-            }
-        }
-    });
-    
-    if (audio.paused) {
-        // FIX: FORCE reload audio - important for sent messages on mobile
-        console.log('Loading audio...');
-        audio.load();
-        
-        // FIX: Set current time to 0
-        audio.currentTime = 0;
-        
-        // Update duration display
-        if (durationSpan) {
-            // Show loading state
-            durationSpan.textContent = '...';
-        }
-        
-        // FIX: Play with retry for mobile
-        const playAudio = function() {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    console.log('Playback started successfully');
-                    button.innerHTML = '<i class="fas fa-pause"></i>';
-                    button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
-                    if (waveBars) waveBars.classList.add('playing');
-                }).catch(err => {
-                    console.warn('Playback failed:', err);
-                    button.innerHTML = '<i class="fas fa-play"></i>';
-                    button.style.background = '';
-                    // Try one more time after a short delay (mobile fix)
-                    setTimeout(() => {
-                        console.log('Retrying playback...');
-                        audio.load();
-                        audio.play().then(() => {
-                            console.log('Playback succeeded on retry');
-                            button.innerHTML = '<i class="fas fa-pause"></i>';
-                            button.style.background = 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)';
-                            if (waveBars) waveBars.classList.add('playing');
-                        }).catch(e => console.warn('Retry failed:', e));
-                    }, 300);
-                });
-            }
-        };
-        
-        // Wait for audio to be ready
-        if (audio.readyState >= 2) {
-            playAudio();
-        } else {
-            audio.addEventListener('canplaythrough', function onCanPlay() {
-                audio.removeEventListener('canplaythrough', onCanPlay);
-                playAudio();
-            });
-            // Fallback: try after 1 second even if not loaded
-            setTimeout(playAudio, 1000);
-        }
-        
-        // Update duration when metadata loads
-        audio.addEventListener('loadedmetadata', function() {
-            if (durationSpan && audio.duration) {
-                const mins = Math.floor(audio.duration / 60);
-                const secs = Math.floor(audio.duration % 60);
-                durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-        });
-        
-        // Update progress
-        if (progressFill) {
-            audio.addEventListener('timeupdate', function() {
-                if (audio.duration) {
-                    const progress = (audio.currentTime / audio.duration) * 100;
-                    progressFill.style.width = progress + '%';
-                }
-            });
-        }
-        
-        audio.onended = function() {
-            console.log('Playback ended');
-            button.innerHTML = '<i class="fas fa-play"></i>';
-            button.style.background = '';
-            if (waveBars) waveBars.classList.remove('playing');
-            if (progressFill) progressFill.style.width = '0%';
-            if (durationSpan && audio.duration) {
-                const mins = Math.floor(audio.duration / 60);
-                const secs = Math.floor(audio.duration % 60);
-                durationSpan.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-            }
-        };
-        
-        audio.onerror = function(e) {
-            console.error('Audio error:', e);
-            button.innerHTML = '<i class="fas fa-play"></i>';
-            button.style.background = '';
-            if (waveBars) waveBars.classList.remove('playing');
-            // Try reloading the audio
-            console.log('Reloading audio due to error...');
-            audio.load();
-        };
-        
-    } else {
-        // Pause
-        console.log('Pausing playback');
-        audio.pause();
-        button.innerHTML = '<i class="fas fa-play"></i>';
-        button.style.background = '';
-        if (waveBars) waveBars.classList.remove('playing');
-    }
-};
-
-    // ===== VOICE RECORDING =====
+    // ===== VOICE RECORDING WITH BETTER COMPATIBILITY =====
     const recordToggle = document.getElementById('recordToggle');
     let voiceStream = null;
     let recordingTimer = null;
@@ -1755,7 +1600,22 @@ window.toggleVoicePlayback = function(button) {
         
         try {
             voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(voiceStream);
+            
+            // ========== FIX: Better MIME type support for iOS/Android ==========
+            const mimeTypes = [
+                'audio/mp4',
+                'audio/aac',
+                'audio/webm;codecs=opus',
+                'audio/webm'
+            ];
+            let mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
+            console.log('🎤 Using MIME type:', mimeType || 'default');
+            
+            mediaRecorder = new MediaRecorder(voiceStream, {
+                mimeType: mimeType,
+                audioBitsPerSecond: 24000
+            });
+            
             recordedChunks = [];
             recordingSeconds = 0;
             
@@ -1764,14 +1624,14 @@ window.toggleVoicePlayback = function(button) {
             };
             
             mediaRecorder.onstop = async () => {
-                const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
                 
                 if (!isCancelled && blob.size > 0 && recordingSeconds >= 1) {
                     showVoiceSending();
                     try {
                         const formData = new FormData();
-                        const fileName = `voice-note-${Date.now()}.webm`;
-                        const file = new File([blob], fileName, { type: 'audio/webm' });
+                        const fileName = `voice-note-${Date.now()}.${blob.type.includes('mp4') ? 'm4a' : 'webm'}`;
+                        const file = new File([blob], fileName, { type: blob.type || 'audio/webm' });
                         formData.append('file', file);
                         
                         const uploadRes = await fetch(`${API_URL}/upload`, { 
@@ -1950,7 +1810,7 @@ window.toggleVoicePlayback = function(button) {
         }
     }
 
-    // ===== CONTEXT MENU - REAL FIX =====
+    // ===== CONTEXT MENU =====
     function showContextMenu(messageId, x, y, isSent) {
         removeContextMenu();
         
@@ -1963,9 +1823,6 @@ window.toggleVoicePlayback = function(button) {
         
         const menu = document.createElement('div');
         menu.className = 'context-menu';
-        // REMOVED: menu.style.left = x + 'px';
-        // REMOVED: menu.style.top = y + 'px';
-        // Now positioned by CSS only
         
         let menuHtml = `
             <div class="context-menu-item" data-action="reply"><i class="fas fa-reply"></i> Reply</div>
@@ -2278,6 +2135,27 @@ window.toggleVoicePlayback = function(button) {
         hideRecordingIndicator();
     });
 
+    // ===== iOS AUDIO UNLOCK =====
+    document.addEventListener('touchstart', function() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+                console.log('✅ iOS audio unlocked via touch');
+            }
+        } catch(e) {}
+    }, { once: true, passive: true });
+
+    // Also unlock on click
+    document.addEventListener('click', function() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+        } catch(e) {}
+    }, { once: true, passive: true });
+
     // ===== INITIALIZE KEYBOARD FIX =====
     if (typeof fixChatKeyboard === 'function') {
         fixChatKeyboard();
@@ -2286,26 +2164,6 @@ window.toggleVoicePlayback = function(button) {
     syncChatLayout();
     loadChatUser();
     loadMessages();
-    // ===== iOS AUDIO UNLOCK =====
-document.addEventListener('touchstart', function() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        if (ctx.state === 'suspended') {
-            ctx.resume();
-            console.log('✅ iOS audio unlocked via touch');
-        }
-    } catch(e) {}
-}, { once: true, passive: true });
-
-// Also unlock on click
-document.addEventListener('click', function() {
-    try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        if (ctx.state === 'suspended') {
-            ctx.resume();
-        }
-    } catch(e) {}
-}, { once: true, passive: true });
 </script>
 </body>
 </html>
