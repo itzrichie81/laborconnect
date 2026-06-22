@@ -1596,3 +1596,53 @@ body.dark-active.chat-page .input-with-icons .icon-btn {
     padding: 0.5rem !important;
   }
 }
+/* ===== VOICE NOTE - MOBILE FIX ===== */
+.voice-play-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+    border: none !important;
+    color: white !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+    flex-shrink: 0 !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+}
+
+.voice-play-btn:active {
+    transform: scale(0.92) !important;
+}
+
+.voice-play-btn i {
+    pointer-events: none !important;
+}
+
+/* Mobile touch improvements */
+@media (max-width: 768px) {
+    .voice-play-btn {
+        width: 44px !important;
+        height: 44px !important;
+        font-size: 16px !important;
+    }
+    
+    .voice-card {
+        min-width: 180px !important;
+        padding: 10px 14px !important;
+    }
+    
+    .voice-wave-bars-playback .bar {
+        width: 4px !important;
+        border-radius: 3px !important;
+    }
+    
+    .voice-duration {
+        font-size: 0.8rem !important;
+        min-width: 40px !important;
+    }
+}
