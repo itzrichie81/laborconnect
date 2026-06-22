@@ -1827,87 +1827,118 @@
     }
 
     // ===== CONTEXT MENU =====
-    function showContextMenu(messageId, x, y, isSent) {
-        removeContextMenu();
-        
-        const message = messages.find(m => String(m.id) === String(messageId));
-        if (!message) return;
-        
-        const ageInMinutes = (new Date() - new Date(message.time)) / (1000 * 60);
-        const isNewMessage = ageInMinutes <= 60;
-        const isOwnMessage = String(getMessageSenderId(message)) === String(currentUser.id);
-        
-        const menu = document.createElement('div');
-        menu.className = 'context-menu';
-        
-        let menuHtml = `
-            <div class="context-menu-item" data-action="reply"><i class="fas fa-reply"></i> Reply</div>
-            <div class="context-menu-item" data-action="select"><i class="fas fa-check-square"></i> Select</div>
-        `;
-        
-        if (message.type === 'text') {
-            menuHtml += `<div class="context-menu-item" data-action="copy"><i class="fas fa-copy"></i> Copy</div>`;
-        }
-        
-        if (isOwnMessage) {
-            if (message.type === 'text' && ageInMinutes <= 30) {
-                menuHtml += `<div class="context-menu-item" data-action="edit"><i class="fas fa-pen"></i> Edit</div>`;
-            }
-            menuHtml += `<div class="context-menu-divider"></div>
-                        <div class="context-menu-item danger" data-action="delete">
-                            <i class="fas fa-trash"></i> ${isNewMessage ? 'Unsend for Everyone' : 'Delete for Me'}
-                        </div>`;
-        } else {
-            menuHtml += `<div class="context-menu-divider"></div>
-                        <div class="context-menu-item danger" data-action="delete-for-me">
-                            <i class="fas fa-trash"></i> Delete for Me
-                        </div>
-                        <div class="context-menu-item" data-action="report">
-                            <i class="fas fa-flag"></i> Report
-                        </div>`;
-        }
-        
-        menu.innerHTML = menuHtml;
-        document.body.appendChild(menu);
-        contextMenu = menu;
-        
-        menu.querySelectorAll('.context-menu-item').forEach(item => {
-            item.addEventListener('click', async () => {
-                const action = item.dataset.action;
-                switch(action) {
-                    case 'reply': replyMessage(messageId); break;
-                    case 'select':
-                        enterSelectionMode();
-                        const cb = document.querySelector(`.message[data-message-id="${messageId}"] .message-checkbox`);
-                        if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
-                        break;
-                    case 'copy': await navigator.clipboard.writeText(message.text); alert('Message copied'); break;
-                    case 'edit': editMessage(messageId); break;
-                    case 'delete':
-                        const unsend = (new Date() - new Date(message.time)) / (1000 * 60) <= 60;
-                        if (confirm(unsend ? 'Unsend for everyone?' : 'Delete for you?')) deleteMessage(messageId, unsend);
-                        break;
-                    case 'delete-for-me':
-                        if (confirm('Delete this message for you?')) deleteMessage(messageId, false);
-                        break;
-                    case 'report': alert('Message reported to admin.'); break;
-                }
-                removeContextMenu();
-            });
-        });
-        
-        setTimeout(() => {
-            const closeMenu = (e) => {
-                if (!menu.contains(e.target)) {
-                    removeContextMenu();
-                    document.removeEventListener('click', closeMenu);
-                    document.removeEventListener('touchstart', closeMenu);
-                }
-            };
-            document.addEventListener('click', closeMenu);
-            document.addEventListener('touchstart', closeMenu);
-        }, 50);
+ function showContextMenu(messageId, x, y, isSent) {
+    removeContextMenu();
+    
+    const message = messages.find(m => String(m.id) === String(messageId));
+    if (!message) return;
+    
+    const ageInMinutes = (new Date() - new Date(message.time)) / (1000 * 60);
+    const isNewMessage = ageInMinutes <= 60;
+    const isOwnMessage = String(getMessageSenderId(message)) === String(currentUser.id);
+    
+    const menu = document.createElement('div');
+    menu.className = 'context-menu';
+    
+    menu.style.position = 'fixed';
+    menu.style.zIndex = '99999';
+    menu.style.minWidth = '200px';
+    menu.style.background = 'rgba(44, 44, 46, 0.95)';
+    menu.style.backdropFilter = 'blur(20px)';
+    menu.style.borderRadius = '14px';
+    menu.style.boxShadow = '0 10px 40px rgba(0,0,0,0.4)';
+    menu.style.overflow = 'hidden';
+    menu.style.padding = '8px 0';
+    menu.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+    menu.style.top = Math.min(y, window.innerHeight - 250) + 'px';
+    
+    let menuHtml = '';
+    
+    menuHtml += `<div class="context-menu-item" data-action="reply"><i class="fas fa-reply"></i> Reply</div>`;
+    menuHtml += `<div class="context-menu-item" data-action="select"><i class="fas fa-check-square"></i> Select</div>`;
+    
+    if (message.type === 'text' && message.text) {
+        menuHtml += `<div class="context-menu-item" data-action="copy"><i class="fas fa-copy"></i> Copy</div>`;
     }
+    
+    if (isOwnMessage && message.type === 'text' && ageInMinutes <= 30) {
+        menuHtml += `<div class="context-menu-item" data-action="edit"><i class="fas fa-pen"></i> Edit</div>`;
+    }
+    
+    menuHtml += `<div class="context-menu-divider"></div>`;
+    
+    if (isOwnMessage) {
+        menuHtml += `<div class="context-menu-item danger" data-action="delete">
+            <i class="fas fa-trash"></i> ${isNewMessage ? 'Unsend for Everyone' : 'Delete for Me'}
+        </div>`;
+    } else {
+        menuHtml += `<div class="context-menu-item danger" data-action="delete-for-me">
+            <i class="fas fa-trash"></i> Delete for Me
+        </div>`;
+        menuHtml += `<div class="context-menu-item" data-action="report">
+            <i class="fas fa-flag"></i> Report
+        </div>`;
+    }
+    
+    menu.innerHTML = menuHtml;
+    document.body.appendChild(menu);
+    contextMenu = menu;
+    
+    menu.querySelectorAll('.context-menu-item').forEach(item => {
+        item.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const action = item.dataset.action;
+            switch(action) {
+                case 'reply': replyMessage(messageId); break;
+                case 'select':
+                    enterSelectionMode();
+                    const cb = document.querySelector(`.message[data-message-id="${messageId}"] .message-checkbox`);
+                    if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
+                    break;
+                case 'copy': 
+                    try {
+                        await navigator.clipboard.writeText(message.text);
+                        alert('Message copied');
+                    } catch(err) {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = message.text;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        textarea.remove();
+                        alert('Message copied');
+                    }
+                    break;
+                case 'edit': editMessage(messageId); break;
+                case 'delete':
+                    const unsend = (new Date() - new Date(message.time)) / (1000 * 60) <= 60;
+                    if (confirm(unsend ? 'Unsend for everyone?' : 'Delete for you?')) {
+                        deleteMessage(messageId, unsend);
+                    }
+                    break;
+                case 'delete-for-me':
+                    if (confirm('Delete this message for you?')) {
+                        deleteMessage(messageId, false);
+                    }
+                    break;
+                case 'report': alert('Message reported to admin.'); break;
+            }
+            removeContextMenu();
+        });
+    });
+    
+    setTimeout(() => {
+        const closeMenu = (e) => {
+            if (!menu.contains(e.target)) {
+                removeContextMenu();
+                document.removeEventListener('click', closeMenu);
+                document.removeEventListener('touchstart', closeMenu);
+            }
+        };
+        document.addEventListener('click', closeMenu);
+        document.addEventListener('touchstart', closeMenu);
+    }, 50);
+}
 
     function replyMessage(messageId) {
         replyToMessage = messages.find(m => String(m.id) === String(messageId)) || null;
