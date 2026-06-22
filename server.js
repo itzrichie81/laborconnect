@@ -157,10 +157,15 @@ const createTables = async () => {
                 is_suspended BOOLEAN DEFAULT false,
                 suspension_reason TEXT,
                 flagged_at TIMESTAMP,
+                is_online BOOLEAN DEFAULT false,
+                last_active TIMESTAMP DEFAULT NOW(),
                 privacy_settings JSONB DEFAULT '{"private_profile": false, "discovery": true, "show_email": false}'::JSONB,
                 notification_settings JSONB DEFAULT '{"email": true, "sms": false, "marketing": false}'::JSONB
             )
         `);
+
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT false`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active TIMESTAMP DEFAULT NOW()`);
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS jobs (
@@ -1217,9 +1222,23 @@ function removeUserSocket(socketId) {
 io.on('connection', (socket) => {
     console.log('🔌 New client connected:', socket.id);
 
-    socket.on('register-user', (userId) => {
-        userSockets.set(String(userId), socket.id);
-        console.log(`👤 User ${userId} registered`);
+    socket.on('register-user', async (userId) => {
+        const id = String(userId);
+        userSockets.set(id, socket.id);
+        try {
+            await pool.query(
+                `UPDATE users SET is_online = true, last_active = NOW() WHERE id = $1`,
+                [id]
+            );
+            io.emit('user-status-change', {
+                userId: id,
+                is_online: true,
+                last_active: new Date().toISOString()
+            });
+        } catch (err) {
+            console.error('❌ Error updating online status on register:', err);
+        }
+        console.log(`👤 User ${id} registered`);
     });
 
     socket.on('join-chat', (chatId) => {
@@ -1349,9 +1368,22 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
         const userId = removeUserSocket(socket.id);
         if (userId) {
+            try {
+                await pool.query(
+                    `UPDATE users SET is_online = false, last_active = NOW() WHERE id = $1`,
+                    [userId]
+                );
+                io.emit('user-status-change', {
+                    userId,
+                    is_online: false,
+                    last_active: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error('❌ Error updating offline status on disconnect:', err);
+            }
             console.log(`👤 User ${userId} disconnected`);
         }
     });

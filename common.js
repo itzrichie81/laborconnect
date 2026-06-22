@@ -107,6 +107,9 @@ let currentCallPeerId = null;
 let currentCallLocalProfileName = null;
 let currentCallLocalProfilePhoto = null;
 let isPageHidden = false;
+let presenceHeartbeat = null;
+let isPresenceMarkedOnline = false;
+let lastPresenceUpdate = 0;
 
 // ===== CONNECTION STATUS MONITORING =====
 /*let isOnline = navigator.onLine;
@@ -185,6 +188,48 @@ function stopStreamTracks(stream) {
       console.warn('Unable to stop track:', err);
     }
   });
+}
+
+async function updateUserPresenceState(isOnline) {
+  const user = currentUser || JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user || !user.id) return;
+
+  try {
+    await fetch(`${API_URL}/user/${user.id}/online`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_online: isOnline })
+    });
+  } catch (err) {
+    console.warn('Could not update user presence:', err);
+  }
+}
+
+function markCurrentUserPresence(isOnline) {
+  const user = currentUser || JSON.parse(localStorage.getItem('user') || 'null');
+  if (!user || !user.id) return;
+
+  const now = Date.now();
+  const shouldUpdate = isOnline !== isPresenceMarkedOnline || (isOnline && now - lastPresenceUpdate >= 30000);
+
+  if (!shouldUpdate) return;
+
+  isPresenceMarkedOnline = isOnline;
+  lastPresenceUpdate = now;
+
+  if (isOnline) {
+    if (presenceHeartbeat) {
+      clearInterval(presenceHeartbeat);
+    }
+    presenceHeartbeat = setInterval(() => {
+      markCurrentUserPresence(true);
+    }, 30000);
+  } else if (presenceHeartbeat) {
+    clearInterval(presenceHeartbeat);
+    presenceHeartbeat = null;
+  }
+
+  updateUserPresenceState(isOnline);
 }
 
 function getOptimizedAudioConstraints() {
@@ -1590,6 +1635,21 @@ async function initGlobalSocket() {
   globalSocket.on('connect', () => {
     console.log('🌐 Global socket connected');
     globalSocket.emit('register-user', currentUser.id);
+    markCurrentUserPresence(true);
+  });
+
+  globalSocket.on('reconnect', () => {
+    if (currentUser && currentUser.id) {
+      globalSocket.emit('register-user', currentUser.id);
+      markCurrentUserPresence(true);
+    }
+  });
+
+  globalSocket.on('user-status-change', (data) => {
+    if (!data || !data.userId) return;
+    if (typeof window.updateUserStatus === 'function') {
+      window.updateUserStatus(data.userId, data.is_online, data.last_active);
+    }
   });
   
   globalSocket.on('incoming-call', (data) => {
@@ -1650,7 +1710,10 @@ async function initGlobalSocket() {
     } catch (err) { console.warn('Signal error:', err); }
   });
   
-  globalSocket.on('disconnect', () => { console.log('🌐 Global socket disconnected'); });
+  globalSocket.on('disconnect', () => {
+    console.log('🌐 Global socket disconnected');
+    markCurrentUserPresence(false);
+  });
 }
 
 function restorePersistedCallUI() {
@@ -1898,11 +1961,13 @@ if (document.readyState === 'loading') {
 window.addEventListener('pageshow', () => {
     restorePersistedCallUI();
     window.checkAndShowWelcome();
+    markCurrentUserPresence(true);
 });
 window.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     isPageHidden = true;
     stopRingtone();
+    markCurrentUserPresence(false);
     if (callTimerInterval) {
       clearInterval(callTimerInterval);
       callTimerInterval = null;
@@ -1933,7 +1998,21 @@ window.addEventListener('visibilitychange', () => {
         }
       }, 1000);
     }
+    if (globalSocket && globalSocket.connected) {
+      markCurrentUserPresence(true);
+    }
   }
+});
+window.addEventListener('online', () => {
+  if (globalSocket && globalSocket.connected) {
+    markCurrentUserPresence(true);
+  }
+});
+window.addEventListener('offline', () => {
+  markCurrentUserPresence(false);
+});
+window.addEventListener('beforeunload', () => {
+  markCurrentUserPresence(false);
 });
 
 window.stopRingtone = stopRingtone;
