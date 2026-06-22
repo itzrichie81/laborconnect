@@ -2,17 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Chat - LaborConnect</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%232563eb'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='800' font-family='Arial, sans-serif'>LC</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%232563eb'/><stop offset='100%25' stop-color='%238b5cf6'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)'/><text x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='800' font-family='Arial, sans-serif'>LC</text></svg>">
     
-    <!-- FIXED: Simpler Google Fonts URL that works -->
     <link href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,800|Poppins:600,700&display=swap" rel="stylesheet" crossorigin="anonymous">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* ===== WHATSAPP-STYLE LAYOUT FIX ===== */
+        html, body {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            touch-action: manipulation !important;
+        }
+
+        .chat-container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 1000px !important;
+            margin: 0 auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            background: white !important;
+            z-index: 10 !important;
+        }
+
+        .chat-messages {
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            min-height: 0 !important;
+            height: 100% !important;
+        }
+
+        .chat-input {
+            flex-shrink: 0 !important;
+            position: relative !important;
+            bottom: 0 !important;
+            z-index: 15 !important;
+        }
+
+        input, textarea, select, button {
+            font-size: 16px !important;
+        }
+
         /* ===== CHAT PAGE OPTIMIZED STYLES - NO EXTRA SPACE ===== */
         * {
             margin: 0;
@@ -20,22 +69,9 @@
             box-sizing: border-box;
         }
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            overscroll-behavior: none;
-            -webkit-text-size-adjust: 100%;
-        }
-
         body {
             background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            min-height: 100vh;
-            min-height: 100dvh;
-            min-height: -webkit-fill-available;
-            touch-action: manipulation;
         }
 
         .chat-page {
@@ -49,25 +85,6 @@
         /* Navbar hidden on chat page */
         .chat-page .navbar {
             display: none !important;
-        }
-
-        /* Main Chat Container - Full height */
-        .chat-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            min-height: -webkit-fill-available;
-            display: flex;
-            flex-direction: column;
-            background: white;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
         }
 
         /* Chat Header - Compact */
@@ -2133,6 +2150,36 @@ window.addEventListener('beforeunload', () => {
         }
         hideRecordingIndicator();
     });
+
+    // ==================== WHATSAPP KEYBOARD HANDLER =====
+    (function() {
+        const messages = document.getElementById('chatMessages');
+        const container = document.querySelector('.chat-container');
+        if (!messages) return;
+
+        function scrollBottom() {
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        if (window.visualViewport) {
+            let lastHeight = window.visualViewport.height;
+            window.visualViewport.addEventListener('resize', function() {
+                const h = window.visualViewport.height;
+                const diff = lastHeight - h;
+                if (diff > 100) setTimeout(scrollBottom, 50);
+                if (container) { container.style.height = h + 'px'; container.style.maxHeight = h + 'px'; }
+                lastHeight = h;
+            });
+        }
+
+        window.addEventListener('resize', function() { setTimeout(scrollBottom, 100); });
+        document.addEventListener('focusin', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                setTimeout(scrollBottom, 150);
+            }
+        });
+        setTimeout(scrollBottom, 200);
+    })();
 
     // Initialize
     syncChatLayout();

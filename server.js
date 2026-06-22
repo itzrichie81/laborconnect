@@ -160,12 +160,18 @@ const createTables = async () => {
                 is_online BOOLEAN DEFAULT false,
                 last_active TIMESTAMP DEFAULT NOW(),
                 privacy_settings JSONB DEFAULT '{"private_profile": false, "discovery": true, "show_email": false}'::JSONB,
-                notification_settings JSONB DEFAULT '{"email": true, "sms": false, "marketing": false}'::JSONB
+                notification_settings JSONB DEFAULT '{"email": true, "sms": false, "marketing": false}'::JSONB,
+                latitude DECIMAL(10, 8),
+                longitude DECIMAL(11, 8),
+                location_updated_at TIMESTAMP DEFAULT NOW()
             )
         `);
 
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_online BOOLEAN DEFAULT false`);
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active TIMESTAMP DEFAULT NOW()`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8)`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8)`);
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP DEFAULT NOW()`);
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS jobs (
@@ -580,6 +586,7 @@ app.patch('/api/user/:id/location', async (req, res) => {
         res.status(500).json({ message: 'Failed to update location' });
     }
 });
+
 // ========== UPDATE USER ONLINE STATUS ==========
 app.patch('/api/user/:id/online', async (req, res) => {
     try {
@@ -1174,6 +1181,7 @@ app.put('/api/calls/:id', async (req, res) => {
     }
 });
 
+// ========== FIXED: CALL LOGS GET ENDPOINT ==========
 app.get('/api/calls/user/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -1183,7 +1191,8 @@ app.get('/api/calls/user/:userId', async (req, res) => {
                 u1.name as caller_name, u1.photoURL as caller_photo,
                 u2.name as receiver_name, u2.photoURL as receiver_photo
              FROM calls c
-             LEFT JOIN users u1 ON c.caller_id = u1.id::text             LEFT JOIN users u2 ON c.receiver_id = u2.id::text
+             LEFT JOIN users u1 ON c.caller_id = u1.id::text
+             LEFT JOIN users u2 ON c.receiver_id = u2.id::text
              WHERE c.caller_id = $1 OR c.receiver_id = $1
              ORDER BY c.started_at DESC
              LIMIT 100`,
