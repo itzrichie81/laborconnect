@@ -63,7 +63,13 @@ if (!supabaseUrl || !supabaseKey) {
     console.log('✅ Supabase credentials found.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Add WebSocket support for Node.js 20
+const WebSocket = require('ws');
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    realtime: {
+        transport: WebSocket
+    }
+});
 
 // ========== FILE VALIDATION ==========
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
